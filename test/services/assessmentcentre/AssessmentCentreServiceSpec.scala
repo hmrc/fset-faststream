@@ -582,6 +582,78 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
       // When this is called all the Reds or Withdrawn schemes in the css have been removed and are not evaluated at fsac
       service.evaluateAssessmentCandidate(assessmentData).futureValue
     }
+
+    "fail fsb candidate after fsac pass marks change and all schemes are Red or Withdrawn" in new TestFixture {
+      // The situation here is the 1st scheme was Green and the 2nd Amber after the evaluation ran the first time.
+      // Candidate is moved to Fsb for the 1st scheme.
+      // Candidate then withdraws the 1st scheme and we change the pass marks.
+      // The result is the next scheme pref goes from Amber to Red so the candidate should be failed
+      val schemeEvaluationResult = List(SchemeEvaluationResult(Digital, Red.toString))
+      val evaluationResult = AssessmentEvaluationResult(fsacResults, schemeEvaluationResult)
+
+      (mockEvaluationEngine.evaluate _)
+        .expects(*)
+        .returning(evaluationResult)
+
+      val fsbApplicationStatusDetails = ApplicationStatusDetails(
+        ApplicationStatus.FSB,
+        ApplicationRoute.Faststream,
+        Some(FSB_AWAITING_ALLOCATION),
+        statusDate = None,
+        overrideSubmissionDeadline = None
+      )
+
+      (mockAppRepo.findStatus _)
+        .expects(applicationId.toString())
+        .returningAsync(fsbApplicationStatusDetails)
+
+      val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Withdrawn.toString), // This needs a fsb
+        SchemeEvaluationResult(Digital, Amber.toString)) // This does not need a fsb
+      (mockAppRepo.getCurrentSchemeStatus _)
+        .expects(applicationId.toString())
+        .returning(Future.successful(currentSchemeStatus))
+
+      // This is the scheme evaluation stored in the db from the last time the candidate was evaluated
+      (mockAssessmentCentreRepo.getFsacEvaluatedSchemes _)
+        .expects(applicationId.toString())
+        .returningAsync(
+          Some(
+            List(
+              SchemeEvaluationResult(Commercial, Green.toString),
+              SchemeEvaluationResult(Digital, Amber.toString)
+            )
+          )
+        )
+
+      val expectedEvaluation = AssessmentPassMarkEvaluation(
+        applicationId, "1",
+        AssessmentEvaluationResult(fsacResults,
+          schemesEvaluation = List(
+            SchemeEvaluationResult(Digital, Red.toString),
+            SchemeEvaluationResult(Commercial, Green.toString)
+          )
+        )
+      )
+      val newCurrentSchemeStatus = List(
+        SchemeEvaluationResult(Commercial, Withdrawn.toString),
+        SchemeEvaluationResult(Digital, Red.toString)
+      )
+
+      (mockAssessmentCentreRepo.saveAssessmentScoreEvaluation _)
+        .expects(expectedEvaluation, newCurrentSchemeStatus)
+        .returning(Future.successful(()))
+
+      (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
+        .expects(applicationId.toString(), ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED)
+        .returningAsync
+
+      val assessmentData = AssessmentPassMarksSchemesAndScores(
+        passmark = passMarkSettings, schemes = List(Digital),
+        scores = AssessmentScoresAllExercises(applicationId = applicationId)
+      )
+      // When this is called all the Reds or Withdrawn schemes in the css have been removed and are not evaluated at fsac
+      service.evaluateAssessmentCandidate(assessmentData).futureValue
+    }
   }
 
   trait TestFixture {

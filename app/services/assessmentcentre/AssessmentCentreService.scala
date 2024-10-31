@@ -21,7 +21,7 @@ import common.FutureEx
 import model.ApplicationStatus.ApplicationStatus
 
 import javax.inject.{Inject, Singleton}
-import model.EvaluationResults.{AssessmentEvaluationResult, ExerciseAverageResult, Green}
+import model.EvaluationResults.{AssessmentEvaluationResult, ExerciseAverageResult, Green, Red, Withdrawn}
 import model.Exceptions.NoResultsReturned
 import model.ProgressStatuses._
 import model._
@@ -222,7 +222,6 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
   }
   //scalastyle:on
 
-  //here - entry point
   def evaluateAssessmentCandidate(assessmentPassMarksSchemesAndScores: AssessmentPassMarksSchemesAndScores): Future[Unit] = {
 
     logger.warn(s"$logPrefix evaluateAssessmentCandidate - running")
@@ -319,7 +318,14 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
           logger.warn(s"$logPrefix $applicationId - fsb candidate who was amber banded at fsac will now be offered a job")
           applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), FSB_FSAC_REEVALUATION_JOB_OFFER)
         } else {
-          Future.successful(())
+          val allSchemesFailedOrWithdrawn = results.iterator.forall(ser => ser.result == Red.toString || ser.result == Withdrawn.toString)
+          if (isFsbCandidate && allSchemesFailedOrWithdrawn) {
+            logger.warn(s"$logPrefix $applicationId - after reevaluation, fsb candidate's schemes are all Red or Withdrawn " +
+              "so will now be set to ALL_FSBS_AND_FSACS_FAILED")
+            applicationRepo.addProgressStatusAndUpdateAppStatus(applicationId.toString(), ALL_FSBS_AND_FSACS_FAILED)
+          } else {
+            Future.successful(())
+          }
         }
       }
     }.getOrElse {
