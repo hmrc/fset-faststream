@@ -23,7 +23,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{Amber, Green, Withdrawn}
 import model.Exceptions.CandidateAlreadyAssignedToOtherEventException
 import model._
-import model.command.{CandidateAllocation, CandidateAllocations}
+import model.command.{CandidateAllocation, CandidateAllocations, JobOfferProgressResponse, ProgressResponse, Fsb}
 import model.exchange.candidateevents.CandidateAllocationWithEvent
 import model.exchange.{CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
 import model.persisted._
@@ -280,14 +280,46 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
   "Unallocate candidate" must {
     "unallocate candidate who is eligible for reallocation" in new TestFixture {
-      commonUnallocateCandidates(eligibleForReallocation = true)
+      commonUnallocateCandidates(eligibleForReallocation = true, eligibleForJobOffer = false, fsbAllFailed = false)
       verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
       verify(mockAppRepo).resetApplicationAllocationStatus(any[String], any[EventType])
       verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "unallocate candidate who is not eligible for reallocation" in new TestFixture {
-      commonUnallocateCandidates(eligibleForReallocation = false)
+      commonUnallocateCandidates(eligibleForReallocation = false, eligibleForJobOffer = false, fsbAllFailed = false)
+
+      verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
+      verify(mockAppRepo, never()).resetApplicationAllocationStatus(any[String], any[EventType])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
+    }
+
+    "unallocate candidate who is not not eligible for reallocation because they have been offered a job" in new TestFixture {
+      commonUnallocateCandidates(eligibleForReallocation = false, eligibleForJobOffer = true, fsbAllFailed = false)
+
+      verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
+      verify(mockAppRepo, never()).resetApplicationAllocationStatus(any[String], any[EventType])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
+    }
+
+    "unallocate candidate who is not not eligible for reallocation because they have been offered a job 2" in new TestFixture {
+      commonUnallocateCandidates(eligibleForReallocation = true, eligibleForJobOffer = true, fsbAllFailed = false)
+
+      verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
+      verify(mockAppRepo, never()).resetApplicationAllocationStatus(any[String], any[EventType])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
+    }
+
+    "unallocate candidate who is not not eligible for reallocation because they are fsb all failed" in new TestFixture {
+      commonUnallocateCandidates(eligibleForReallocation = false, eligibleForJobOffer = false, fsbAllFailed = true)
+
+      verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
+      verify(mockAppRepo, never()).resetApplicationAllocationStatus(any[String], any[EventType])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
+    }
+
+    "unallocate candidate who is not not eligible for reallocation because they are fsb all failed 2" in new TestFixture {
+      commonUnallocateCandidates(eligibleForReallocation = true, eligibleForJobOffer = false, fsbAllFailed = true)
 
       verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
       verify(mockAppRepo, never()).resetApplicationAllocationStatus(any[String], any[EventType])
@@ -954,7 +986,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       )
     }
 
-    def commonUnallocateCandidates(eligibleForReallocation: Boolean) = {
+    def commonUnallocateCandidates(eligibleForReallocation: Boolean, eligibleForJobOffer: Boolean, fsbAllFailed: Boolean) = {
       val eventId = "E1"
       val sessionId = "S1"
       val appId = "app1"
@@ -964,6 +996,19 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       when(mockCandidateAllocationRepository.isAllocationExists(any[String], any[String], any[String], any[Option[String]]))
         .thenReturnAsync(true)
       when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation])).thenReturnAsync()
+
+      if (eligibleForJobOffer) {
+        when(mockAppRepo.findProgress(any[String])).thenReturnAsync(
+          ProgressResponse(applicationId = "", eligibleForJobOffer = JobOfferProgressResponse(eligible = true))
+        )
+      } else if (fsbAllFailed) {
+        when(mockAppRepo.findProgress(any[String])).thenReturnAsync(
+          ProgressResponse(applicationId = "", fsb = Fsb(allFailed = true))
+        )
+      } else {
+        when(mockAppRepo.findProgress(any[String])).thenReturnAsync(ProgressResponse(applicationId = ""))
+      }
+
       when(mockAppRepo.resetApplicationAllocationStatus(any[String], any[EventType])).thenReturnAsync()
 
       when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e1)

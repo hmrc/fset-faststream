@@ -105,11 +105,18 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
     }
     Future.sequence(checkedAllocs).flatMap { allocations =>
       Future.sequence(allocations.map { allocation =>
-        eventsService.getEvent(allocation.eventId).flatMap { event =>
-          candidateAllocationRepo.removeCandidateAllocation(allocation).flatMap { _ =>
-            processCandidateAllocation(allocation, eligibleForReallocation, event.eventType)
+        for {
+          event <- eventsService.getEvent(allocation.eventId)
+          _ <- candidateAllocationRepo.removeCandidateAllocation(allocation)
+          progressResponse <- applicationRepo.findProgress(allocation.id)
+          // If the candidate is eligible for job offer or all failed then do not reallocate the candidate for another fsb
+          shouldReallocate = if (progressResponse.eligibleForJobOffer.eligible || progressResponse.fsb.allFailed) {
+            false
+          } else {
+            eligibleForReallocation
           }
-        }
+          _ <- processCandidateAllocation (allocation, shouldReallocate, event.eventType)
+        } yield ()
       })
     }.map(_ => ())
   }
