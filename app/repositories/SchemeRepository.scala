@@ -43,7 +43,7 @@ case class SchemeConfigProtocol(urlPrefix: String) extends DefaultYamlProtocol {
     siftRequirement: Option[SiftRequirement.Value], evaluationRequired: Boolean,
     fsbType: Option[String], schemeGuide: Option[String], schemeQuestion: Option[String]
   ) => Scheme(SchemeId(id), code, name, civilServantEligible, degree, siftRequirement, evaluationRequired,
-    fsbType.map(t => FsbType(t)), schemeGuide, schemeQuestion.map( url => s"$urlPrefix$url" ))
+    fsbType.map(t => FsbType(t)), schemeGuide.map( url => s"$urlPrefix$url" ), schemeQuestion.map( url => s"$urlPrefix$url" ))
   )
 }
 
