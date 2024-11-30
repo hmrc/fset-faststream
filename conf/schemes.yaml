@@ -34,7 +34,7 @@
     required: Degree_22
     specificRequirement: true
   siftRequirement: FORM
-  siftEvaluationRequired: false
+  siftEvaluationRequired: true
   fsbType: FCO
   schemeGuide: /fset-fast-stream/media/fsb-guides/FSB_Guide_Diplomatic.pdf
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-ds.odt
