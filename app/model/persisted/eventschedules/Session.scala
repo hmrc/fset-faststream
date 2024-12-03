@@ -33,7 +33,7 @@ case class Session(
   endTime: LocalTime
 )
 
-case class UpdateSession(id: String, capacity: Int, minViableAttendees: Int, attendeeSafetyMargin: Int)
+case class UpdateSession(id: String, capacity: Int, minViableAttendees: Int, attendeeSafetyMargin: Int, startTime: LocalTime, endTime: LocalTime)
 
 object UpdateSession {
   implicit val format: OFormat[UpdateSession] = Json.format[UpdateSession]
