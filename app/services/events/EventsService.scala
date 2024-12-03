@@ -72,9 +72,13 @@ class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
       val updatedEvent = event.copy(skillRequirements = eventUpdate.skillRequirements,
         sessions = event.sessions.map { s =>
           val sessionUpdate = eventUpdate.session(s.id)
-          s.copy(capacity = sessionUpdate.capacity,
+          s.copy(
+            capacity = sessionUpdate.capacity,
             attendeeSafetyMargin = sessionUpdate.attendeeSafetyMargin,
-            minViableAttendees = sessionUpdate.minViableAttendees)
+            minViableAttendees = sessionUpdate.minViableAttendees,
+            startTime = sessionUpdate.startTime,
+            endTime = sessionUpdate.endTime
+          )
         }
       )
       eventsRepo.updateEvent(updatedEvent)

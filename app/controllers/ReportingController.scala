@@ -1162,9 +1162,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
         )
         val onlineTestResults = applicationsForOnlineTest.find(_.userId == userId)
         val siftResult = siftResults.find(_.applicationId == appId)
-        // TODO: fix this
-//        val fsacResult = fsacResults.find(_.applicationId.toString() == appId)
-        val overallFsacScoreOpt = None //fsacResult.map(res => AssessmentScoreCalculator.calculateCompetencyAverages(res).overallScore)
+        val fsacResult = fsacResults.find(_.applicationId.toString() == appId)
+        val overallFsacScoreOpt = fsacResult.map(res => AssessmentScoreCalculator.fetchExerciseAverages(res, appId).overallScore)
         val fsbResult = Option(FsbReportItem(appId, fsbResults.find(_.applicationId == appId).map(_.results)))
 
         applicationRepository.getCurrentSchemeStatus(appId).map { currentSchemeStatus =>
