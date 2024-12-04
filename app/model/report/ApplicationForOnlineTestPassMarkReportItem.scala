@@ -56,7 +56,7 @@ object ApplicationForOnlineTestPassMarkReportItem {
       testResults = a.testResults.copy(
         fsac = fsacResults.map(_.toExchange), overallFsacScore = overallScoreOpt, sift = siftResults, fsb = fsbScoresAndFeedback
       ),
-      a.evaluationsResults,
+      a.evaluationResults,
       currentSchemeStatus = a.currentSchemeStatus
     )
   }

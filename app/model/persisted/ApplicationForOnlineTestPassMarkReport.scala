@@ -31,7 +31,7 @@ case class ApplicationForOnlineTestPassMarkReport(userId: String,
                                                   assessmentCentreAdjustments: Option[String],
                                                   testResults: TestResultsForOnlineTestPassMarkReportItem,
                                                   currentSchemeStatus: List[SchemeEvaluationResult],
-                                                  evaluationsResults: TestEvaluationResultsForOnlineTestPassMarkReportItem
+                                                  evaluationResults: TestEvaluationResultsForOnlineTestPassMarkReportItem
                                                  )
 
 object ApplicationForOnlineTestPassMarkReport {
