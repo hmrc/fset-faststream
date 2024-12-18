@@ -7,7 +7,7 @@
     specificRequirement: false
   siftEvaluationRequired: false
   fsbType: CFS - Skype interview
-  schemeGuide: /fset-fast-stream/media/fsb-guides/Candidate_Guide_Commercial_Final_Selection_Board.pdf
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-cfs.odt
 - id: CyberSecurity
   code: CYB
   name: Cyber Security
@@ -17,7 +17,8 @@
     specificRequirement: false
   siftEvaluationRequired: false
   fsbType: CYB - Skype interview
-  schemeGuide: /fset-fast-stream/media/fsb-guides/Candidate_Guide_Commercial_Final_Selection_Board.pdf
+  # Missing
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-cyb.odt
 - id: Digital
   code: DDTAC
   name: Digital
@@ -36,8 +37,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: FCO
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB_Guide_Diplomatic.pdf
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-ds.odt
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-ds.odt
 - id: DiplomaticAndDevelopmentEconomics
   code: GES-DS
   name: Diplomatic and Development Economics
@@ -48,8 +49,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: GES_DS
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB_Guide_Economic_Service.pdf
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-ges-ds.odt
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-ges-ds.odt
 - id: Finance
   code: FIFS
   name: Finance
@@ -59,7 +60,7 @@
     specificRequirement: false
   siftEvaluationRequired: false
   fsbType: FIN FSB
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB_Guide_Finance.pdf
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-fifs.odt
 #  DO NOT USE - currently filtered out in the candidate ui
 - id: GovernmentCommunicationService
   code: GCFS
@@ -71,8 +72,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: GCFS FSB
-  schemeGuide: /fset-fast-stream/media/1233/gcfs-guide.pdf
   schemeQuestion: /fset-fast-stream/media/1247/scheme-questions-gcfs.rtf
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-gcfs.odt
 - id: GovernmentEconomicsService
   code: GES
   name: Government Economics Service
@@ -83,8 +84,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: EAC
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB_Guide_Economic_Service.pdf
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-ges.odt
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-ges.odt
 - id: GovernmentOperationalResearchService
   code: GORS
   name: Government Operational Research Service
@@ -95,8 +96,9 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: ORAC
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB-Guide_Government-Operational-Research.pdf
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-gors.odt
+  # Missing
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-gors.odt
 - id: GovernmentPolicy
   code: GP
   name: Government Policy
@@ -115,8 +117,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SRAC
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB-Guide_Social-Research.pdf
   schemeQuestion: /fset-fast-stream/media/1262/GSR-FS-scheme-questions-gsr.odt
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-gsr.odt
 - id: GovernmentStatisticalService
   code: GSS
   name: Government Statistical Service
@@ -127,8 +129,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SAC
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB-Guide_Government-Statistical-Service.pdf
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-gss.odt
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-gss.odt
 - id: HousesOfParliament
   code: HOP
   name: Houses Of Parliament
@@ -139,8 +141,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: HOP FSB
-  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-hop.odt
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-hop.odt
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-hop.odt
 - id: HumanResources
   code: HRFS
   name: Human Resources
@@ -159,7 +161,7 @@
     specificRequirement: false
   siftEvaluationRequired: false
   fsbType: OPD - Skype interview
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB-Guide_Operational-Delivery.pdf
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-opd.odt
 - id: ProjectDelivery
   code: PDFS
   name: Project Delivery
@@ -170,8 +172,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: PDFS - Skype interview
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB-Guide_Project-Delivery.pdf
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-pdfs.odt
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-pdfs.odt
 - id: Property
   code: PRO
   name: Property
@@ -181,7 +183,7 @@
     specificRequirement: false
   siftEvaluationRequired: false
   fsbType: PRO - Skype interview
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB-Guide_Property.pdf
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-pro.odt
 - id: RiskManagement
   code: RMT
   name: Risk Management
@@ -192,8 +194,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: RMT - Skype interview
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB-Guide_Property.pdf
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-rmt.odt
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-rmt.odt
 - id: ScienceAndEngineering
   code: SEFS
   name: Science and Engineering
@@ -204,8 +206,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SEFS FSB
-  schemeGuide: /fset-fast-stream/media/fsb-guides/FSB-Guide_Science-and-Engineering.pdf
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-sefs.odt
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-sefs.odt
 - id: Edip
   code: EDIP
   name: Early Diversity Internship Programme
@@ -213,8 +215,8 @@
   siftRequirement: FORM
   siftEvaluationRequired: false
   fsbType: EDIP - Telephone interview
-  schemeGuide: /fset-fast-stream/media/fsb-guides/EDIP-2023-Candidate-Guidance.pdf
   schemeQuestion: /fset-fast-stream/media/1245/Early-Diversity-Internship-Programme-additional-information-form-2021-pw.odt
+  schemeGuide: /fset-fast-stream/media/fsb-guides/EDIP-2023-Candidate-Guidance.pdf
 - id: Sdip
   code: SDIP
   name: Summer Internship Programme
