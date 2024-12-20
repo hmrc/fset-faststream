@@ -41,4 +41,39 @@ trait AssessmentScoreCalculator {
       scores.exercise3OverallAvg(appId),
       overallScore.toDouble)
   }
+
+  def fetchExerciseAveragesOpt(scores: AssessmentScoresAllExercises): Option[ExerciseAverageResult] = {
+    // The overall score is the individual exercise averages summed
+    val exerciseScores = List(
+      scores.exercise1OverallAvgOpt,
+      scores.exercise2OverallAvgOpt,
+      scores.exercise3OverallAvgOpt
+    )
+
+    val decimalPlaces = 4
+    val overallScoreOpt = exerciseScores.foldLeft(
+      Option(BigDecimal.apply(0d).setScale(decimalPlaces, BigDecimal.RoundingMode.HALF_UP)))((acc, cur) =>
+        for ( a <- acc; c <- cur) yield {
+          val bd = BigDecimal.apply(c)
+          a + bd
+        } )
+
+    overallScoreOpt match {
+      case Some(overallScore) =>
+        // If the overallScore is populated then all the data is populated
+        for {
+          ex1Avg <- scores.exercise1OverallAvgOpt
+          ex2Avg <- scores.exercise2OverallAvgOpt
+          ex3Avg <- scores.exercise3OverallAvgOpt
+        } yield {
+          ExerciseAverageResult(
+            ex1Avg,
+            ex2Avg,
+            ex3Avg,
+            overallScore.toDouble
+          )
+        }
+      case None => None
+    }
+  }
 }

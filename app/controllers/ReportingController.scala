@@ -1206,15 +1206,19 @@ class ReportingController @Inject() (cc: ControllerComponents,
       for {
         application <- applications
         appId = UniqueIdentifier(application.applicationId)
-        fsac = fsacResults.find(_.applicationId == appId)
-        overallFsacScoreOpt = fsac.map(res => AssessmentScoreCalculator.fetchExerciseAverages(res, appId.toString).overallScore)
-        sift = siftResults.find(_.applicationId == application.applicationId)
-        q <- questionnaires.get(application.applicationId)
-        fsb <- fsbScoresAndFeedback.get(application.applicationId)
+        fsacOpt = fsacResults.find(_.applicationId == appId)
+        overallFsacScoreOpt = fsacOpt.flatMap(assessmentScores =>
+          // It is possible that only some of the fsac scores have been reviewed at this stage so we need to handle optional data
+          AssessmentScoreCalculator.fetchExerciseAveragesOpt(assessmentScores).map(_.overallScore))
+        siftOpt = siftResults.find(_.applicationId == application.applicationId)
+        questionnaire <- questionnaires.get(application.applicationId)
+        fsbOpt <- fsbScoresAndFeedback.get(application.applicationId)
         emailOpt = emails.find(_.userId == application.userId)
       } yield {
         OnlineTestPassMarkReportItem(
-          ApplicationForOnlineTestPassMarkReportItem(application, fsac, overallFsacScoreOpt, sift, fsb), q, emailOpt.map(_.email).getOrElse("")
+          ApplicationForOnlineTestPassMarkReportItem(application, fsacOpt, overallFsacScoreOpt, siftOpt, fsbOpt),
+          questionnaire,
+          emailOpt.map(_.email).getOrElse("")
         )
       }
     }
