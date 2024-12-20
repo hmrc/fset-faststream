@@ -31,27 +31,39 @@ case class AssessmentScoresAllExercises(
                                        ) {
 
   def exercise1OverallAvg(appId: String): Double = {
+    exercise1OverallAvgOpt.getOrElse(throw new Exception(s"Error fetching fsac exercise1 overall average for appId: $appId"))
+  }
+
+  def exercise1OverallAvgOpt: Option[Double] = {
     exercise1.flatMap(ex =>
       for {
         average <- ex.overallAverage
       } yield average
-    ).getOrElse(throw new Exception(s"Error fetching fsac exercise1 overall average for appId: $appId"))
+    )
   }
 
   def exercise2OverallAvg(appId: String): Double = {
+    exercise2OverallAvgOpt.getOrElse(throw new Exception(s"Error fetching fsac exercise2 overall average for appId: $appId"))
+  }
+
+  def exercise2OverallAvgOpt: Option[Double] = {
     exercise2.flatMap(ex =>
       for {
         average <- ex.overallAverage
       } yield average
-    ).getOrElse(throw new Exception(s"Error fetching fsac exercise2 overall average for appId: $appId"))
+    )
   }
 
   def exercise3OverallAvg(appId: String): Double = {
+    exercise3OverallAvgOpt.getOrElse(throw new Exception(s"Error fetching fsac exercise3 overall average for appId: $appId"))
+  }
+
+  def exercise3OverallAvgOpt: Option[Double] = {
     exercise3.flatMap(ex =>
       for {
         average <- ex.overallAverage
       } yield average
-    ).getOrElse(throw new Exception(s"Error fetching fsac exercise3 overall average for appId: $appId"))
+    )
   }
 
   def toExchange: AssessmentScoresAllExercisesExchange = AssessmentScoresAllExercisesExchange(

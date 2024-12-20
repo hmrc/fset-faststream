@@ -49,7 +49,8 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         ))
       )
 
-      val result = AssessmentScoreCalculatorUnderTest.fetchExerciseAverages(assessmentScores, applicationId.toString)
+      val result1 = AssessmentScoreCalculatorUnderTest.fetchExerciseAverages(assessmentScores, applicationId.toString)
+      val result2 = AssessmentScoreCalculatorUnderTest.fetchExerciseAveragesOpt(assessmentScores)
 
       val expected = ExerciseAverageResult(
         exercise1Average = 3.125,
@@ -58,7 +59,51 @@ class AssessmentScoreCalculatorSpec extends UnitSpec {
         overallScore = 7.625
       )
 
-      result mustBe expected
+      result1 mustBe expected
+      result2 mustBe Some(expected)
+    }
+
+    "Throw an exception when attempting to calculate the overall score and not expecting the data to be missing" in {
+      val applicationId = UniqueIdentifier.randomUniqueIdentifier
+      val assessmentScores = AssessmentScoresAllExercises(
+        applicationId,
+        exercise1 = Some(AssessmentScoresExercise(
+          attended = true,
+          updatedBy = updatedBy,
+          overallAverage = Some(3.125)
+        )),
+        exercise2 = Some(AssessmentScoresExercise(
+          attended = true,
+          updatedBy = updatedBy,
+          overallAverage = Some(2.0)
+        )),
+        exercise3 = None
+      )
+
+      intercept[Exception] {
+        AssessmentScoreCalculatorUnderTest.fetchExerciseAverages(assessmentScores, applicationId.toString)
+      }
+    }
+
+    "Handle a missing exercise correctly when expecting optional data" in {
+      val applicationId = UniqueIdentifier.randomUniqueIdentifier
+      val assessmentScores = AssessmentScoresAllExercises(
+        applicationId,
+        exercise1 = Some(AssessmentScoresExercise(
+          attended = true,
+          updatedBy = updatedBy,
+          overallAverage = Some(3.125)
+        )),
+        exercise2 = Some(AssessmentScoresExercise(
+          attended = true,
+          updatedBy = updatedBy,
+          overallAverage = Some(2.0)
+        )),
+        exercise3 = None
+      )
+
+      val result = AssessmentScoreCalculatorUnderTest.fetchExerciseAveragesOpt(assessmentScores)
+      result mustBe None
     }
   }
 }
