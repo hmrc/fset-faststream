@@ -49,7 +49,7 @@ import repositories.sift.ApplicationSiftRepository
 import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.allocation.CandidateAllocationService
-import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
+import services.application.ApplicationService.{InvalidSchemeException, NoChangeInCurrentSchemeStatusException}
 import services.events.EventsService
 import services.sift.{ApplicationSiftService, SiftAnswersService}
 import services.stc.{EventSink, StcEventService}
@@ -67,6 +67,8 @@ object ApplicationService {
                                                     currentSchemeStatus: Seq[SchemeEvaluationResult],
                                                     newSchemeStatus: Seq[SchemeEvaluationResult]) extends
     Exception(s"No change in CSS after updating $applicationId. CSS before:$currentSchemeStatus, CSS after:$newSchemeStatus")
+
+  case class InvalidSchemeException(message: String) extends Exception(message)
 }
 
 // scalastyle:off number.of.methods file.size.limit
@@ -617,6 +619,49 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
       schemePreferencesWithoutSdip = schemePreferences.copy(schemes = schemePreferences.schemes.filterNot(_ == Scheme.SdipId))
       _ <- schemePrefsRepository.save(applicationId, schemePreferencesWithoutSdip)
       _ <- appRepository.updateCurrentSchemeStatus(applicationId, currentSchemeStatusWithoutSdip)
+    } yield ()
+  }
+
+  def addSdipSchemePreference(applicationId: String): Future[Unit] = {
+    for {
+      // Look for the ApplicationRoute. We do this because if a document cannot be found this will throw an ApplicationNotFound exception
+      _ <- appRepository.getApplicationRoute(applicationId)
+      schemePreferences <- schemePrefsRepository.find(applicationId)
+      // The operation of adding Sdip to the scheme preferences is idempotent so we filter out the scheme here in case it already exists
+      schemePreferencesWithoutSdip = schemePreferences.copy(schemes = schemePreferences.schemes.filterNot(_ == Scheme.SdipId))
+      updatedSchemes = schemePreferencesWithoutSdip.schemes :+ Scheme.SdipId
+      updatedSchemePreferences = schemePreferences.copy(schemes = updatedSchemes)
+      _ <- schemePrefsRepository.save(applicationId, updatedSchemePreferences)
+
+      // If there is a currentSchemeStatus then add Sdip
+      css <- appRepository.getCurrentSchemeStatus(applicationId)
+      _ = if (css.nonEmpty) {
+        // Filter out Sdip because of idempotent operation
+        val cssWithoutSdip = css.filterNot(_.schemeId == Scheme.SdipId)
+        val updatedCss = cssWithoutSdip :+ SchemeEvaluationResult(Scheme.SdipId, Green.toString)
+        appRepository.updateCurrentSchemeStatus(applicationId, updatedCss).map( _ => ())
+      }
+    } yield ()
+  }
+
+  def removeSchemePreference(applicationId: String, schemeToRemove: SchemeId): Future[Unit] = {
+    for {
+      // Look for the ApplicationRoute. We do this because if a document cannot be found this will throw an ApplicationNotFound exception
+      _ <- appRepository.getApplicationRoute(applicationId)
+      schemePreferences <- schemePrefsRepository.find(applicationId)
+      _ = if (!schemePreferences.schemes.contains(schemeToRemove)) {
+        throw SchemeNotFoundException(s"Scheme $schemeToRemove does not exist")
+      }
+      updatedSchemes = schemePreferences.copy(schemes = schemePreferences.schemes.filterNot(_ == schemeToRemove)).schemes
+      updatedSchemePreferences = schemePreferences.copy(schemes = updatedSchemes)
+      _ <- schemePrefsRepository.save(applicationId, updatedSchemePreferences)
+
+      // If there is a currentSchemeStatus then update it
+      css <- appRepository.getCurrentSchemeStatus(applicationId)
+      _ = if (css.nonEmpty) {
+        val updatedCss = css.filterNot(_.schemeId == schemeToRemove)
+        appRepository.updateCurrentSchemeStatus(applicationId, updatedCss).map( _ => ())
+      }
     } yield ()
   }
 
