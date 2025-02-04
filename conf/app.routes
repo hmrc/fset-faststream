@@ -193,7 +193,10 @@ GET         /diagnostic/application/:applicationId/rollback-to-submitted-and-add
 GET         /diagnostic/application/:applicationId/rollback-to-submitted-after-fastpass-rejected-by-mistake         @controllers.fixdata.FixDataConsistencyController.rollbackToSubmittedFromPhase1AfterFastpassRejectedByMistake(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-fsac-awaiting-allocation-from-fsac-failed            @controllers.fixdata.FixDataConsistencyController.rollbackToFsacAwaitingAllocationFromFsacFailed(applicationId: String)
 GET         /diagnostic/application/:applicationId/rollback-to-fsac-allocation-confirmed-from-fsb                   @controllers.fixdata.FixDataConsistencyController.rollbackToFsacAllocationConfirmedFromFsb(applicationId: String)
+
 GET         /diagnostic/application/:applicationId/remove-sdip-scheme-from-faststream-user                          @controllers.fixdata.FixDataConsistencyController.removeSdipSchemeFromFaststreamUser(applicationId: String)
+GET         /diagnostic/application/:applicationId/addSdipSchemePreference                                          @controllers.fixdata.FixDataConsistencyController.addSdipSchemePreference(applicationId: String)
+GET         /diagnostic/application/:applicationId/removeSchemePreference/:schemeId                                 @controllers.fixdata.FixDataConsistencyController.removeSchemePreference(applicationId: String, schemeId: model.SchemeId)
 
 GET         /diagnostic/sift/findCandidatesStuckInSiftReady                                             @controllers.fixdata.FixDataConsistencyController.findUsersStuckInSiftReadyWithFailedPreSiftSiftableSchemes
 GET         /diagnostic/sift/fixCandidateStuckInSiftReady                                               @controllers.fixdata.FixDataConsistencyController.fixUserStuckInSiftReadyWithFailedPreSiftSiftableSchemes(applicationId: String)

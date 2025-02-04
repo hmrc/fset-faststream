@@ -96,7 +96,6 @@ object Scheme {
       fsbType, schemeGuide, schemeQuestion)
   // scalastyle:on
 
-
   def isSdip(id: SchemeId): Boolean = id.value == Sdip
   def isEdip(id: SchemeId): Boolean = id.value == Edip
 }

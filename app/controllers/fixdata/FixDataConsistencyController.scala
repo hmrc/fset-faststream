@@ -26,7 +26,7 @@ import model.{SchemeId, UniqueIdentifier}
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.SchemeRepository
-import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
+import services.application.ApplicationService.{InvalidSchemeException, NoChangeInCurrentSchemeStatusException}
 import services.application.{ApplicationService, FsbService}
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.assessmentcentre.{AssessmentCentreService, ProgressionToFsbOrOfferService}
@@ -138,6 +138,25 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         case e: ApplicationNotFound => NotFound(e.getMessage)
         case e: Throwable => BadRequest(e.getMessage)
       }
+  }
+
+  def addSdipSchemePreference(applicationId: String): Action[AnyContent] = Action.async {
+    applicationService.addSdipSchemePreference(applicationId).map(_ =>
+      Ok(s"Successfully added Sdip for $applicationId")
+    ).recover {
+      case e: ApplicationNotFound => NotFound(s"Application not found: ${e.getMessage}")
+      case e: Throwable => BadRequest(e.getMessage)
+    }
+  }
+
+  def removeSchemePreference(applicationId: String, schemeToRemove: model.SchemeId): Action[AnyContent] = Action.async {
+    applicationService.removeSchemePreference(applicationId, schemeToRemove).map(_ =>
+      Ok(s"Successfully removed $schemeToRemove for $applicationId")
+    ).recover {
+      case e: ApplicationNotFound => NotFound(s"Application not found: ${e.getMessage}")
+      case e: SchemeNotFoundException => NotFound(e.getMessage)
+      case e: Throwable => BadRequest(e.getMessage)
+    }
   }
 
   def rollbackApplicationState(applicationId: String, operator: String => Future[Unit]): Future[Result] = {
