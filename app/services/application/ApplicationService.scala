@@ -1109,7 +1109,6 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
   def removePhase1TestEvaluation(applicationId: String): Future[Unit] = {
     for {
       _ <- phase1TestRepository.removeTestGroupEvaluation(applicationId)
-      _ <- appRepository.removeCurrentSchemeStatus(applicationId)
     } yield ()
   }
 

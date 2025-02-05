@@ -95,8 +95,13 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
         s"not evaluating the following Withdrawn schemes: ${withdrawnSchemes.mkString(",")}")
     }
 
-    application.currentSchemeStatus.filterNot(schemeEvaluationResult =>
+    val schemesToEvaluate = application.currentSchemeStatus.filterNot(schemeEvaluationResult =>
       schemeEvaluationResult.result == model.EvaluationResults.Withdrawn.toString
     ).map(_.schemeId)
+    if (schemesToEvaluate.isEmpty) {
+      logger.warn(s"PHASE1 - evaluation appId ${application.applicationId} " +
+        s"WARNING: no schemes found to evaluate - check the currentSchemeStatus for this candidate!!!")
+    }
+    schemesToEvaluate
   }
 }
