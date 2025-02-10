@@ -1028,6 +1028,8 @@ class ReportingController @Inject() (cc: ControllerComponents,
         name,
         Some(candidateEmail),
         Some(candidateAllocation.status.toString),
+        Some(candidateAllocation.version),
+        Some(candidateAllocation.createdAt.toString),
         Some(session.description),
         Some(session.startTime.toString),
         Some(session.endTime.toString),
@@ -1040,12 +1042,11 @@ class ReportingController @Inject() (cc: ControllerComponents,
     }
 
     val headers = List("EventId,SessionId,Date,Type,EventName,Description,ApplicationId,CandidateName,Email,Status," +
-      "SessionName,Start,End,Capacity,MinAttendees,SafetyMargin")
+      "Version,CreatedAt,SessionName,Start,End,Capacity,MinAttendees,SafetyMargin")
     reportRows.flatten.map { rows =>
       Ok(Json.toJson(headers ++ rows))
     }
   }
-
 
   def adjustmentReport(frameworkId: String): Action[AnyContent] = Action.async {
     val reports =
