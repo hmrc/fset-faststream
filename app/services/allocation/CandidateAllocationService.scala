@@ -19,6 +19,7 @@ package services.allocation
 import com.google.inject.name.Named
 import config.MicroserviceAppConfig
 import connectors.{AuthProviderClient, OnlineTestEmailClient}
+import model.AllocationStatuses.AllocationStatus
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{CandidateAlreadyAssignedToOtherEventException, OptimisticLockException}
 import model.ProgressStatuses.EventProgressStatuses
@@ -370,6 +371,13 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
     implicit hc: HeaderCarrier): Future[Unit] = {
     for {
       _ <- candidateAllocationRepo.deleteOneAllocation(eventId, sessionId, applicationId, version)
+    } yield ()
+  }
+
+  def deleteOneAllocation(eventId: String, sessionId: String, applicationId: String, version: String, status: AllocationStatus)(
+    implicit hc: HeaderCarrier): Future[Unit] = {
+    for {
+      _ <- candidateAllocationRepo.deleteOneAllocation(eventId, sessionId, applicationId, version, status)
     } yield ()
   }
 

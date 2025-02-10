@@ -16,6 +16,8 @@
 
 package controllers
 
+import model.AllocationStatuses.AllocationStatus
+
 import javax.inject.{Inject, Singleton}
 import model.Exceptions.{CandidateAlreadyAssignedToOtherEventException, NotFoundException, OptimisticLockException, TooManyEntries}
 import model.persisted.CandidateAllocation
@@ -139,6 +141,21 @@ class CandidateAllocationController @Inject() (cc: ControllerComponents,
     candidateAllocationService.deleteOneAllocation(eventId, sessionId, applicationId, version).map(_ => Ok)
       .recover {
         case ex@(_: NotFoundException | _: TooManyEntries) =>
+          val message = s"Error occurred: ${ex.getMessage}"
+          logger.warn(s"Error occurred: $message")
+          BadRequest(message)
+      }
+  }
+
+  def deleteOneAllocationWithStatus(eventId: String, sessionId: String, applicationId: String, version: String, status: AllocationStatus)
+  : Action[AnyContent] = Action.async { implicit request =>
+    candidateAllocationService.deleteOneAllocation(eventId, sessionId, applicationId, version, status).map(_ => Ok)
+      .recover {
+        case ex: NotFoundException =>
+          val message = s"Error occurred: ${ex.getMessage}"
+          logger.warn(s"Error occurred: $message")
+          NotFound(message)
+        case ex: TooManyEntries =>
           val message = s"Error occurred: ${ex.getMessage}"
           logger.warn(s"Error occurred: $message")
           BadRequest(message)
