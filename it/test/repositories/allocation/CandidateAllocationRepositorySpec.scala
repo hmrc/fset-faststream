@@ -18,6 +18,7 @@ package repositories.allocation
 
 import model.AllocationStatuses
 import model.AllocationStatuses._
+import model.Exceptions.NotFoundException
 import model.exchange.candidateevents.CandidateRemoveReason
 import model.persisted.CandidateAllocation
 import repositories.{CandidateAllocationMongoRepository, CollectionNames}
@@ -185,6 +186,27 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
         storeAllocations()
         val result = repository.allAllocationUnconfirmed.futureValue
         result.forall(_.status == AllocationStatuses.UNCONFIRMED) mustBe true
+      }
+    }
+
+    "deleting allocations" should {
+      "delete a single allocation for the given data" in {
+        storeAllocations()
+        repository.deleteOneAllocation("eventId2", "sessionId2", appId3, "version1").futureValue
+        val result1 = repository.findAllAllocations(Seq(appId1, appId2, appId3)).futureValue
+        result1.size mustBe 2
+
+        repository.deleteOneAllocation("eventId1", "sessionId1", appId2, "version1", CONFIRMED).futureValue
+        val result2 = repository.findAllAllocations(Seq(appId1, appId2, appId3)).futureValue
+        result2.size mustBe 1
+      }
+
+      "throw a NotFoundException if the document cannot be found" in {
+        storeAllocations()
+        val result1 = repository.deleteOneAllocation("eventId1", "sessionId1", appId1, "version1Missing").failed.futureValue
+        result1 mustBe a[NotFoundException]
+        val result2 = repository.deleteOneAllocation("eventId1", "sessionId1", appId1, "version1", REMOVED).failed.futureValue
+        result2 mustBe a[NotFoundException]
       }
     }
   }

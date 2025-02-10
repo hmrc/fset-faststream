@@ -46,6 +46,7 @@ trait CandidateAllocationRepository {
   def markAsReminderSent(applicationId: String, eventId: String, sessionId: String): Future[Unit]
   def delete(allocations: Seq[CandidateAllocation]): Future[Unit]
   def deleteOneAllocation(eventId: String, sessionId: String, applicationId: String, version: String): Future[Unit]
+  def deleteOneAllocation(eventId: String, sessionId: String, applicationId: String, version: String, status: AllocationStatus): Future[Unit]
   def updateStructure(): Future[Unit]
   def allAllocationUnconfirmed: Future[Seq[CandidateAllocation]]
   def findAllConfirmedOrUnconfirmedAllocations(applicationIds: Seq[String], eventIds: Seq[String]): Future[Seq[CandidateAllocation]]
@@ -187,6 +188,22 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoCompone
       Document("eventId" -> eventId),
       Document("sessionId" -> sessionId),
       Document("version" -> version)
+    ))
+
+    val validator = multipleRemoveValidator(1, "Deleting candidate allocation")
+
+    val remove = collection.deleteOne(query).toFuture()
+    remove.map(validator)
+  }
+
+  override def deleteOneAllocation(eventId: String, sessionId: String, applicationId: String,
+                                   version: String, status: AllocationStatus): Future[Unit] = {
+    val query = Document("$and" -> BsonArray(
+      Document("id" -> applicationId),
+      Document("eventId" -> eventId),
+      Document("sessionId" -> sessionId),
+      Document("version" -> version),
+      Document("status" -> status.toBson)
     ))
 
     val validator = multipleRemoveValidator(1, "Deleting candidate allocation")
