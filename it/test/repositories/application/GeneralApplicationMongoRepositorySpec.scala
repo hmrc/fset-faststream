@@ -164,6 +164,26 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       applicationStatusDetails.status mustBe SUBMITTED
       applicationStatusDetails.statusDate.get.toLocalDate mustBe LocalDate.now
     }
+
+    "find application status excluding FSAC allocation statuses" in {
+      val userId = "fastPassUser"
+      val appId = "fastPassApp"
+      val testAccountId = "testAccountId"
+      val frameworkId = "FastStream-2016"
+
+      testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId, appStatus = SUBMITTED).futureValue
+
+      repository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED).futureValue
+      repository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED).futureValue
+      repository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED).futureValue
+      // With excludeFsacAllocationStatuses set to true this latest progress status should be ignored
+      repository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED).futureValue
+
+      val applicationStatusDetails = repository.findStatus(appId, excludeFsacAllocationStatuses = true).futureValue
+
+      applicationStatusDetails.status mustBe ASSESSMENT_CENTRE
+      applicationStatusDetails.latestProgressStatus mustBe Some(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED)
+    }
   }
 
   "Find by criteria" should {

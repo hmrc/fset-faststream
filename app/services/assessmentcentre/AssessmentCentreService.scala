@@ -240,7 +240,10 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
       evaluatedSchemes <- assessmentCentreRepo.getFsacEvaluatedSchemes(applicationId.toString())
       mergedEvaluation = mergeSchemes(evaluationResult.schemesEvaluation, evaluatedSchemes, evaluation)
       _ <- assessmentCentreRepo.saveAssessmentScoreEvaluation(mergedEvaluation, currentSchemeStatus)
-      applicationStatus <- applicationRepo.findStatus(applicationId.toString())
+      // We want to fetch the latest progress status for the candidate, ignoring ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED or
+      // ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED because these can occur after the candidate's scores have been reviewed, which
+      // results in the candidate not progressing out of fsac
+      applicationStatus <- applicationRepo.findStatus(applicationId.toString(), excludeFsacAllocationStatuses = true)
       _ <- maybeMoveCandidateToPassedOrFailed(
         applicationId, applicationStatus.status, applicationStatus.latestProgressStatus, currentSchemeStatus,
         applicationStatus.applicationRoute == ApplicationRoute.SdipFaststream
