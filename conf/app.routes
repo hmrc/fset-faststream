@@ -227,7 +227,10 @@ GET         /diagnostic/findSdipFaststreamFailedFaststreamInvitedToVideoIntervie
 GET         /diagnostic/moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift                 @controllers.fixdata.FixDataConsistencyController.moveSdipFaststreamFailedFaststreamInvitedToVideoInterviewToSift(applicationId: String)
 GET         /diagnostic/application/fixSdipFaststreamCandidateWhoExpiredInOnlineTests                   @controllers.fixdata.FixDataConsistencyController.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String)
 GET         /diagnostic/application/rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation           @controllers.fixdata.FixDataConsistencyController.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String)
+
 GET         /diagnostic/currentSchemeStatus/markAs/:result/schemeId/:schemeId                           @controllers.fixdata.FixDataConsistencyController.updateCurrentSchemeStatusScheme(applicationId: String, schemeId: model.SchemeId, result: model.EvaluationResults.Result)
+DELETE      /diagnostic/currentSchemeStatus/remove/schemeId/:schemeId                                   @controllers.fixdata.FixDataConsistencyController.removeCurrentSchemeStatusScheme(applicationId: String, schemeId: model.SchemeId)
+
 GET         /diagnostic/application/rollback-to-ac-confirmed-from-ac-failed-notified                    @controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId: String)
 GET         /diagnostic/application/rollback-to-ac-confirmed-from-eligible-for-job-offer-notified       @controllers.fixdata.FixDataConsistencyController.rollbackToAssessmentCentreConfirmedFromEligibleForJobOfferNotified(applicationId: String)
 GET         /diagnostic/application/rollback-to-fsb-awaiting-allocation-from-eligible-for-job-offer-notified @controllers.fixdata.FixDataConsistencyController.rollbackToFsbAwaitingAllocationFromEligibleForJobOfferNotified(applicationId: String)

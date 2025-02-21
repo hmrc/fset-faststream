@@ -1204,6 +1204,17 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     } yield ()
   }
 
+  def removeCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId): Future[Unit] = {
+    for {
+      currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
+      newCurrentSchemeStatus = currentSchemeStatus.filterNot( _.schemeId == schemeId )
+      _ = if (currentSchemeStatus == newCurrentSchemeStatus) {
+        throw NoChangeInCurrentSchemeStatusException(applicationId, currentSchemeStatus, newCurrentSchemeStatus)
+      }
+      _ <- appRepository.updateCurrentSchemeStatus(applicationId, newCurrentSchemeStatus)
+    } yield ()
+  }
+
   def setPhase3UsedForResults(applicationId: String, newUsedForResults: Boolean, token: String): Future[Unit] = {
     for {
       phase3TestGroupOpt <- phase3TestRepository.getTestGroup(applicationId)

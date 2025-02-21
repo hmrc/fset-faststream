@@ -527,6 +527,15 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
   }
 
+  def removeCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId): Action[AnyContent] = Action.async {
+    applicationService.removeCurrentSchemeStatusScheme(applicationId, schemeId).map(_ =>
+      Ok(s"Successfully removed schemeId ${schemeId.toString} from CSS for $applicationId ")
+    ). recover {
+      case ex: NoChangeInCurrentSchemeStatusException =>
+        BadRequest(s"Error updating CSS: ${ex.getMessage}")
+    }
+  }
+
   def rollbackToAssessmentCentreConfirmedFromAssessmentCentreFailedNotified(applicationId: String): Action[AnyContent] =
     Action.async {
       val statusesToRemove = List(
