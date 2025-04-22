@@ -17,7 +17,7 @@
 package connectors
 
 import com.google.inject.ImplementedBy
-import config.{MicroserviceAppConfig, WSHttpT}
+import config.MicroserviceAppConfig
 import connectors.ExchangeObjects._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands._
@@ -25,14 +25,15 @@ import play.api.Logging
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[OnlineTestsGatewayClientImpl])
 trait OnlineTestsGatewayClient extends Logging {
-  val http: WSHttpT
+  val http: HttpClientV2
   val url: String
   val root = "fset-online-tests-gateway"
 
@@ -43,45 +44,53 @@ trait OnlineTestsGatewayClient extends Logging {
   def psiRegisterApplicant(request: RegisterCandidateRequest)(implicit ec: ExecutionContext): Future[AssessmentOrderAcknowledgement] = {
     logger.debug(s"$root psi registerApplicant POST request, body=${Json.toJson(request).toString}")
 
-    http.POST[RegisterCandidateRequest, HttpResponse](url = s"$url/$root/faststream/psi-register", request).map { response =>
-      if (response.status == OK) {
-        logger.debug(s"$root psiRegisterApplicant response - ${response.json.toString}")
-        response.json.as[AssessmentOrderAcknowledgement]
-      } else {
-        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
+    import play.api.libs.ws.writeableOf_JsValue
+    http.post(url"$url/$root/faststream/psi-register")
+      .withBody(Json.toJson(request))
+      .execute[HttpResponse]
+      .map { response =>
+        if (response.status == OK) {
+          logger.debug(s"$root psiRegisterApplicant response - ${response.json.toString}")
+          response.json.as[AssessmentOrderAcknowledgement]
+        } else {
+          throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
+        }
       }
-    }
   }
 
   def psiCancelTest(request: CancelCandidateTestRequest)(implicit ec: ExecutionContext): Future[AssessmentCancelAcknowledgementResponse] = {
     logger.debug(s"cancelTest - $request")
 
-    http.GET[HttpResponse](url = s"$url/$root/faststream/psi-cancel-assessment/${request.orderId}").map { response =>
-      if (response.status == OK) {
-        logger.debug(s"psiCancelAssessment response - ${response.json.toString}")
-        response.json.as[AssessmentCancelAcknowledgementResponse]
-      } else {
-        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
+    http.get(url"$url/$root/faststream/psi-cancel-assessment/${request.orderId}")
+      .execute[HttpResponse]
+      .map { response =>
+        if (response.status == OK) {
+          logger.debug(s"psiCancelAssessment response - ${response.json.toString}")
+          response.json.as[AssessmentCancelAcknowledgementResponse]
+        } else {
+          throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
+        }
       }
-    }
   }
 
   def downloadPsiTestResults(reportId: Int)(implicit ec: ExecutionContext): Future[PsiTestResult] = {
     logger.debug(s"$root downloadPsiTestResults GET request - $url/$root/faststream/psi-results/$reportId")
 
-    http.GET[HttpResponse](s"$url/$root/faststream/psi-results/$reportId").map { response =>
-      if (response.status == OK) {
-        logger.debug(s"$root downloadPsiTestResults response - ${response.json.toString}")
-        response.json.as[PsiTestResult]
-      } else {
-        throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
+    http.get(url"$url/$root/faststream/psi-results/$reportId")
+      .execute[HttpResponse]
+      .map { response =>
+        if (response.status == OK) {
+          logger.debug(s"$root downloadPsiTestResults response - ${response.json.toString}")
+          response.json.as[PsiTestResult]
+        } else {
+          throw new ConnectorException(s"There was a general problem connecting to Online Tests Gateway. HTTP response was $response")
+        }
       }
-    }
   }
 }
 
 @Singleton
-class OnlineTestsGatewayClientImpl @Inject() (val http: WSHttpT, appConfig: MicroserviceAppConfig)(
+class OnlineTestsGatewayClientImpl @Inject() (val http: HttpClientV2, appConfig: MicroserviceAppConfig)(
   implicit ec: ExecutionContext) extends OnlineTestsGatewayClient {
   val url: String = appConfig.onlineTestsGatewayConfig.url
 }

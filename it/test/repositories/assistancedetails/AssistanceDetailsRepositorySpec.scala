@@ -18,8 +18,8 @@ package repositories.assistancedetails
 
 import model.Exceptions.AssistanceDetailsNotFound
 import model.persisted.AssistanceDetailsExamples
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 

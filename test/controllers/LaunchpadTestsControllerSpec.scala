@@ -35,7 +35,7 @@ import scala.concurrent.Future
 class LaunchpadTestsControllerSpec extends UnitWithAppSpec {
 
   trait TestFixture {
-    implicit val hc = HeaderCarrier()
+    implicit val hc: HeaderCarrier = HeaderCarrier()
     implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
 
     val mockPhase3TestService = mock[Phase3TestService]

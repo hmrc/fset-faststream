@@ -16,17 +16,16 @@
 
 package repositories.application
 
-import org.apache.pekko.stream.scaladsl.Source
 import model.Exceptions.ApplicationNotFound
-
-import javax.inject.{Inject, Singleton}
-import org.mongodb.scala.MongoCollection
+import org.apache.pekko.stream.scaladsl.Source
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{MongoCollection, MongoException, ObservableFuture, SingleObservableFuture}
 import play.api.libs.json.{JsValue, Json}
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait DiagnosticReportingRepository {

@@ -65,7 +65,7 @@ class FsbTestGroupController @Inject() (cc: ControllerComponents,
   }
 
   def saveScoresAndFeedback(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
-    withJsonBody[FsbScoresAndFeedback] { fsbScoresAndFeedback: FsbScoresAndFeedback =>
+    withJsonBody[FsbScoresAndFeedback] { fsbScoresAndFeedback =>
       fsbService.saveScoresAndFeedback(applicationId, fsbScoresAndFeedback)
         .map { _ => Ok }
     }

@@ -19,12 +19,12 @@ package repositories.application
 import factories.DateTimeFactory
 import model.EvaluationResults.{Amber, Green}
 import model.ProgressStatuses
-import model.ProgressStatuses._
+import model.ProgressStatuses.*
 import model.command.ApplicationForProgression
 import model.persisted.FsbTestGroup
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
 import repositories.{CollectionNames, CommonBSONDocuments, CurrentSchemeStatusHelper, RandomSelection, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}

@@ -44,11 +44,11 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 
         (mockApplicationRepository.getCurrentSchemeStatus _)
           .expects(expectedApplication.applicationId)
-          .returningAsync(expectedApplication.currentSchemeStatus).once
+          .returningAsync(expectedApplication.currentSchemeStatus).once()
 
         (mockFsbRepository.progressToFsb _)
           .expects(expectedApplication)
-          .returningAsync.once
+          .returningAsync.once()
 
         (mockApplicationRepository.find(_: String))
           .expects(expectedApplication.applicationId)
@@ -63,7 +63,7 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
           .returningAsync(candidate1)
 
         // Mock no arg method, which returns data
-        (mockSchemeRepository.fsbSchemeIds _).expects().returning(
+        (() => mockSchemeRepository.fsbSchemeIds).expects().returning(
           Seq(Digital, DiplomaticAndDevelopment, GovernmentStatisticalService))
 
         (mockEmailClient.sendCandidateAssessmentCompletedMovedToFsb(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
@@ -87,19 +87,19 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 
         (mockApplicationRepository.getCurrentSchemeStatus _)
           .expects(expectedApplication.applicationId)
-          .returningAsync(expectedApplication.currentSchemeStatus).once
+          .returningAsync(expectedApplication.currentSchemeStatus).once()
 
         (mockApplicationRepository.findStatus(_: String))
           .expects(expectedApplication.applicationId)
           .returningAsync(assessmentCentrePassedApplicationStatus)
 
         // Mock no arg method, which returns data
-        (mockSchemeRepository.fsbSchemeIds _).expects().returning(
+        (() => mockSchemeRepository.fsbSchemeIds).expects().returning(
           Seq(Digital, DiplomaticAndDevelopment, GovernmentStatisticalService))
 
         (mockFsbRepository.progressToJobOffer _)
           .expects(expectedApplication)
-          .returning(Future.successful(())).once
+          .returning(Future.successful(())).once()
       }
 
       whenReady(progressionToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applicationsToProgressToJobOffer)(hc)) {
@@ -118,7 +118,7 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 
         (mockApplicationRepository.getCurrentSchemeStatus _)
           .expects(expectedApplication.applicationId)
-          .returningAsync(expectedApplication.currentSchemeStatus).once
+          .returningAsync(expectedApplication.currentSchemeStatus).once()
 
         (mockApplicationRepository.findStatus(_: String))
           .expects(expectedApplication.applicationId)
@@ -126,11 +126,11 @@ class ProgressionToFsbOrOfferServiceSpec extends ScalaMockUnitSpec {
 
         (mockFsbRepository.progressToJobOffer _)
           .expects(*)
-          .returning(Future.successful(())).never
+          .returning(Future.successful(())).never()
 
         (mockFsbRepository.progressToFsb _)
           .expects(*)
-          .returning(Future.successful(())).never
+          .returning(Future.successful(())).never()
       }
 
       whenReady(progressionToFsbOrOfferService.progressApplicationsToFsbOrJobOffer(applicationsNotToProgress)(hc)) {

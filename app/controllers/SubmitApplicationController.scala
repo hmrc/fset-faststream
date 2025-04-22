@@ -51,22 +51,22 @@ class SubmitApplicationController @Inject() (cc: ControllerComponents,
   implicit val ec: ExecutionContext = cc.executionContext
 
   def submitApplication(userId: String, applicationId: String) = Action.async { implicit request =>
-    val generalDetailsFuture = pdRepository.find(applicationId)
+    val personalDetailsFuture = pdRepository.find(applicationId)
     val assistanceDetailsFuture = adRepository.find(applicationId)
     val contactDetailsFuture = cdRepository.find(userId)
     val schemePreferencesFuture = spRepository.find(applicationId)
     val schemesLocationsFuture = frameworkPrefRepository.tryGetPreferences(applicationId)
 
     val result = for {
-      gd <- generalDetailsFuture
+      pd <- personalDetailsFuture
       ad <- assistanceDetailsFuture
       cd <- contactDetailsFuture
       sp <- schemePreferencesFuture
       sl <- schemesLocationsFuture
-      availableRegions <- frameworkRegionsRepository.getFrameworksByRegionFilteredByQualification(CandidateHighestQualification.from(gd))
+      availableRegions <- frameworkRegionsRepository.getFrameworksByRegionFilteredByQualification(CandidateHighestQualification.from(pd))
     } yield {
-      if (ApplicationValidator(gd, ad, sl, availableRegions).validate) {
-        submit(applicationId, cd.email, gd.preferredName).flatMap( _ =>
+      if (ApplicationValidator(pd, ad, sl, availableRegions).validate) {
+        submit(applicationId, cd.email, pd.preferredName).flatMap(_ =>
           createCurrentSchemeStatus(applicationId, sp).map(_ => Ok))
       } else {
         Future.successful(BadRequest)

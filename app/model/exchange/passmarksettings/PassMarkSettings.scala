@@ -44,7 +44,7 @@ case class Phase1PassMarkSettingsPersistence(
   createDate: OffsetDateTime,
   createdBy: String
 ) extends PassMarkSettingsPersistence {
-  override def toExchange = Phase1PassMarkSettings(schemes, version, createDate, createdBy)
+  override def toExchange: Phase1PassMarkSettings = Phase1PassMarkSettings(schemes, version, createDate, createdBy)
 }
 
 object Phase1PassMarkSettingsPersistence {
@@ -58,7 +58,7 @@ case class Phase1PassMarkSettings(
   createDate: OffsetDateTime,
   createdBy: String
 ) extends PassMarkSettings {
-  override def toPersistence = Phase1PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
+  override def toPersistence: Phase1PassMarkSettingsPersistence = Phase1PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
 }
 
 object Phase1PassMarkSettings {
@@ -99,7 +99,7 @@ case class Phase2PassMarkSettings(
   createDate: OffsetDateTime,
   createdBy: String
 ) extends PassMarkSettings {
-  override def toPersistence = Phase2PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
+  override def toPersistence: Phase2PassMarkSettingsPersistence = Phase2PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
 }
 
 object Phase2PassMarkSettings {
@@ -112,7 +112,7 @@ case class Phase2PassMarkSettingsPersistence(
                                    createDate: OffsetDateTime,
                                    createdBy: String
                                  ) extends PassMarkSettingsPersistence {
-  override def toExchange = Phase2PassMarkSettings(schemes, version, createDate, createdBy)
+  override def toExchange: Phase2PassMarkSettings = Phase2PassMarkSettings(schemes, version, createDate, createdBy)
 }
 
 object Phase2PassMarkSettingsPersistence {
@@ -126,7 +126,7 @@ case class Phase3PassMarkSettings(
   createDate: OffsetDateTime,
   createdBy: String
 ) extends PassMarkSettings {
-  override def toPersistence = Phase3PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
+  override def toPersistence: Phase3PassMarkSettingsPersistence = Phase3PassMarkSettingsPersistence(schemes, version, createDate, createdBy)
 }
 
 object Phase3PassMarkSettings {
@@ -139,7 +139,7 @@ case class Phase3PassMarkSettingsPersistence(
                                               createDate: OffsetDateTime,
                                               createdBy: String
                                             ) extends PassMarkSettingsPersistence {
-  override def toExchange = Phase3PassMarkSettings(schemes, version, createDate, createdBy)
+  override def toExchange: Phase3PassMarkSettings = Phase3PassMarkSettings(schemes, version, createDate, createdBy)
 }
 
 object Phase3PassMarkSettingsPersistence {
@@ -154,7 +154,8 @@ case class AssessmentCentrePassMarkSettings(
                                              createDate: OffsetDateTime,
                                              createdBy: String
                                  ) extends PassMarkSettings {
-  override def toPersistence = AssessmentCentrePassMarkSettingsPersistence(schemes, version, createDate, createdBy)
+  override def toPersistence: AssessmentCentrePassMarkSettingsPersistence =
+    AssessmentCentrePassMarkSettingsPersistence(schemes, version, createDate, createdBy)
 }
 
 object AssessmentCentrePassMarkSettings {
@@ -171,7 +172,7 @@ case class AssessmentCentrePassMarkSettingsPersistence(
   def abbreviated = s"schemes=${schemes.filter(s => s.schemeId == Commercial)},<<truncated>>" +
     s"version=$version,createDate=$createDate,createdBy=$createdBy"
 
-  override def toExchange = AssessmentCentrePassMarkSettings(schemes, version, createDate, createdBy)
+  override def toExchange: AssessmentCentrePassMarkSettings = AssessmentCentrePassMarkSettings(schemes, version, createDate, createdBy)
 }
 
 object AssessmentCentrePassMarkSettingsPersistence {

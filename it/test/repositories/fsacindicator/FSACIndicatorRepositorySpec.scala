@@ -18,8 +18,8 @@ package repositories.fsacindicator
 
 import model.Exceptions.FSACIndicatorNotFound
 import model.persisted.FSACIndicator
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 

@@ -18,11 +18,9 @@ package services.assessor
 
 import com.google.inject.name.Named
 import common.FutureEx
-import connectors.{AuthProviderClient, OnlineTestEmailClient}
-
-import javax.inject.{Inject, Singleton}
+import connectors.{AuthProviderClient2, OnlineTestEmailClient}
 import model.AllocationStatuses.AllocationStatus
-import model.Exceptions._
+import model.Exceptions.*
 import model.command.AllocationWithEvent
 import model.exchange.{AssessorAvailabilities, AssessorSkill, UpdateAllocationStatusRequest}
 import model.persisted.AssessorAllocation
@@ -38,6 +36,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, OffsetDateTime}
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -45,7 +44,7 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
                                  assessorAllocationRepo: AssessorAllocationRepository,
                                  eventsService: EventsService,
                                  locationsWithVenuesRepo: LocationsWithVenuesRepository,
-                                 authProviderClient: AuthProviderClient,
+                                 authProviderClient: AuthProviderClient2,
                                  @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
                                 )(implicit ec: ExecutionContext) extends Logging {
 
@@ -272,12 +271,12 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
   def notifyAssessorsOfNewEvents(lastNotificationDate: OffsetDateTime)(implicit hc: HeaderCarrier): Future[Seq[Unit]] = {
     logger.info(s"Notifying assessors of new events created since $lastNotificationDate")
     val assessorEventsMapping: Future[Map[Assessor, Seq[Event]]] = assessorToEventsMappingSince(lastNotificationDate)
-    assessorEventsMapping.flatMap { assessorToEvent =>
-      val assessorsIds = assessorToEvent.keySet.map(_.userId).toSeq
+    assessorEventsMapping.flatMap { assessorToEventMap =>
+      val assessorsIds = assessorToEventMap.keySet.map(_.userId).toSeq
       val assessorsContactDetailsFut = authProviderClient.findByUserIds(assessorsIds)
-      assessorsContactDetailsFut.flatMap { assessorsContactDetails =>
+      assessorsContactDetailsFut.flatMap { assessorsContactDetails => // Seq[ExchangeObjects.Candidate]
         Future.sequence(
-          assessorToEvent.flatMap { case (assessor, assessorEvents) =>
+          assessorToEventMap.flatMap { case (assessor, assessorEvents) =>
             assessorsContactDetails.find(_.userId == assessor.userId).map { contact =>
               val (htmlBody, txtBody) = buildEmailContent(assessorEvents)
               emailClient.notifyAssessorsOfNewEvents(contact.email, contact.firstName, htmlBody, txtBody)

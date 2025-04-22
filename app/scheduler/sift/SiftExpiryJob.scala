@@ -52,5 +52,5 @@ trait SiftExpiryJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingSch
 class SiftExpiryJobConfig @Inject()(config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.sift-expiry-job",
-  name = "SiftExpiryJob"
+  jobName = "SiftExpiryJob"
 )

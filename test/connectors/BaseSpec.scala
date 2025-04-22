@@ -19,7 +19,9 @@ package connectors
 import testkit.UnitSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.ExecutionContext
+
 abstract class BaseSpec extends UnitSpec {
-  implicit val ec = scala.concurrent.ExecutionContext.Implicits.global
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
   implicit val hc: HeaderCarrier = HeaderCarrier()
 }

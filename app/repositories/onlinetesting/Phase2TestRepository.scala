@@ -18,23 +18,22 @@ package repositories.onlinetesting
 
 import common.Phase2TestConcern
 import factories.DateTimeFactory
-
-import javax.inject.{Inject, Singleton}
+import model.*
 import model.ApplicationStatus.ApplicationStatus
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses._
+import model.ProgressStatuses.*
 import model.command.ApplicationForSkippingPhases
-import model.persisted._
-import model.{ApplicationRoute, ApplicationStatus, EvaluationResults, ProgressStatuses, ReminderNotice}
-import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.{BsonArray, BsonDocument}
+import model.persisted.*
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
+import repositories.{CollectionNames, subDocRoot}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
-import repositories.{CollectionNames, subDocRoot}
 
 import java.time.OffsetDateTime
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait Phase2TestRepository extends OnlineTestRepository with Phase2TestConcern {

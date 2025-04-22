@@ -16,7 +16,7 @@
 
 package connectors
 
-import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, WSHttpT}
+import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig}
 import connectors.ExchangeObjects._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands.PsiTestResult
@@ -25,8 +25,10 @@ import org.mockito.Mockito._
 import play.api.libs.json._
 import play.api.test.Helpers._
 import testkit.{ShortTimeout, UnitSpec}
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 
+import java.net.URL
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -50,13 +52,13 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
 
   "register applicant" should {
     "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
-      mockPost[RegisterCandidateRequest].thenReturn(Future.successful(HttpResponse.apply(BAD_GATEWAY, "Test error")))
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(HttpResponse.apply(BAD_GATEWAY, "Test error")))
       val result = onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest)
       result.failed.futureValue mustBe a[ConnectorException]
     }
 
     "return an exception when there is an exception when calling online test gateway" in new GatewayTest {
-      mockPost[RegisterCandidateRequest].thenReturn(Future.failed(new Exception))
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.failed(new Exception))
       val result = onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest)
       result.failed.futureValue mustBe an[Exception]
     }
@@ -73,7 +75,7 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
       )
       val assessmentOrderAcknowledgementHttpResponse = HttpResponse.apply(OK, Json.toJson(assessmentOrderAcknowledgement).toString())
 
-      mockPost[RegisterCandidateRequest].thenReturn(Future.successful(assessmentOrderAcknowledgementHttpResponse))
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(assessmentOrderAcknowledgementHttpResponse))
       val result = onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest)
       result.futureValue mustBe assessmentOrderAcknowledgement
     }
@@ -81,13 +83,13 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
 
   "cancel test" should {
     "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
-      mockGet[HttpResponse].thenReturn(Future.successful(HttpResponse.apply(BAD_GATEWAY, "Test error")))
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(HttpResponse.apply(BAD_GATEWAY, "Test error")))
       val result = onlineTestsGatewayClient.psiCancelTest(cancelCandidateTestRequest)
       result.failed.futureValue mustBe a[ConnectorException]
     }
 
     "return an exception when there is an exception when calling online test gateway" in new GatewayTest {
-      mockGet[HttpResponse].thenReturn(Future.failed(new Exception))
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.failed(new Exception))
       val result = onlineTestsGatewayClient.psiCancelTest(cancelCandidateTestRequest)
       result.failed.futureValue mustBe an[Exception]
     }
@@ -96,7 +98,7 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
       val assessmentCancelAcknowledgementResponse = AssessmentCancelAcknowledgementResponse("status", "details", statusDate = LocalDate.now())
       val assessmentCancelAcknowledgementHttpResponse = HttpResponse.apply(OK, Json.toJson(assessmentCancelAcknowledgementResponse).toString())
 
-      mockGet[HttpResponse].thenReturn(Future.successful(assessmentCancelAcknowledgementHttpResponse))
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(assessmentCancelAcknowledgementHttpResponse))
       val result = onlineTestsGatewayClient.psiCancelTest(cancelCandidateTestRequest)
       result.futureValue mustBe assessmentCancelAcknowledgementResponse
     }
@@ -104,13 +106,13 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
 
   "download psi test results" should {
     "return a ConnectorException when online test gateway returns HTTP status Bad Gateway" in new GatewayTest {
-      mockGet[HttpResponse].thenReturn(Future.successful(HttpResponse.apply(BAD_GATEWAY, "Test error")))
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(HttpResponse.apply(BAD_GATEWAY, "Test error")))
       val result = onlineTestsGatewayClient.downloadPsiTestResults(reportId)
       result.failed.futureValue mustBe a[ConnectorException]
     }
 
     "return an exception when there is an exception when calling online test gateway" in new GatewayTest {
-      mockGet[HttpResponse].thenReturn(Future.failed(new Exception))
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.failed(new Exception))
       val result = onlineTestsGatewayClient.downloadPsiTestResults(reportId)
       result.failed.futureValue mustBe an[Exception]
     }
@@ -119,7 +121,7 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
       val testResult = PsiTestResult("status", tScore = 80.0, raw = 40.0)
       val testResultHttpResponse = HttpResponse.apply(OK, Json.toJson(testResult).toString())
 
-      mockGet[HttpResponse].thenReturn(Future.successful(testResultHttpResponse))
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(testResultHttpResponse))
       val result = onlineTestsGatewayClient.downloadPsiTestResults(reportId)
       result.futureValue mustBe testResult
     }
@@ -150,19 +152,16 @@ class OnlineTestsGatewayClientSpec extends UnitSpec with ShortTimeout {
     when(mockOnlineTestsGatewayConfig.url).thenReturn("http://localhost")
     when(mockMicroserviceAppConfig.onlineTestsGatewayConfig).thenReturn(mockOnlineTestsGatewayConfig)
 
-    val mockWSHttp = mock[WSHttpT]
-    val onlineTestsGatewayClient = new OnlineTestsGatewayClientImpl(mockWSHttp, mockMicroserviceAppConfig)
+    val mockHttp = mock[HttpClientV2]
+    val onlineTestsGatewayClient = new OnlineTestsGatewayClientImpl(mockHttp, mockMicroserviceAppConfig)
 
-    def mockPost[T] = {
-      when(
-        mockWSHttp.POST(anyString(), any[T], any())(any[Writes[T]], any[HttpReads[HttpResponse]], any[HeaderCarrier], any[ExecutionContext])
-      )
-    }
+    val mockRequestBuilder: RequestBuilder = mock[RequestBuilder]
 
-    def mockGet[T] = {
-      when(
-        mockWSHttp.GET(anyString(), any(), any())(any[HttpReads[T]], any[HeaderCarrier], any[ExecutionContext])
-      )
-    }
+    when(mockHttp.post(any[URL])(any[HeaderCarrier])).thenReturn(mockRequestBuilder)
+    when(mockHttp.get(any[URL])(any[HeaderCarrier])).thenReturn(mockRequestBuilder)
+
+    when(mockRequestBuilder.withBody(any())(any(), any(), any())).thenReturn(mockRequestBuilder)
+
+    def requestBuilderExecute[A]: Future[A] = mockRequestBuilder.execute[A](any[HttpReads[A]], any[ExecutionContext])
   }
 }

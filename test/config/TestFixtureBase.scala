@@ -25,7 +25,7 @@ import scala.util.Random
 import uk.gov.hmrc.http.HeaderCarrier
 
 abstract class TestFixtureBase extends MockitoSugar {
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
   implicit val rh: RequestHeader = FakeRequest("GET", "some/path")
 
   val mockAuditService = mock[AuditService]

@@ -29,7 +29,7 @@ object SchemeId {
   val schemeIdWritesFormat: Writes[SchemeId] = Writes[SchemeId](scheme => JsString(scheme.value))
   val schemeIdReadsFormat: Reads[SchemeId] = Reads[SchemeId](scheme => JsSuccess(SchemeId(scheme.as[String])))
 
-  implicit val schemeIdFormat = Format(schemeIdReadsFormat, schemeIdWritesFormat)
+  implicit val schemeIdFormat: Format[SchemeId] = Format(schemeIdReadsFormat, schemeIdWritesFormat)
 
   implicit class BsonOps(val schemeId: SchemeId) extends AnyVal {
     def toBson: BsonValue = Codecs.toBson(schemeId)
@@ -72,6 +72,20 @@ case class Scheme(
   schemeGuide: Option[String],
   schemeQuestion: Option[String]
 ) {
+
+  override def toString: String =
+    "scheme(" +
+      s"id=$id," +
+      s"code=$code," +
+      s"name=$name," +
+      s"civilServantEligible=$civilServantEligible," +
+      s"degree=$degree," +
+      s"siftRequirement=$siftRequirement," +
+      s"siftEvaluationRequired=$siftEvaluationRequired," +
+      s"fsbType=$fsbType," +
+      s"schemeGuide=$schemeGuide," +
+      s"schemeQuestion=$schemeQuestion" +
+      ")"
 
   def isSdip: Boolean = id.value == Scheme.Sdip
   def isEdip: Boolean = id.value == Scheme.Edip

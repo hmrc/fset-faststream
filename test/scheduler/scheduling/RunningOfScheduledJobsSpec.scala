@@ -20,7 +20,6 @@ import org.apache.pekko.actor.{Cancellable, Scheduler}
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{Minute, Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
-import play.api.Application
 import play.api.inject.ApplicationLifecycle
 import testkit.UnitSpec
 
@@ -40,14 +39,16 @@ class RunningOfScheduledJobsSpec extends UnitSpec with Eventually with GuiceOneA
         var interval: FiniteDuration     = _
       }
 
-      new RunningOfScheduledJobs {
-        override lazy val ec: ExecutionContext = ExecutionContext.Implicits.global
-        override lazy val applicationLifecycle: ApplicationLifecycle = app.injector.instanceOf[ApplicationLifecycle]
+      val applicationLifecycle: ApplicationLifecycle = app.injector.instanceOf[ApplicationLifecycle]
+      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
+
+      // Instantiate the trait with an anonymous class
+      new RunningOfScheduledJobs(app, applicationLifecycle) {
         override lazy val scheduledJobs: Seq[ScheduledJob] = Seq(testScheduledJob)
-        override lazy val application: Application = app
+
         override lazy val scheduler: Scheduler = new StubbedScheduler {
           override def scheduleWithFixedDelay(initialDelay: FiniteDuration, interval: FiniteDuration)(runnable: Runnable)
-                               (implicit executor: ExecutionContext): Cancellable = {
+                                             (implicit executor: ExecutionContext): Cancellable = {
             Captured.initialDelay = initialDelay
             Captured.interval     = interval
             new Cancellable {
@@ -58,8 +59,8 @@ class RunningOfScheduledJobsSpec extends UnitSpec with Eventually with GuiceOneA
         }
       }
 
-      Captured must have('initialDelay (testScheduledJob.initialDelay))
-      Captured must have('interval (testScheduledJob.interval))
+      Captured must have(Symbol("initialDelay") (testScheduledJob.initialDelay))
+      Captured must have(Symbol("interval") (testScheduledJob.interval))
 
       app.stop()
     }
@@ -74,9 +75,10 @@ class RunningOfScheduledJobsSpec extends UnitSpec with Eventually with GuiceOneA
         }
         override def isExecuted: Boolean = executed
       }
-      new RunningOfScheduledJobs {
-        override lazy val ec: ExecutionContext = ExecutionContext.Implicits.global
-        override lazy val applicationLifecycle: ApplicationLifecycle = app.injector.instanceOf[ApplicationLifecycle]
+
+      val applicationLifecycle: ApplicationLifecycle = app.injector.instanceOf[ApplicationLifecycle]
+      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
+      new RunningOfScheduledJobs(app, applicationLifecycle) {
         override lazy val scheduler: Scheduler = new StubbedScheduler {
           override def scheduleWithFixedDelay(initialDelay: FiniteDuration, interval: FiniteDuration)(runnable: Runnable)
                                (implicit executor: ExecutionContext): Cancellable = {
@@ -89,7 +91,6 @@ class RunningOfScheduledJobsSpec extends UnitSpec with Eventually with GuiceOneA
         }
 
         override lazy val scheduledJobs: Seq[ScheduledJob] = Seq(testScheduledJob)
-        override lazy val application: Application = app
       }
 
       testScheduledJob.isExecuted mustBe false
@@ -102,27 +103,25 @@ class RunningOfScheduledJobsSpec extends UnitSpec with Eventually with GuiceOneA
 
   "When stopping the app, the scheduled job runner" should {
     "cancel all of the scheduled jobs" in new TestCase {
-      val runner = new RunningOfScheduledJobs {
-        override lazy val ec: ExecutionContext = ExecutionContext.Implicits.global
-        override lazy val applicationLifecycle: ApplicationLifecycle = app.injector.instanceOf[ApplicationLifecycle]
+      val applicationLifecycle: ApplicationLifecycle = app.injector.instanceOf[ApplicationLifecycle]
+      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
+      val runner = new RunningOfScheduledJobs(app, applicationLifecycle) {
         override lazy val scheduledJobs: Seq[ScheduledJob] = Seq(testScheduledJob)
-        override lazy val application: Application = app
       }
 
-      every(runner.cancellables) must not be 'cancelled
+      every(runner.cancellables) must not be Symbol("cancelled")
       app.stop()
-      eventually (timeout(Span(5, Seconds))) { every(runner.cancellables) mustBe 'cancelled }
+      eventually (timeout(Span(5, Seconds))) { every(runner.cancellables) mustBe Symbol("cancelled") }
     }
 
     "block while a scheduled job is still running" in new TestCase {
       val stoppableJob = new TestScheduledJob() {
         override def name: String = "StoppableJob"
       }
-      new RunningOfScheduledJobs {
-        override lazy val ec: ExecutionContext = ExecutionContext.Implicits.global
-        override lazy val applicationLifecycle: ApplicationLifecycle = app.injector.instanceOf[ApplicationLifecycle]
+      val applicationLifecycle: ApplicationLifecycle = app.injector.instanceOf[ApplicationLifecycle]
+      implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
+      new RunningOfScheduledJobs(app, applicationLifecycle) {
         override lazy val scheduledJobs: Seq[ScheduledJob] = Seq(stoppableJob)
-        override lazy val application: Application = app
       }
 
       stoppableJob.isRunning = Future.successful(true)
@@ -133,10 +132,10 @@ class RunningOfScheduledJobsSpec extends UnitSpec with Eventually with GuiceOneA
       }
 
       val stopFuture = app.stop()
-      stopFuture must not be 'completed
+      stopFuture must not be Symbol("completed")
 
       stoppableJob.isRunning = Future.successful(false)
-      eventually (timeout(Span(1, Minute))) { stopFuture mustBe 'completed }
+      eventually (timeout(Span(1, Minute))) { stopFuture mustBe Symbol("completed") }
     }
   }
 

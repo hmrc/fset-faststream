@@ -266,7 +266,7 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
 
   private def randomAlphaString(n: Int) = {
     val alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    Stream.continually(Random.scalaRandom.nextInt(alphabet.length)).map(alphabet).take(n).mkString
+    LazyList.continually(Random.scalaRandom.nextInt(alphabet.length)).map(alphabet).take(n).mkString
   }
 
   val videoInterviewFeedback: String = "Collaborating and Partnering/In the interview you:\n" +

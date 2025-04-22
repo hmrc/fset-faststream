@@ -39,7 +39,8 @@ class Phase1PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override implicit val formatter: OFormat[Phase1PassMarkSettings] = Phase1PassMarkSettings.jsonFormat
   implicit val formatter2: OFormat[Phase1PassMarkSettingsPersistence] = Phase1PassMarkSettingsPersistence.jsonFormat
   override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase1PassMarkSettingsPersistence])
-  val passMarkThresholds = Phase1PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold, defaultSchemeThreshold)
+  override val passMarkThresholds: Phase1PassMarkThresholds =
+    Phase1PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold, defaultSchemeThreshold)
   override val passMarks = List(
     Phase1PassMark(Finance, passMarkThresholds),
     Phase1PassMark(Commercial, passMarkThresholds),
@@ -101,7 +102,7 @@ class Phase2PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override implicit val formatter: OFormat[Phase2PassMarkSettings] = Phase2PassMarkSettings.jsonFormat
   implicit val formatter2: OFormat[Phase1PassMarkSettingsPersistence] = Phase1PassMarkSettingsPersistence.jsonFormat
   override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase2PassMarkSettingsPersistence])
-  override val passMarkThresholds = Phase2PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold)
+  override val passMarkThresholds: Phase2PassMarkThresholds = Phase2PassMarkThresholds(defaultSchemeThreshold, defaultSchemeThreshold)
   override val passMarks = List(
     Phase2PassMark(Finance, passMarkThresholds),
     Phase2PassMark(Commercial, passMarkThresholds),
@@ -154,7 +155,7 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
   override implicit val formatter: OFormat[Phase3PassMarkSettings] = Phase3PassMarkSettings.jsonFormat
   implicit val formatter2: OFormat[Phase3PassMarkSettingsPersistence] = Phase3PassMarkSettingsPersistence.jsonFormat
   override val argumentCaptor = ArgumentCaptor.forClass(classOf[Phase3PassMarkSettingsPersistence])
-  override val passMarkThresholds = Phase3PassMarkThresholds(defaultSchemeThreshold)
+  override val passMarkThresholds: Phase3PassMarkThresholds = Phase3PassMarkThresholds(defaultSchemeThreshold)
   override val passMarks = List(
     Phase3PassMark(Finance, passMarkThresholds),
     Phase3PassMark(Commercial, passMarkThresholds),
@@ -197,22 +198,22 @@ class Phase3PassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpe
 }
 
 class AssessmentCentrePassMarkSettingsControllerSpec extends PassMarkSettingsControllerSpec with Schemes {
-  type T = AssessmentCentrePassMarkSettings
-  type U = AssessmentCentreExercisePassMark
+  override type T = AssessmentCentrePassMarkSettings
+  override type U = AssessmentCentreExercisePassMark
   override type V = AssessmentCentrePassMarkSettingsPersistence
-  implicit val formatter: OFormat[AssessmentCentrePassMarkSettings] = AssessmentCentrePassMarkSettings.jsonFormat
+  override implicit val formatter: OFormat[AssessmentCentrePassMarkSettings] = AssessmentCentrePassMarkSettings.jsonFormat
   implicit val formatter2: OFormat[AssessmentCentrePassMarkSettingsPersistence] = AssessmentCentrePassMarkSettingsPersistence.jsonFormat
-  val argumentCaptor = ArgumentCaptor.forClass(classOf[AssessmentCentrePassMarkSettingsPersistence])
+  override val argumentCaptor = ArgumentCaptor.forClass(classOf[AssessmentCentrePassMarkSettingsPersistence])
   val exerciseSchemeThreshold = PassMarkThreshold(2.0d, 3.0d)
   val overallSchemeThreshold = PassMarkThreshold(2.0d, 9.0d)
-  val passMarkThresholds = AssessmentCentreExercisePassMarkThresholds(
+  override val passMarkThresholds: AssessmentCentreExercisePassMarkThresholds = AssessmentCentreExercisePassMarkThresholds(
     exerciseSchemeThreshold, exerciseSchemeThreshold, exerciseSchemeThreshold, overallSchemeThreshold
   )
-  val passMarks = List(
+  override val passMarks = List(
     AssessmentCentreExercisePassMark(Finance, passMarkThresholds),
     AssessmentCentreExercisePassMark(Commercial, passMarkThresholds),
     AssessmentCentreExercisePassMark(OperationalDelivery, passMarkThresholds))
-  val passMarkSettings = AssessmentCentrePassMarkSettings(
+  override val passMarkSettings = AssessmentCentrePassMarkSettings(
     schemes = passMarks,
     version = mockVersion,
     createDate = mockCreateDate,

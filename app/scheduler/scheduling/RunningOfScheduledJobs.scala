@@ -28,22 +28,18 @@ import scala.util.{Failure, Success}
   * All implementing classes must be singletons - see
   * https://www.playframework.com/documentation/2.6.x/ScalaDependencyInjection#Stopping/cleaning-up
   */
-trait RunningOfScheduledJobs extends Logging {
-
-  implicit val ec: ExecutionContext
-
-  val application: Application
+trait RunningOfScheduledJobs(val application: Application, val applicationLifecycle: ApplicationLifecycle)(
+  implicit val ec: ExecutionContext) extends Logging {
 
   lazy val scheduler: Scheduler = application.actorSystem.scheduler
 
-  val scheduledJobs: Seq[ScheduledJob]
-
-  val applicationLifecycle: ApplicationLifecycle
+  def scheduledJobs: Seq[ScheduledJob]
 
   // Accessible for testing purposes
   private[scheduling] val cancellables = scheduledJobs.map { job =>
     val initialDelay = job.initialDelay
     val interval     = job.interval
+
     logger.info(s"Executing ${job.name}, running every $interval (after an initial delay of $initialDelay)")
     val cancellable =
       scheduler.scheduleWithFixedDelay(initialDelay, interval)(
@@ -62,6 +58,7 @@ trait RunningOfScheduledJobs extends Logging {
           }
         }
       )
+
     applicationLifecycle.addStopHook(() => Future {
       logger.info(s"Checking if job ${job.name} is running before cancelling...")
       while (Await.result(job.isRunning, 5.seconds)) {

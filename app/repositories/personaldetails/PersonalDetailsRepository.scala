@@ -23,6 +23,7 @@ import model.persisted.PersonalDetails
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.{Filters, Projections, Updates}
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import repositories.{CollectionNames, CommonBSONDocuments, ReactiveRepositoryHelpers, subDocRoot}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}

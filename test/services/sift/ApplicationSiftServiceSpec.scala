@@ -457,14 +457,14 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
 
   "findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase" must {
     "return no candidates if the candidates have no numeric test schemes" in new TestFixture {
-      (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
+      (() => mockApplicationSiftRepo.findAllUsersInSiftEntered).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString)))
       ))
       whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase) { result => result mustBe Nil }
     }
 
     "return no candidates if the candidates have no green numeric test schemes" in new TestFixture {
-      (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
+      (() => mockApplicationSiftRepo.findAllUsersInSiftEntered).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
           SchemeEvaluationResult(Commercial, EvaluationResults.Red.toString)
@@ -479,7 +479,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
         SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       ))
 
-      (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
+      (() => mockApplicationSiftRepo.findAllUsersInSiftEntered).expects().returningAsync(Seq(oneCandidate))
       whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase) { result =>
         result mustBe Seq(oneCandidate) }
     }
@@ -490,7 +490,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
         SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       ))
 
-      (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
+      (() => mockApplicationSiftRepo.findAllUsersInSiftEntered).expects().returningAsync(Seq(oneCandidate))
       whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyWhoHaveFailedFormBasedSchemesInVideoPhase) { result =>
         result mustBe Seq(oneCandidate) }
     }
@@ -503,13 +503,13 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
         SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString)
       ))
 
-      (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(oneCandidate))
+      (() => mockApplicationSiftRepo.findAllUsersInSiftEntered).expects().returningAsync(Seq(oneCandidate))
       whenReady(service.findUsersInSiftEnteredWhoShouldBeInSiftReadyAfterWithdrawingFromAllFormBasedSchemes) { result =>
         result mustBe Seq(oneCandidate) }
     }
 
     "return no candidates if the candidates have no green numeric test schemes" in new TestFixture {
-      (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
+      (() => mockApplicationSiftRepo.findAllUsersInSiftEntered).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(
           SchemeEvaluationResult(Digital, EvaluationResults.Withdrawn.toString),
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),
@@ -521,7 +521,7 @@ class ApplicationSiftServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
     }
 
     "return no candidates if the candidates have no withdrawn schemes" in new TestFixture {
-      (mockApplicationSiftRepo.findAllUsersInSiftEntered _).expects().returningAsync(Seq(
+      (() => mockApplicationSiftRepo.findAllUsersInSiftEntered).expects().returningAsync(Seq(
         FixUserStuckInSiftEntered("app1", Seq(
           SchemeEvaluationResult(Digital, EvaluationResults.Red.toString),
           SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Green.toString),

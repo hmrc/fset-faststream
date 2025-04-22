@@ -18,30 +18,29 @@ package repositories.sift
 
 import config.MicroserviceAppConfig
 import factories.DateTimeFactory
-
-import javax.inject.{Inject, Singleton}
+import model.*
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{Amber, Green, Red}
-import model.Exceptions._
-import model._
+import model.Exceptions.*
 import model.command.{ApplicationForSift, ApplicationForSiftExpiry}
-import model.persisted._
-import model.persisted.sift._
+import model.persisted.*
+import model.persisted.sift.*
 import model.report.SiftPhaseReportItem
 import model.sift.{FixStuckUser, FixUserStuckInSiftEntered}
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
+import repositories.*
+import repositories.application.GeneralApplicationRepoBSONReader
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
-import repositories.application.GeneralApplicationRepoBSONReader
-import repositories._
 
-import scala.util.Try
 import java.time.OffsetDateTime
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 // scalastyle:off number.of.methods file.size.limit
 trait ApplicationSiftRepository {
@@ -314,7 +313,7 @@ class ApplicationSiftMongoRepository @Inject() (
       Document("$or" -> greenNumericSchemes)
     ))
 
-    implicit def processDoc(doc: Document) = {
+    implicit def processDoc(doc: Document): NumericalTestApplication = {
       val applicationId = doc.get("applicationId").get.asString().getValue
       val testAccountId = doc.get("testAccountId").get.asString().getValue
       val userId = doc.get("userId").get.asString().getValue

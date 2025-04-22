@@ -17,8 +17,6 @@
 package connectors
 
 import config._
-import connectors.ExchangeObjects.SendFsetMailRequest
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
@@ -26,9 +24,10 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.Status.OK
-import play.api.libs.json.Writes
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse}
 
+import java.net.URL
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,35 +36,35 @@ class EmailClientSpec extends PlaySpec with MockitoSugar with ScalaFutures with 
   "EmailClientSpec" should {
     "send an email if the email client is enabled" in new TestFixture {
       when(mockEmailConfig.enabled).thenReturn(true)
+      when(mockEmailConfig.url).thenReturn("http://localhost")
+      when(requestBuilderExecute[HttpResponse]).thenReturn(Future.successful(HttpResponse.apply(OK, "")))
 
       client.sendWithdrawnConfirmation(to = "test.user@mail.com", name = "test user").futureValue
-      verify(mockHttpClient).POST(any[String], any[SendFsetMailRequest], any[Seq[(String, String)]])(
-        any[Writes[SendFsetMailRequest]],
-        any[HttpReads[HttpResponse]], any[HeaderCarrier], any[ExecutionContext])
+      verify(mockHttp).post(any[URL])(any[HeaderCarrier])
     }
 
     "not send an email if the email client is disabled" in new TestFixture {
       when(mockEmailConfig.enabled).thenReturn(false)
 
       client.sendWithdrawnConfirmation(to = "test.user@mail.com", name = "test user").futureValue
-      verify(mockHttpClient, never).POST(any[String], any[SendFsetMailRequest], any[Seq[(String, String)]])(
-        any[Writes[SendFsetMailRequest]],
-        any[HttpReads[HttpResponse]], any[HeaderCarrier], any[ExecutionContext])
+      verify(mockHttp, never).post(any[URL])(any[HeaderCarrier])
     }
   }
 
   trait TestFixture {
     implicit def hc: HeaderCarrier = HeaderCarrier()
 
-    val mockHttpClient: WSHttpT = mock[WSHttpT]
+    val mockHttp: HttpClientV2 = mock[HttpClientV2]
     val mockEmailConfig: EmailConfig = mock[EmailConfig]
 
-    val client = new EmailClient { override val http = mockHttpClient; override val emailConfig = mockEmailConfig }
+    val client = new EmailClient { override val http = mockHttp; override val emailConfig = mockEmailConfig }
 
-    val captor = ArgumentCaptor.forClass(classOf[SendFsetMailRequest])
-    when(mockHttpClient.POST[SendFsetMailRequest, HttpResponse](any[String], captor.capture,
-      any[Seq[(String, String)]])(any[Writes[SendFsetMailRequest]], any[HttpReads[HttpResponse]], any[HeaderCarrier], any[ExecutionContext]))
-      .thenReturn(
-        Future.successful(HttpResponse(OK, "")))
+    val mockRequestBuilder: RequestBuilder = mock[RequestBuilder]
+
+    when(mockHttp.post(any[URL])(any[HeaderCarrier])).thenReturn(mockRequestBuilder)
+
+    when(mockRequestBuilder.withBody(any())(any(), any(), any())).thenReturn(mockRequestBuilder)
+
+    def requestBuilderExecute[A]: Future[A] = mockRequestBuilder.execute[A](any[HttpReads[A]], any[ExecutionContext])
   }
 }

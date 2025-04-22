@@ -18,9 +18,8 @@ package common
 
 import play.api.Logging
 
-import scala.collection.generic.CanBuildFrom
+import scala.collection.BuildFrom
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.language.higherKinds
 import scala.util.Try
 
 object FutureEx extends Logging {
@@ -33,10 +32,10 @@ object FutureEx extends Logging {
    *    val myFutureList = FutureEx.traverseSerial(myList)(x => Future(myFunc(x)))
    *  }}}
    */
-  def traverseSerial[A, B, M[X] <: TraversableOnce[X]](
+  def traverseSerial[A, B, M[X] <: IterableOnce[X]](
     in: M[A]
-  )(fn: A => Future[B])(implicit cbf: CanBuildFrom[M[A], B, M[B]], executor: ExecutionContext): Future[M[B]] =
-    in.foldLeft(Future.successful(cbf(in))) { (previousFuture, a) =>
+  )(fn: A => Future[B])(implicit bf: BuildFrom[M[A], B, M[B]], executor: ExecutionContext): Future[M[B]] =
+    in.iterator.foldLeft(Future.successful(bf.newBuilder(in))) { (previousFuture, a) =>
       for { previousResult <- previousFuture
             newFutureResult <- fn(a)
       } yield previousResult += newFutureResult
@@ -69,8 +68,9 @@ object FutureEx extends Logging {
 }
 
 object TryEx {
-   def traverseSerial[A, B, M[X] <: TraversableOnce[X]](in: M[A])(fn: A => Try[B])
-     (implicit cbf: CanBuildFrom[M[A], B, M[B]], executor: ExecutionContext): Try[M[B]] = in.foldLeft(Try(cbf(in))) { (previous, a) =>
+   def traverseSerial[A, B, M[X] <: IterableOnce[X]](in: M[A])(fn: A => Try[B])
+     (implicit bf: BuildFrom[M[A], B, M[B]], executor: ExecutionContext): Try[M[B]] =
+     in.iterator.foldLeft(Try(bf.newBuilder(in))) { (previous, a) =>
       for { previousResult <- previous
             newResult <- fn(a)
       } yield previousResult += newResult

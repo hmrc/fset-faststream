@@ -22,7 +22,8 @@ import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections, UpdateOptions}
-import play.api.libs.json._
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
+import play.api.libs.json.*
 import repositories.application.DiversityQuestionsText
 import services.reporting.SocioEconomicScoreCalculator
 import uk.gov.hmrc.mongo.MongoComponent
@@ -187,7 +188,7 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     val parentEmployedOrSelf = getAnswer(ParentEmployedOrSelfEmployedQuestionText)
     val parentCompanySize = getAnswer(ParentCompanySizeQuestionText)
 
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     val qAndA = questionsDocOpt.map( _.keySet().asScala.toList).map{ _.map { question =>
       val answer = getAnswer(question).getOrElse(UnknownAnswerText)
       question -> answer

@@ -17,8 +17,8 @@
 package repositories.testdata
 
 import model.ApplicationStatus.{ApplicationStatus, CREATED}
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs

@@ -17,7 +17,7 @@
 package services.allocation
 
 import com.google.inject.name.Named
-import connectors._
+import connectors.{AuthProviderClient, OnlineTestEmailClient, ExchangeObjects}
 
 import javax.inject.{Inject, Singleton}
 import model.Exceptions.OptimisticLockException

@@ -16,14 +16,15 @@
 
 package scheduler
 
-import java.util.UUID
+import play.api.Logging
+import repositories.{LockMongoRepository, LockRepository}
 import uk.gov.hmrc.mongo.MongoComponent
-import repositories._
 
 import java.time.Duration
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
-trait LockKeeper {
+trait LockKeeper extends Logging {
   val repo: LockRepository
   val lockId: String
   val serverId: String
@@ -33,30 +34,36 @@ trait LockKeeper {
   def isLocked(implicit ec: ExecutionContext): Future[Boolean] = repo.isLocked(lockId, serverId)
 
   def tryLock[T](body: => Future[T])(implicit ec: ExecutionContext): Future[Option[T]] = {
-    repo.lock(lockId, serverId, forceLockReleaseAfter)
-      .flatMap { acquired =>
-        if (acquired) {
-          body.flatMap { x =>
-              if (greedyLockingEnabled) {
-                Future.successful(Some(x))
-              } else {
-                repo.releaseLock(lockId, serverId).map(_ => Some(x))
-              }
-          }.recoverWith { case ex if !greedyLockingEnabled => repo.releaseLock(lockId, serverId).flatMap(_ => Future.failed(ex)) }
-        } else {
-          Future.successful(None)
+    repo.lock(lockId, serverId, forceLockReleaseAfter).flatMap { lockAcquired =>
+      if (lockAcquired) {
+        body.flatMap { result =>
+          if (greedyLockingEnabled) {
+            Future.successful(Some(result))
+          } else {
+            repo.releaseLock(lockId, serverId).map(_ => Some(result))
+          }
+        }.recoverWith {
+          case ex if !greedyLockingEnabled =>
+            // Old scala 2 implementation, which doesn't compile in Scala 3:
+//          repo.releaseLock(lockId, serverId).flatMap(_ => Future.failed(ex))
+            // Changed to this to work in Scala 3:
+            logger.error(s"Error occurred whilst trying to acquire lock: ${ex.getMessage}")
+            repo.releaseLock(lockId, serverId).flatMap(_ => Future.successful(None))
         }
+      } else {
+        Future.successful(None)
       }
+    }
   }
 }
 
 object LockKeeper {
 
-  lazy val generatedServerId = UUID.randomUUID().toString
+  private lazy val generatedServerId = UUID.randomUUID().toString
 
   def apply(mongoComponent: MongoComponent,
             lockIdToUse: String,
-            forceLockReleaseAfterToUse: scala.concurrent.duration.Duration)(implicit ec: ExecutionContext) = new LockKeeper {
+            forceLockReleaseAfterToUse: scala.concurrent.duration.Duration)(implicit ec: ExecutionContext): LockKeeper = new LockKeeper {
     val forceLockReleaseAfter: Duration = Duration.ofMillis(forceLockReleaseAfterToUse.toMillis)
     val serverId = generatedServerId
     val lockId = lockIdToUse

@@ -16,9 +16,9 @@
 
 package repositories
 
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Aggregates.{`match`, sample}
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import scala.concurrent.{ExecutionContext, Future}

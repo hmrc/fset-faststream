@@ -30,7 +30,7 @@ object LocationId {
   val locationIdWritesFormat: Writes[LocationId] = Writes[LocationId](location => JsString(location.value))
   val locationIdReadsFormat: Reads[LocationId] = Reads[LocationId](location => JsSuccess(LocationId(location.as[String])))
 
-  implicit val locationIdFormat = Format(locationIdReadsFormat, locationIdWritesFormat)
+  implicit val locationIdFormat: Format[LocationId] = Format(locationIdReadsFormat, locationIdWritesFormat)
 
   implicit class BsonOps(val locationId: LocationId) extends AnyVal {
     def toBson: BsonValue = Codecs.toBson(locationId)
@@ -47,5 +47,5 @@ object SelectedLocations {
   val mongoFormat: Format[SelectedLocations] = (
     (__ \ root \ "locations").format[List[LocationId]] and
       (__ \ root \ "interests").format[List[String]]
-  )(SelectedLocations.apply, unlift(SelectedLocations.unapply))
+  )(SelectedLocations.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 }

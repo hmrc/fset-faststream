@@ -16,7 +16,6 @@
 
 package services.assessmentcentre
 
-import com.typesafe.config.{Config, ConfigFactory}
 import factories.ITDateTimeFactoryMock
 import model.ApplicationStatus._
 import model.EvaluationResults.ExerciseAverageResult
@@ -24,13 +23,11 @@ import model._
 import model.assessmentscores._
 import model.exchange.passmarksettings.{AssessmentCentrePassMarkSettings, AssessmentCentrePassMarkSettingsPersistence}
 import model.persisted.SchemeEvaluationResult
-import net.ceedubs.ficus.Ficus._
-import net.ceedubs.ficus.readers.ArbitraryTypeReader._
-import net.ceedubs.ficus.readers.ValueReader
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.SingleObservableFuture
 import play.api.Logging
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import repositories._
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
@@ -43,7 +40,7 @@ import java.io.File
 import java.time.OffsetDateTime
 import scala.concurrent.Future
 import scala.io.Source
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success, Try, Using}
 
 class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
 
@@ -63,60 +60,20 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
     new AssessmentCentreEvaluationEngineImpl
   )
 
-  val collectionName = CollectionNames.APPLICATION
+  val collectionName: String = CollectionNames.APPLICATION
   // Use this when debugging so the test framework only runs one test scenario. The tests will still be loaded, however
   val DebugRunTestNameOnly: Option[String] = None
 //      val DebugRunTestNameOnly: Option[String] = Some("multipleSchemesSuite_Mix_Scenario1")
   // Use this when debugging so the test framework only runs tests which contain the specified test suite name in their path
   // the tests will still be loaded, however
   val DebugRunTestSuitePathPatternOnly: Option[String] = None
-  //  val DebugRunTestSuitePathPatternOnly: Option[String] = Some("2_multipleSchemesSuite/")
+  // val DebugRunTestSuitePathPatternOnly: Option[String] = Some("1_oneSchemeSuite/")
+  // val DebugRunTestSuitePathPatternOnly: Option[String] = Some("2_multipleSchemesSuite/")
 
-  val prefix= "****"
-
-  // Ficus specific ValueReaders so Ficus can read the config files into case classes
-  implicit object SchemeReader extends ValueReader[SchemeId] {
-    override def read(config: Config, path: String): SchemeId = {
-      SchemeId(config.getString(path))
-    }
-  }
-
-  implicit object UniqueIdentifierReader extends ValueReader[UniqueIdentifier] {
-    override def read(config: Config, path: String): UniqueIdentifier = {
-      UniqueIdentifier(config.getString(path))
-    }
-  }
-
-  implicit val offsetDateTimeReader: ValueReader[OffsetDateTime] = new ValueReader[OffsetDateTime] {
-    def read(config: Config, path: String): OffsetDateTime = config.getValue(path).valueType match {
-      case _ => OffsetDateTime.now
-    }
-  }
-
-  implicit object ApplicationStatusReader extends ValueReader[ApplicationStatus] {
-    override def read(config: Config, path: String): ApplicationStatus = {
-      ApplicationStatus.withName(config.getString(path))
-    }
-  }
-
-  implicit object ProgressStatusReader extends ValueReader[ProgressStatuses.ProgressStatus] {
-    override def read(config: Config, path: String): ProgressStatuses.ProgressStatus = {
-      ProgressStatuses.nameToProgressStatus(config.getString(path))
-    }
-  }
-
-  implicit object SchemeEvaluationResultReader extends ValueReader[SchemeEvaluationResult] {
-    override def read(config: Config, path: String): SchemeEvaluationResult = {
-      val localizedConfig = config.getConfig(path)
-      SchemeEvaluationResult(
-        schemeId = localizedConfig.as[SchemeId]("schemeId"),
-        result = localizedConfig.as[String]("result")
-      )
-    }
-  }
+  val prefix = "****"
 
   "Assessment centre service" should {
-    "evaluate scores for each test in the path" in  {
+    "evaluate scores for each test in the path" in {
       locateSuites foreach executeSuite
     }
   }
@@ -129,13 +86,13 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
   }
 
   private def locateSuites: Array[File] = {
-    val suites = new File(TestPath).listFiles.filterNot(_.getName == PassmarkSettingsFile).sortBy(_.getName)
+    val suites = new File(TestPath).listFiles.sortBy(_.getName)
     require(suites.nonEmpty, s"No test suites found in $TestPath")
     suites.foreach( s => logger.info(s"$prefix suite located = $s" ) )
     suites
   }
 
-  private def executeSuite(suiteName: File) = {
+  private def executeSuite(suiteName: File): Unit = {
     logger.info(s"$prefix executing suites found in directory = $suiteName...")
 
     // Reads the passmarkSettings.conf file
@@ -144,12 +101,9 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
 
       require(passmarkSettingsFile.exists(), s"Pass mark settings file does not exist: ${passmarkSettingsFile.getAbsolutePath}")
 
-      val source = Source.fromFile(passmarkSettingsFile)
-      try {
+      Using.resource(Source.fromFile(passmarkSettingsFile)) { source =>
         val passmarkSettingsJson = Json.parse(source.getLines().mkString)
         passmarkSettingsJson.as[AssessmentCentrePassMarkSettings].toPersistence
-      } finally {
-        source.close()
       }
     }
 
@@ -172,7 +126,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
 
   // Execute a single test suite file (which may consist of several test cases within it)
   private def executeTestCases(testSuite: File,
-                               passmarks: AssessmentCentrePassMarkSettingsPersistence) = {
+                               passmarks: AssessmentCentrePassMarkSettingsPersistence): Unit = {
     logger.info(s"$prefix START: Processing test suite: ${testSuite.getAbsolutePath}")
 
     if (DebugRunTestSuitePathPatternOnly.isEmpty || testSuite.getAbsolutePath.contains(DebugRunTestSuitePathPatternOnly.get)) {
@@ -211,14 +165,15 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
     }
   }
 
-  // Uses the ficus library to read the config into case classes
   private def loadTestCases(testCase: File): List[AssessmentServiceTest] = {
-    val tests = ConfigFactory.parseFile(new File(testCase.getAbsolutePath)).as[List[AssessmentServiceTest]]("tests")
-    logger.info(s"$prefix Found ${tests.length} test ${if(tests.length == 1) "case" else "cases"}")
+    val tests = Using.resource(Source.fromFile(testCase)) { source =>
+      Json.parse(source.getLines().mkString).as[List[AssessmentServiceTest]]
+    }
+    logger.info(s"$prefix Found ${tests.length} test ${if (tests.length == 1) "case" else "cases"}")
     tests
   }
 
-  private def logTestData(data: AssessmentServiceTest) = {
+  private def logTestData(data: AssessmentServiceTest): Unit = {
     logger.info(s"$prefix The following test data was read from config in ${data.testName}:")
     logger.info(s"$prefix schemes: List[SchemeId] = ${data.schemes}")
     logger.info(s"$prefix scores: AssessmentScoresAllExercises = ${data.scores}")
@@ -245,8 +200,6 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
   }
 
   private def findApplicationInDb(appId: String): Future[ActualResult] = {
-//    import com.github.nscala_time.time.OrderingImplicits.DateTimeOrdering
-
     applicationRepo.collection.find[Document](Document("applicationId" -> appId)).headOption() map { docOpt =>
       require(docOpt.isDefined)
       val document = docOpt.get
@@ -259,7 +212,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
       val latestProgressStatusOpt = progressStatusTimeStampDocOpt.flatMap { timestamps =>
         import scala.jdk.CollectionConverters._
         val convertedTimestamps = timestamps.entrySet().asScala.toSet
-        val relevantProgressStatuses = convertedTimestamps.filter( _.getKey.startsWith(applicationStatus) )
+        val relevantProgressStatuses = convertedTimestamps.filter(_.getKey.startsWith(applicationStatus))
         import repositories.formats.MongoJavatimeFormats.Implicits._
         val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element =>
           Codecs.fromBson[OffsetDateTime](timestamps.get(element.getKey))
@@ -283,13 +236,13 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
   }
 
   //scalastyle:off method.length
-  private def assert(testCase: File, testName: String, expected: AssessmentScoreEvaluationTestExpectation, actual: ActualResult) = {
+  private def assert(testCase: File, testName: String, expected: AssessmentScoreEvaluationTestExpectation, actual: ActualResult): Unit = {
 
     val testMessage = s"file=${testCase.getAbsolutePath}, testName=$testName"
     val message = s"Test location: $testMessage:"
     logger.info(s"$prefix $message - NOW PERFORMING CHECKS...")
 
-    def performCheck(dataName: String)(fun: => org.scalatest.Assertion) = {
+    def performCheck(dataName: String)(fun: => org.scalatest.Assertion): Unit = {
       logger.info(s"$prefix $dataName check")
       // If the test fails, withClue will display a helpful message
       withClue(s"$message $dataName") {
@@ -298,17 +251,17 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
       logger.info(s"$prefix $dataName passed")
     }
 
-    performCheck("applicationStatus"){
+    performCheck("applicationStatus") {
       logger.info(s"$prefix comparing actual ${actual.applicationStatus} equals expected ${expected.applicationStatus}")
       actual.applicationStatus mustBe expected.applicationStatus
     }
 
-    performCheck("progressStatus"){
+    performCheck("progressStatus") {
       logger.info(s"$prefix comparing actual ${actual.progressStatus} equals expected ${expected.progressStatus}")
       actual.progressStatus mustBe expected.progressStatus
     }
 
-    performCheck("passmarkVersion"){
+    performCheck("passmarkVersion") {
       logger.info(s"$prefix comparing actual ${actual.passmarkVersion} equals expected ${expected.passmarkVersion}")
       actual.passmarkVersion mustBe expected.passmarkVersion
     }
@@ -327,7 +280,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
     }
     logger.info(s"$prefix schemesEvaluation passed")
 
-    performCheck("exerciseAverages"){
+    performCheck("exerciseAverages") {
       logger.info(s"$prefix comparing actual ${actual.exerciseAverageResult} equals expected ${expected.exerciseAverage}")
       actual.exerciseAverageResult mustBe expected.exerciseAverage
     }
@@ -351,9 +304,9 @@ object AssessmentCentreServiceIntSpec {
 
   val TestPath = "it/resources/assessmentCentreServiceSpec"
   val PassmarkSettingsFile = "passmarkSettings.conf"
-  val ConfigFiles = List(PassmarkSettingsFile)
+  val ConfigFiles: Seq[String] = List(PassmarkSettingsFile)
 
-  // This represents all the data read from config using the ficus library for a single test
+  // This represents all the data read from config for a single test e.g. suiteAmberOnly.conf and similar files
   case class AssessmentServiceTest(
                                     testName: String,
                                     schemes: List[SchemeId],
@@ -361,8 +314,13 @@ object AssessmentCentreServiceIntSpec {
                                     expected: AssessmentScoreEvaluationTestExpectation
                                   )
 
+  object AssessmentServiceTest {
+    // Specify a json deserializer here for reading test cases in json format when running this integration test
+    implicit val jsonFormat: OFormat[AssessmentServiceTest] = Json.format[AssessmentServiceTest]
+  }
+
   // Result we get back from the db after evaluation. Note that everything is an Option because
-  // that is what get get back from Mongo (without calling get on the Option)
+  // that is what get back from Mongo (without calling get on the Option)
   case class ActualResult(
                            applicationStatus: Option[ApplicationStatus],
                            progressStatus: Option[ProgressStatuses.ProgressStatus],

@@ -54,5 +54,5 @@ trait FixerJob extends SingleInstanceScheduledJob[BasicJobConfig[ScheduledJobCon
 class FixerJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.fixer-job",
-  name = "FixerJob"
+  jobName = "FixerJob"
 )

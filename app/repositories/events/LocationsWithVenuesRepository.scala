@@ -19,17 +19,17 @@ package repositories.events
 import java.util
 import scala.concurrent.ExecutionContext
 
-//import com.github.ghik.silencer.silent
 import config.MicroserviceAppConfig
 import model.persisted.ReferenceData
 import model.persisted.eventschedules.{Location, Venue}
 import org.yaml.snakeyaml.Yaml
 import play.api.Application
 import play.api.libs.json.{Json, OFormat}
-import resource._
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
+
+import scala.util.Using
 
 case class LocationWithVenue(name: String, venues: List[Venue])
 
@@ -56,9 +56,10 @@ class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Applicat
 
   val locationsAndVenuesFilePath: String = appConfig.locationsAndVenuesConfig.yamlFilePath
 
-  private lazy val locationsAndVenuesCached = Future {
-    val input = managed(application.environment.resourceAsStream(locationsAndVenuesFilePath).get)
-    input.acquireAndGet(file => asLocationWithVenues(new Yaml().load(file)))
+  private lazy val locationsAndVenuesCached: Future[List[LocationWithVenue]] = Future {
+    Using.resource(application.environment.resourceAsStream(locationsAndVenuesFilePath).get) { inputStream =>
+      asLocationWithVenues(new Yaml().load(inputStream))
+    }
   }
 
   private lazy val locationsCached = locationsAndVenuesCached.map(_.map(Location.apply))
@@ -88,7 +89,7 @@ class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Applicat
   override def locationsWithVenuesList: Future[List[LocationWithVenue]] = locationsAndVenuesCached
 
   private def asLocationWithVenues[A](obj: A): List[LocationWithVenue] = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     // TODO: This java library forces creation of this complex statement. Investigate alternatives.
     val root = obj.asInstanceOf[util.LinkedHashMap[String, util.ArrayList[util.LinkedHashMap[String, util.LinkedHashMap[String, _]]]]].asScala
 

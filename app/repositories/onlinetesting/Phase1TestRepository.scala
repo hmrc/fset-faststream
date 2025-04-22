@@ -18,15 +18,16 @@ package repositories.onlinetesting
 
 import common.Phase1TestConcern
 import factories.DateTimeFactory
+import model.*
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{Green, Red}
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses._
-import model._
+import model.ProgressStatuses.*
 import model.persisted.{NotificationExpiringOnlineTest, Phase1TestGroupWithUserIds, Phase1TestProfile}
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}

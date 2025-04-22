@@ -17,16 +17,15 @@
 package repositories.testdata
 
 import model.CreateApplicationRequest
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
 import play.api.Logging
+import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import javax.inject.{Inject, Singleton}
-import repositories.{CollectionNames, ReactiveRepositoryHelpers}
-
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ApplicationRemovalRepository {
@@ -49,7 +48,7 @@ class ApplicationRemovalMongoRepository @Inject() (mongoComponent: MongoComponen
     val projection = Projections.include("userId")
 
     applicationCollection.find(query).projection(projection).toFuture().map { docList =>
-      docList.map { doc => doc.getString("userId") }
+      docList.map { doc => doc.get("userId").get.asString().getValue }
     }.map { userIds =>
       collection.deleteMany(query).toFuture().map(_.getDeletedCount).map { deletedCount =>
         logger.debug(s"Deleted $deletedCount document(s) where applicationStatus=$applicationStatus")

@@ -50,5 +50,5 @@ object PersonalDetails {
       (__ \ root \ "otherInternshipCompleted").formatNullable[Boolean] and
       (__ \ root \ "otherInternshipName").formatNullable[String] and
       (__ \ root \ "otherInternshipYear").formatNullable[String]
-    )(PersonalDetails.apply, unlift(PersonalDetails.unapply))
+    )(PersonalDetails.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 }

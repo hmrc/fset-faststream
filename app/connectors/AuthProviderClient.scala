@@ -16,14 +16,16 @@
 
 package connectors
 
-import config.{MicroserviceAppConfig, WSHttpT}
-import connectors.AuthProviderClient._
-import connectors.ExchangeObjects._
+import config.MicroserviceAppConfig
+import connectors.AuthProviderClient.*
+import connectors.ExchangeObjects.*
 import model.Exceptions.{ConnectorException, EmailTakenException}
 import model.exchange.SimpleTokenResponse
-import play.api.http.Status._
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import play.api.http.Status.*
+import play.api.libs.json.Json
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.HttpReads.Implicits.*
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -55,11 +57,13 @@ object AuthProviderClient {
 }
 
 @Singleton
-class AuthProviderClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig)(implicit ec: ExecutionContext) {
+class AuthProviderClient @Inject() (http: HttpClientV2, config: MicroserviceAppConfig)(
+  implicit ec: ExecutionContext) {
 
-  val allRoles = List(AssessorRole, QacRole, FaststreamTeamRole, ServiceSupportRole, ServiceAdminRole, SuperAdminRole,
+  private val allRoles = List(AssessorRole, QacRole, FaststreamTeamRole, ServiceSupportRole, ServiceAdminRole, SuperAdminRole,
     TechnicalAdminRole)
 
+  //AuthProviderClientSpec
   def getRole(roleName: String): UserRole = allRoles.find(_.name == roleName).getOrElse(
     throw new UserRoleDoesNotExistException(s"No such role: $roleName")
   )
@@ -69,121 +73,164 @@ class AuthProviderClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig
 
   private lazy val url = config.userManagementConfig.url
 
+/*
   // TODO: only used in tdg and calls the fasttrack version in auth-provider
   def addUser(email: String, password: String, firstName: String,
               lastName: String, roles: List[UserRole])(implicit hc: HeaderCarrier): Future[UserResponse] = {
-    http.POST[AddUserRequest, HttpResponse](s"$url/$urlPrefix/add",
-      AddUserRequest(email.toLowerCase, password, firstName, lastName, roles.map(_.name), ServiceName)).map {
-      case response if response.status == OK => response.json.as[UserResponse]
-      case response if response.status == CONFLICT => throw EmailTakenException()
-      case errorResponse =>
-        throw new ConnectorException(s"Error response received when attempting to add new user: $firstName $lastName - $errorResponse")
-    }
-  }
-
+    import play.api.libs.ws.writeableOf_JsValue
+    http.post(url"$url/$urlPrefix/add")
+      .withBody(Json.toJson(AddUserRequest(email.toLowerCase, password, firstName, lastName, roles.map(_.name), ServiceName)))
+      .execute[HttpResponse]
+      .map {
+        case response if response.status == OK => response.json.as[UserResponse]
+        case response if response.status == CONFLICT => throw EmailTakenException()
+        case errorResponse =>
+          throw new ConnectorException(s"Error response received when attempting to add new user: $firstName $lastName - $errorResponse")
+      }
+  }*/
+/*
   // TODO: looks like this is calling the fasttrack version in auth-provider. Only used in tdg
   def removeUser(userId: String)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.DELETE[HttpResponse](s"$url/$urlPrefix/user/$userId").map { response =>
-      if (response.status == NO_CONTENT) {
-        ()
-      } else {
-        throw new ConnectorException(s"Bad response received when removing user: $userId: $response")
+    http.delete(url"$url/$urlPrefix/user/$userId")
+      .execute[HttpResponse]
+      .map { response =>
+        if (response.status == NO_CONTENT) {
+          ()
+        } else {
+          throw new ConnectorException(s"Bad response received when removing user: $userId: $response")
+        }
       }
-    }
-  }
-
+  }*/
+/*
   def removeAllUsers()(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.GET[HttpResponse](s"$url/test-only/test-commands/remove-all?service=$ServiceName").map { response =>
-      if (response.status == OK) {
-        ()
-      } else {
-        throw new ConnectorException(s"Bad response received when removing users: $response")
-      }
-    }
-  }
-
+    http.get(url"$url/test-only/test-commands/remove-all?service=$ServiceName")
+      .execute[HttpResponse]
+      .map { response =>
+        if (response.status == OK) {
+          ()
+        } else {
+          throw new ConnectorException(s"Bad response received when removing users: $response")
+        }
+     }
+  }*/
+/*
   // This is only used by test data generator. It is called and we create user accounts and admin accounts
   def getToken(email: String)(implicit hc: HeaderCarrier): Future[String] = {
-    http.GET[HttpResponse](s"$url/test-only/auth-code/$ServiceName/$email").map { response =>
-      if (response.status == OK) {
-        response.body
-      } else {
-        throw new ConnectorException(s"Bad response received when getting token for user: $response")
-      }
-    }
-  }
-
+    http.get(url"$url/test-only/auth-code/$ServiceName/$email")
+      .execute[HttpResponse]
+      .map { response =>
+        if (response.status == OK) {
+          response.body
+        } else {
+          throw new ConnectorException(s"Bad response received when getting token for user: $response")
+        }
+     }
+  }*/
+/*
   def activate(email: String, token: String)(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.POST[ActivateEmailRequest, HttpResponse](s"$url/activate",
-      ActivateEmailRequest(email.toLowerCase, token, ServiceName)
-    ).map {
-      case response if response.status == OK => ()
-      case response if response.status == GONE => throw new TokenExpiredException()
-      case response if response.status == NOT_FOUND => throw new TokenEmailPairInvalidException()
-      case errorResponse =>
-        throw new ConnectorException(
-          s"Error response ${errorResponse.status} received when calling activate - body:${errorResponse.body}"
-        )
-    }
-  }
+    import play.api.libs.ws.writeableOf_JsValue
+    http.post(url"$url/activate")
+      .withBody(Json.toJson(ActivateEmailRequest(email.toLowerCase, token, ServiceName)))
+      .execute[HttpResponse]
+      .map {
+        case response if response.status == OK => ()
+        case response if response.status == GONE => throw new TokenExpiredException()
+        case response if response.status == NOT_FOUND => throw new TokenEmailPairInvalidException()
+        case errorResponse =>
+          throw new ConnectorException(
+            s"Error response ${errorResponse.status} received when calling activate - body:${errorResponse.body}"
+          )
+      }
+  }*/
 
   def findByFirstName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    http.POST[FindByFirstNameRequest, HttpResponse](s"$url/$urlPrefix/service/$ServiceName/findByFirstName",
-      FindByFirstNameRequest(roles, name)
-    ).map {
-      case response if response.status == OK => response.json.as[List[Candidate]]
-      case response if response.status == REQUEST_ENTITY_TOO_LARGE =>
-        throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
-      case errorResponse =>
-        throw new ConnectorException(
-          s"Error response ${errorResponse.status} received when calling findByFirstName - body:${errorResponse.body}"
-        )
-    }
+    import play.api.libs.ws.writeableOf_JsValue
+    http.post(url"$url/$urlPrefix/service/$ServiceName/findByFirstName")
+      .withBody(Json.toJson(FindByFirstNameRequest(roles, name)))
+      .execute[HttpResponse]
+      .map {
+        case response if response.status == OK => response.json.as[List[Candidate]]
+        case response if response.status == REQUEST_ENTITY_TOO_LARGE =>
+          throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
+        case errorResponse =>
+          throw new ConnectorException(
+            s"Error response ${errorResponse.status} received when calling findByFirstName - body:${errorResponse.body}"
+          )
+      }
   }
 
   def findByLastName(name: String, roles: List[String])(implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    http.POST[FindByLastNameRequest, HttpResponse](s"$url/$urlPrefix/service/$ServiceName/findByLastName",
-      FindByLastNameRequest(roles, name)
-    ).map {
-      case response if response.status == OK => response.json.as[List[Candidate]]
-      case response if response.status == REQUEST_ENTITY_TOO_LARGE =>
-        throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
-      case errorResponse =>
-        throw new ConnectorException(
-          s"Error response ${errorResponse.status} received when calling findByLastName - body:${errorResponse.body}"
-        )
-    }
+    import play.api.libs.ws.writeableOf_JsValue
+    http.post(url"$url/$urlPrefix/service/$ServiceName/findByLastName")
+      .withBody(Json.toJson(FindByLastNameRequest(roles, name)))
+      .execute[HttpResponse]
+      .map {
+        case response if response.status == OK => response.json.as[List[Candidate]]
+        case response if response.status == REQUEST_ENTITY_TOO_LARGE =>
+          throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
+        case errorResponse =>
+          throw new ConnectorException(
+            s"Error response ${errorResponse.status} received when calling findByLastName - body:${errorResponse.body}"
+          )
+      }
   }
+/*
+  def findByFirstNameAndLastName(firstName: String, lastName: String, roles: List[String])
+                                (implicit hc: HeaderCarrier): Future[List[Candidate]] = {
+    import play.api.libs.ws.writeableOf_JsValue
+    http.post(url"$url/$urlPrefix/service/$ServiceName/findByFirstNameLastName")
+      .withBody(Json.toJson(FindByFirstNameLastNameRequest(roles, firstName, lastName)))
+      .execute[Either[UpstreamErrorResponse, List[Candidate]]]
+      .map {
+        case Right(response) => response
+        case Left(tooLargeEx) if tooLargeEx.statusCode == REQUEST_ENTITY_TOO_LARGE =>
+          throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
+        case Left(ex) =>
+          throw new ConnectorException(
+            s"Error response ${ex.statusCode} received when calling findByFirstNameAndLastName - message:${ex.getMessage}"
+          )
+      }
+  }
+ */
 
   def findByFirstNameAndLastName(firstName: String, lastName: String, roles: List[String])
                                 (implicit hc: HeaderCarrier): Future[List[Candidate]] = {
-    http.POST[FindByFirstNameLastNameRequest, HttpResponse](s"$url/$urlPrefix/service/$ServiceName/findByFirstNameLastName",
-      FindByFirstNameLastNameRequest(roles, firstName, lastName)
-    ).map {
-      case response if response.status == OK => response.json.as[List[Candidate]]
-      case response if response.status == REQUEST_ENTITY_TOO_LARGE =>
-        throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
-      case errorResponse =>
-        throw new ConnectorException(
-          s"Error response ${errorResponse.status} received when calling findByFirstNameAndLastName - body:${errorResponse.body}"
-        )
-    }
+    import play.api.libs.ws.writeableOf_JsValue
+    http.post(url"$url/$urlPrefix/service/$ServiceName/findByFirstNameLastName")
+      .withBody(Json.toJson(FindByFirstNameLastNameRequest(roles, firstName, lastName)))
+      .execute[HttpResponse]
+      .map {
+        case response if response.status == OK => response.json.as[List[Candidate]]
+        case response if response.status == REQUEST_ENTITY_TOO_LARGE =>
+          throw new TooManyResultsException(s"Too many results were returned, narrow your search parameters")
+        case errorResponse =>
+          throw new ConnectorException(
+            s"Error response ${errorResponse.status} received when calling findByFirstNameAndLastName - body:${errorResponse.body}"
+          )
+      }
   }
-
+  
   def findByUserIds(userIds: Seq[String])(implicit hs: HeaderCarrier): Future[Seq[Candidate]] = {
-    http.POST[Map[String, Seq[String]], HttpResponse](s"$url/$urlPrefix/service/$ServiceName/findUsersByIds", Map("userIds" -> userIds))
-      .map { response => response.json.as[List[Candidate]] }
+    import play.api.libs.ws.writeableOf_JsValue
+    http.post(url"$url/$urlPrefix/service/$ServiceName/findUsersByIds")
+      .withBody(Json.toJson(Map("userIds" -> userIds)))
+      .execute[HttpResponse]
+      .map ( response => response.json.as[List[Candidate]] )
   }
 
   def findAuthInfoByUserIds(userIds: Seq[String])(implicit hs: HeaderCarrier): Future[Seq[UserAuthInfo]] = {
-    http.POST[Map[String, Seq[String]], HttpResponse](s"$url/$urlPrefix/service/$ServiceName/findAuthInfoByIds", Map("userIds" -> userIds))
-      .map { response => response.json.as[List[UserAuthInfo]]}
+    import play.api.libs.ws.writeableOf_JsValue
+    http.post(url"$url/$urlPrefix/service/$ServiceName/findAuthInfoByIds")
+      .withBody(Json.toJson(Map("userIds" -> userIds)))
+      .execute[HttpResponse]
+      .map ( response => response.json.as[List[UserAuthInfo]] )
   }
 
   def generateAccessCode(implicit hc: HeaderCarrier): Future[SimpleTokenResponse] = {
-    http.GET[SimpleTokenResponse](s"$url/user-friendly-access-token")
-    .recover {
-      case _ => throw new ConnectorException(s"Bad response received when getting access code")
-    }
+    http.get(url"$url/user-friendly-access-token")
+      .execute[SimpleTokenResponse]
+      .recover {
+        case _ => throw new ConnectorException(s"Bad response received when getting access code")
+      }
   }
 }

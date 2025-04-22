@@ -20,25 +20,24 @@ import sbt.*
 //scalastyle:off line.size.limit
 object AppDependencies {
 
-  val bootstrapVersion = "8.6.0"
+  val bootstrapVersion = "9.11.0"
+
+  val circe = Seq(
+    "io.circe" %% "circe-yaml"  % "1.15.0"
+  )
 
   val compile = Seq(
-    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % "1.9.0",
+    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % "2.6.0",
     "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"  % bootstrapVersion,
-    // If you move to 1.5.0 it breaks AssessmentCentreServiceIntSpec ficus deserialization
-    "com.iheart"                    %% "ficus"                      % "1.4.7",
-    "org.yaml"                      %  "snakeyaml"                  % "2.0",
-    "net.jcazevedo"                 %% "moultingyaml"               % "0.4.2",
-    "com.michaelpollmeier"          %% "scala-arm"                  % "2.1",
-    "org.scala-lang.modules"        %% "scala-parallel-collections" % "1.0.4",
+    "org.scala-lang.modules"        %% "scala-parallel-collections" % "1.2.0",
     filters,
     ws
-  )
+  ) ++ circe
 
   abstract class TestDependencies(scope: String) {
     lazy val test: Seq[ModuleID] = Seq(
       "uk.gov.hmrc"               %% "bootstrap-test-play-30" % bootstrapVersion  % scope,
-      "org.scalamock"             %% "scalamock"              % "5.2.0"           % scope
+      "org.scalamock"             %% "scalamock"              % "7.3.0"           % scope
     )
   }
 

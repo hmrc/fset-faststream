@@ -38,15 +38,15 @@ class EvaluateFsbJobImpl @Inject() (val fsbService: FsbService,
 trait EvaluateFsbJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingScheduledJobConfig]] with Logging {
   val fsbService: FsbService
 
-  def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
+  override def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     implicit val hc: HeaderCarrier = HeaderCarrier()
-    logger.debug(s"EvaluateFsbJob starting")
+    logger.debug(s"$name starting")
     fsbService.nextFsbCandidateReadyForEvaluation.flatMap { appIdOpt =>
       appIdOpt.map { appId =>
-        logger.debug(s"EvaluateFsbJob found a candidate - now evaluating...")
+        logger.debug(s"$name found a candidate - now evaluating...")
         fsbService.evaluateFsbCandidate(appId)
       }.getOrElse {
-        logger.debug(s"EvaluateFsbJob no candidates found - going back to sleep...")
+        logger.debug(s"$name no candidates found - going back to sleep...")
         Future.successful(())
       }
     }
@@ -57,5 +57,5 @@ trait EvaluateFsbJob extends SingleInstanceScheduledJob[BasicJobConfig[WaitingSc
 class EvaluateFsbJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.evaluate-fsb-job",
-  name = "EvaluateFsbJob"
+  jobName = "EvaluateFsbJob"
 )

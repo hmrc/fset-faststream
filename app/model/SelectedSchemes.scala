@@ -30,5 +30,5 @@ object SelectedSchemes {
     (__ \ root \ "schemes").format[List[SchemeId]] and
       (__ \ root \ "orderAgreed").format[Boolean] and
       (__ \ root \ "eligible").format[Boolean]
-    )(SelectedSchemes.apply, unlift(SelectedSchemes.unapply))
+    )(SelectedSchemes.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 }

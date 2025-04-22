@@ -48,5 +48,5 @@ trait ReminderEventAllocationJob extends SingleInstanceScheduledJob[BasicJobConf
 class ReminderEventAllocationJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.remind-candidate-event-allocated",
-  name = "ReminderEventAllocationJob"
+  jobName = "ReminderEventAllocationJob"
 )

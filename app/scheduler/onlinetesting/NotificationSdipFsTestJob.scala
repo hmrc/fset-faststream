@@ -57,5 +57,5 @@ trait NotificationSdipFsTestJob extends SingleInstanceScheduledJob[BasicJobConfi
 class FailedSdipFsTestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.failed-sdip-fs-test-job",
-  name = "FailedSdipFsTestJob"
+  jobName = "FailedSdipFsTestJob"
 )

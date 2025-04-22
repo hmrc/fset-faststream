@@ -114,17 +114,24 @@ class AssessorControllerSpec extends UnitWithAppSpec {
 
   "count submitted" must {
     "return zero if there are none submitted" in new TestFixture {
-      when(mockAssessorService.countSubmittedAvailability()).thenReturnAsync(0)
+      when(mockAssessorService.countSubmittedAvailability()).thenReturnAsync(0L)
       val response = controller.countSubmittedAvailability()(fakeRequest)
       status(response) mustBe OK
       contentAsJson(response) mustBe Json.obj("size" -> 0)
     }
 
     "return five if there are five submitted" in new TestFixture {
-      when(mockAssessorService.countSubmittedAvailability()).thenReturnAsync(5)
+      when(mockAssessorService.countSubmittedAvailability()).thenReturnAsync(5L)
       val response = controller.countSubmittedAvailability()(fakeRequest)
       status(response) mustBe OK
       contentAsJson(response) mustBe Json.obj("size" -> 5)
+    }
+
+    "return an internal server error" in new TestFixture {
+      // Pass an Integer to generate a java.lang.ClassCastException when the code tries to create a java.lang.Long
+      when(mockAssessorService.countSubmittedAvailability()).thenReturnAsync(0)
+      val response = controller.countSubmittedAvailability()(fakeRequest)
+      status(response) mustBe INTERNAL_SERVER_ERROR
     }
   }
 

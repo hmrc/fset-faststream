@@ -27,8 +27,8 @@ import java.time.{OffsetDateTime, ZoneId}
   */
 class BaseServiceSpec extends UnitSpec with FutureHelper {
   implicit val now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC"))
-  implicit val hc = HeaderCarrier()
-  implicit val rh = EmptyRequestHeader
+  implicit val hc: HeaderCarrier = HeaderCarrier()
+  implicit val rh: EmptyRequestHeader.type = EmptyRequestHeader
 
   val AppId = "AppId"
   val UserId = "UserId"

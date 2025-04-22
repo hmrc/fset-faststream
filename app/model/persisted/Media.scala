@@ -28,5 +28,5 @@ object Media {
     (__ \ "userId").format[String] and
       (__ \ "media").format[String] and
       (__ \ "originalUserId").formatNullable[String]
-    )(Media.apply, unlift(Media.unapply))
+    )(Media.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 }

@@ -948,7 +948,7 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
     val mockStcEventService: StcEventService = stcEventServiceMock
     val mockEmailClient = mock[OnlineTestEmailClient]
-    val mockAuthProviderClient: AuthProviderClient = mock[AuthProviderClient]
+    val mockAuthProviderClient = authProviderClient2Mock
     val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
 
     when(mockMicroserviceAppConfig.eventsConfig).thenReturn(

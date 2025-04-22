@@ -21,8 +21,8 @@ import model.EvaluationResults.{Green, Red}
 import model.ProgressStatuses
 import model.command.ApplicationForProgression
 import model.persisted.SchemeEvaluationResult
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.CollectionNames
 import repositories.fsb.FsbMongoRepository
 import testkit.MongoRepositorySpec

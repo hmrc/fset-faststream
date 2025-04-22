@@ -37,7 +37,7 @@ trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveSchedu
   def interval = config.interval
   def initialDelay = config.initialDelay
   def configuredInterval = config.configuredInterval
-  def name = config.name
+  def name = config.jobName
   def enabled = config.enabled
 
   val mongoComponent: MongoComponent
@@ -62,11 +62,12 @@ trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveSchedu
 
   override def executeInMutex(implicit ec: ExecutionContext): Future[this.Result] = lockKeeper.tryLock {
     running = true
-    val v = Try(tryExecute)
+    val v = Try(tryExecute())
     running = false
     v.get
   }.map {
     case Some(_) => Result("Success")
-    case None => Result("Nothing")
+  }.recover{
+    case _: Throwable => Result("Nothing")
   }
 }

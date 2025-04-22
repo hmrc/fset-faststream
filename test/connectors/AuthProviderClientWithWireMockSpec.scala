@@ -17,13 +17,14 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import config.{AuthConfig, MicroserviceAppConfig, UserManagementConfig, WSHttpT}
+import config.{AuthConfig, MicroserviceAppConfig, UserManagementConfig}
 import connectors.AuthProviderClient.{TokenEmailPairInvalidException, TokenExpiredException, TooManyResultsException}
 import connectors.ExchangeObjects.{Candidate, UserAuthInfo}
 import model.Exceptions.ConnectorException
 import model.exchange.SimpleTokenResponse
 import play.api.http.Status._
 import play.api.libs.json.Json
+import uk.gov.hmrc.http.client.HttpClientV2
 // Added ShortTimeout as these tests sometimes fail on Jenkins with the default 150ms timeout defined in the default PatienceConfig
 import testkit.ShortTimeout
 
@@ -249,7 +250,7 @@ class AuthProviderClientWithWireMockSpec extends BaseConnectorWithWireMockSpec w
         .willReturn(aResponse().withStatus(OK))
       )
 
-      val result = client.activate(email, token).futureValue
+      val result = clientTDG.activate(email, token).futureValue
       result mustBe unit
     }
 
@@ -260,7 +261,7 @@ class AuthProviderClientWithWireMockSpec extends BaseConnectorWithWireMockSpec w
         .willReturn(aResponse().withStatus(GONE))
       )
 
-      val result = client.activate(email, token).failed.futureValue
+      val result = clientTDG.activate(email, token).failed.futureValue
       result mustBe a[TokenExpiredException]
     }
 
@@ -271,19 +272,21 @@ class AuthProviderClientWithWireMockSpec extends BaseConnectorWithWireMockSpec w
         .willReturn(aResponse().withStatus(NOT_FOUND))
       )
 
-      val result = client.activate(email, token).failed.futureValue
+      val result = clientTDG.activate(email, token).failed.futureValue
       result mustBe a[TokenEmailPairInvalidException]
     }
   }
 
   trait TestFixture extends BaseConnectorTestFixture {
-    val ws = app.injector.instanceOf(classOf[WSHttpT])
+    val http = app.injector.instanceOf(classOf[HttpClientV2])
 
     val mockMicroserviceAppConfig = new MicroserviceAppConfig(mockConfiguration, mockEnvironment) {
       override lazy val userManagementConfig = UserManagementConfig(s"http://localhost:$wireMockPort")
       override lazy val authConfig = AuthConfig(serviceName)
     }
 
-    val client = new AuthProviderClient(ws, mockMicroserviceAppConfig)
+    val client = new AuthProviderClient(http, mockMicroserviceAppConfig)
+    //TODO: we need to split out a new test class
+    val clientTDG = new AuthProviderClientTDG(http, mockMicroserviceAppConfig)
   }
 }

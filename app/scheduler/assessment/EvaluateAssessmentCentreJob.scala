@@ -59,5 +59,5 @@ trait EvaluateAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobCon
 class EvaluateAssessmentCentreJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.evaluate-assessment-centre-job",
-  name = "EvaluateAssessmentCentreJob"
+  jobName = "EvaluateAssessmentCentreJob"
 )

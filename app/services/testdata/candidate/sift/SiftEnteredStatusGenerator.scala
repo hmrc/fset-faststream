@@ -53,16 +53,18 @@ class SiftEnteredStatusGenerator @Inject() (val previousStatusGenerator: Phase3T
 //  val siftService: ApplicationSiftService
 
   override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData): (ApplicationStatus, BaseGenerator) = {
-    val previousStatusAndGeneratorPair = generatorConfig.statusData.previousApplicationStatus.map(previousApplicationStatus => {
-      val generator = candidateStatusGeneratorFactory.get().getGenerator(
+    val previousStatusAndGeneratorPairOpt = generatorConfig.statusData.previousApplicationStatus.map {
+      previousApplicationStatus => {
+        val generator = candidateStatusGeneratorFactory.get().getGenerator(
           generatorConfig.copy(
-            statusData = generatorConfig.statusData.copy(
-              applicationStatus = previousApplicationStatus
-            )))
+            statusData = generatorConfig.statusData.copy(applicationStatus = previousApplicationStatus)
+          )
+        )
         (previousApplicationStatus, generator)
       }
-    )
-    previousStatusAndGeneratorPair.getOrElse(
+    }
+
+    previousStatusAndGeneratorPairOpt.getOrElse(
       if (generatorConfig.hasFastPass) {
         (ApplicationStatus.FAST_PASS_ACCEPTED, fastPassAcceptedStatusGenerator)
       } else if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Edip ||
@@ -75,7 +77,7 @@ class SiftEnteredStatusGenerator @Inject() (val previousStatusGenerator: Phase3T
       }
     )
   }
-
+  
   private def getSchemeResults(candidateInPreviousStatus: CreateCandidateResponse,
                                 generatorConfig: CreateCandidateData): List[SchemeEvaluationResult] = {
     if (generatorConfig.hasFastPass) {

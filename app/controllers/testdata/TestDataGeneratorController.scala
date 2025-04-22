@@ -17,7 +17,7 @@
 package controllers.testdata
 
 import config.MicroserviceAppConfig
-import connectors.AuthProviderClient
+import connectors.AuthProviderClientTDG
 import factories.UUIDFactory
 
 import javax.inject.{Inject, Singleton}
@@ -25,7 +25,7 @@ import model.Exceptions.EmailTakenException
 import model._
 import model.command.testdata.CreateAdminRequest.{AssessorAvailabilityRequest, AssessorRequest, CreateAdminRequest}
 import model.command.testdata.CreateAssessorAllocationRequest.CreateAssessorAllocationRequest
-import model.command.testdata.CreateCandidateRequest.{CreateCandidateRequest, _}
+import model.command.testdata.CreateCandidateRequest.*
 import model.command.testdata.CreateEventRequest
 import model.command.testdata.{ClearCandidatesRequest, CreateCandidateAllocationRequest}
 import model.exchange.AssessorSkill
@@ -55,7 +55,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class TestDataGeneratorController @Inject() (cc: ControllerComponents,
                                              createCandidateRequestValidator: CreateCandidateRequestValidator,
                                              locationsAndVenuesRepository: LocationsWithVenuesRepository,
-                                             authProviderClient: AuthProviderClient,
+                                             authProviderClient: AuthProviderClientTDG,
                                              testDataGeneratorService: TestDataGeneratorService,
                                              candidateStatusGeneratorFactory: CandidateStatusGeneratorFactory,
                                              adminStatusGeneratorFactory: AdminStatusGeneratorFactory,
@@ -66,7 +66,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
 
   implicit val ec: ExecutionContext = cc.executionContext
 
-  def ping = Action { implicit _ =>
+  def ping(): Action[AnyContent] = Action { implicit _ =>
     Ok("OK")
   }
 
@@ -85,7 +85,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
   }
 
   // scalastyle:off method.length
-  def exampleCreateCandidate = Action { implicit _ =>
+  def exampleCreateCandidate(): Action[AnyContent] = Action { implicit _ =>
     val random = dataFaker.Random
 
     val example = CreateCandidateRequest(
@@ -168,7 +168,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
 
   // scalastyle:on method.length
 
-  def exampleCreateAdmin = Action { implicit _ =>
+  def exampleCreateAdmin(): Action[AnyContent] = Action { implicit _ =>
     val example = CreateAdminRequest(
       emailPrefix = Some("admin_user"),
       firstName = Some("Admin user 1"),
@@ -191,7 +191,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
     Ok(Json.toJson(example))
   }
 
-  def exampleCreateEvent = Action { implicit _ =>
+  def exampleCreateEvent(): Action[AnyContent] = Action { implicit _ =>
     val example = CreateEventRequest(
       id = Some(uuidFactory.generateUUID()),
       eventType = Some(EventType.FSAC),
@@ -213,7 +213,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
     Ok(Json.toJson(example))
   }
 
-  def exampleCreateEvents = Action { implicit _ =>
+  def exampleCreateEvents(): Action[AnyContent] = Action { implicit _ =>
     val example1 = CreateEventRequest(
       id = Some(uuidFactory.generateUUID()),
       eventType = Some(EventType.FSAC),
@@ -240,7 +240,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
     Ok(Json.toJson(List(example1, example2)))
   }
 
-  def exampleCreateAssessorAllocations: Action[AnyContent] = Action.async { implicit _ =>
+  def exampleCreateAssessorAllocations(): Action[AnyContent] = Action.async { implicit _ =>
     val example1 = CreateAssessorAllocationRequest(
       "id2",
       "eventId2",
@@ -256,7 +256,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
     Future.successful(Ok(Json.toJson(List(example1, example2))))
   }
 
-  def exampleCreateCandidateAllocations: Action[AnyContent] = Action.async { implicit _ =>
+  def exampleCreateCandidateAllocations(): Action[AnyContent] = Action.async { implicit _ =>
     val example1 = CreateCandidateAllocationRequest(
       id = "id1",
       status = Option(AllocationStatuses.UNCONFIRMED),
@@ -363,7 +363,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
     } catch {
       case etex: EmailTakenException =>
         logger.error("TDG: Email has been already taken. Try with another one by changing the emailPrefix parameter.")
-        logger.error(etex.getStackTrace.toString)
+        logger.error(etex.getStackTrace.toString())
         Future.successful(Conflict(JsObject(List(("message",
           JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
       case ex: Throwable =>

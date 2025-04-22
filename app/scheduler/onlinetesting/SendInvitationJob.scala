@@ -84,19 +84,19 @@ trait SendInvitationJob extends SingleInstanceScheduledJob[BasicJobConfig[Schedu
 class SendPhase1InvitationJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.send-phase1-invitation-job",
-  name = "SendPhase1InvitationJob"
+  jobName = "SendPhase1InvitationJob"
 )
 
 @Singleton
 class SendPhase2InvitationJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.send-phase2-invitation-job",
-  name = "SendPhase2InvitationJob"
+  jobName = "SendPhase2InvitationJob"
 )
 
 @Singleton
 class SendPhase3InvitationJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.send-phase3-invitation-job",
-  name = "SendPhase3InvitationJob"
+  jobName = "SendPhase3InvitationJob"
 )

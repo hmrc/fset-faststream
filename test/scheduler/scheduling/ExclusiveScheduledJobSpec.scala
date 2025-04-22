@@ -82,7 +82,7 @@ class ExclusiveScheduledJobSpec extends UnitSpec {
       }
 
       val exception = job.execute.failed.futureValue
-      exception mustBe an[RuntimeException]
+      exception mustBe a[RuntimeException]
       job.isRunning.futureValue mustBe false
     }
   }

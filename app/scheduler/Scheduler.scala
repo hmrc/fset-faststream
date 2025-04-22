@@ -19,11 +19,11 @@ package scheduler
 import play.api.Application
 import play.api.inject.ApplicationLifecycle
 import scheduler.assessment.{EvaluateAssessmentCentreJobConfig, EvaluateAssessmentCentreJobImpl}
-import scheduler.fixer.{FixerJobConfig, FixerJobImpl}
+import scheduler.fixer.FixerJobImpl
 import scheduler.fsb.{EvaluateFsbJobConfig, EvaluateFsbJobImpl}
-import scheduler.onlinetesting._
+import scheduler.onlinetesting.*
 import scheduler.scheduling.{RunningOfScheduledJobs, ScheduledJob}
-import scheduler.sift._
+import scheduler.sift.*
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -116,23 +116,23 @@ class Scheduler @Inject()(
                            notifyOnFinalSuccessJobConfig: NotifyOnFinalSuccessJobConfig,
                            evaluateFsbJobConfig: EvaluateFsbJobConfig,
                            fsbOverallFailureJobConfig: FsbOverallFailureJobConfig,
-                           override val applicationLifecycle: ApplicationLifecycle,
-                           override val application: Application
+                           override val application: Application,
+                           override val applicationLifecycle: ApplicationLifecycle
                          )
-                         (implicit val ec: ExecutionContext) extends RunningOfScheduledJobs {
+                         (override implicit val ec: ExecutionContext) extends RunningOfScheduledJobs(application, applicationLifecycle) {
   logger.info("Scheduler created")
 
   private def maybeInitScheduler(config: BasicJobConfig[_], scheduler: => ScheduledJob): Option[ScheduledJob] = {
     if (config.enabled) {
-      logger.warn(s"${config.name} job is enabled")
+      logger.warn(s"${config.jobName} job is enabled")
       Some(scheduler)
     } else {
-      logger.warn(s"${config.name} job is disabled")
+      logger.warn(s"${config.jobName} job is disabled")
       None
     }
   }
 
-  override lazy val scheduledJobs: Seq[ScheduledJob] = {
+  override def scheduledJobs: Seq[ScheduledJob] = {
     Seq(
       maybeInitScheduler(sendPhase1InvitationJobConfig, sendPhase1InvitationJob),
 //      maybeInitScheduler(sendPhase2InvitationJobConfig, sendPhase2InvitationJob),

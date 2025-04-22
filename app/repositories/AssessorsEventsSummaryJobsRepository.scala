@@ -16,13 +16,14 @@
 
 package repositories
 
-import javax.inject.{Inject, Singleton}
 import model.AssessorNewEventsJobInfo
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.UpdateOptions
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AssessorsEventsSummaryJobsRepository {

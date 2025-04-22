@@ -32,7 +32,7 @@ import java.util.UUID
 
 class Phase2TestRepositorySpec extends MongoRepositorySpec with ApplicationDataFixture {
 
-  implicit val Now = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
+  implicit val Now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
   val DatePlus7Days = Now.plusDays(7)
   val Token = UUID.randomUUID.toString
 

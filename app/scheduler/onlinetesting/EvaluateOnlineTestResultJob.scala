@@ -120,19 +120,19 @@ abstract class EvaluateOnlineTestResultJob[T <: PassMarkSettingsPersistence](imp
 class EvaluatePhase1ResultJobConfig @Inject()(config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.evaluate-phase1-result-job",
-  name = "EvaluatePhase1ResultJob"
+  jobName = "EvaluatePhase1ResultJob"
 )
 
 @Singleton
 class EvaluatePhase2ResultJobConfig @Inject()(config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.evaluate-phase2-result-job",
-  name = "EvaluatePhase2ResultJob"
+  jobName = "EvaluatePhase2ResultJob"
 )
 
 @Singleton
 class EvaluatePhase3ResultJobConfig @Inject()(config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.evaluate-phase3-result-job",
-  name = "EvaluatePhase3ResultJob"
+  jobName = "EvaluatePhase3ResultJob"
 )

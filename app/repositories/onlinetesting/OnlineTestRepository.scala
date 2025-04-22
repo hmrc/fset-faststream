@@ -17,18 +17,19 @@
 package repositories.onlinetesting
 
 //import factories.DateTimeFactory // //TODO: Ian this needs to be looked at!!!!!!
+import model.*
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ApplicationNotFound, CannotFindTestByOrderIdException}
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.ProgressStatus
-import model._
 import model.exchange.PsiTestResultReady
-import model.persisted._
+import model.persisted.*
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString, BsonValue}
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
 import play.api.libs.json.Reads
-import repositories._
+import repositories.*
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import java.time.OffsetDateTime

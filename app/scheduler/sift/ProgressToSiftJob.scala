@@ -76,5 +76,5 @@ trait ProgressToSiftJob extends SingleInstanceScheduledJob[BasicJobConfig[Waitin
 class ProgressToSiftJobConfig @Inject()(config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.progress-to-sift-job",
-  name = "ProgressToSiftJob"
+  jobName = "ProgressToSiftJob"
 )

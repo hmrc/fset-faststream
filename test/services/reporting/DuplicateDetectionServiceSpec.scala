@@ -16,17 +16,17 @@
 
 package services.reporting
 
-import factories.DateTimeFactory
-import model.ProgressStatuses.ProgressStatus._
-import model.ProgressStatuses._
-import model.persisted.{ UserApplicationProfile, UserIdWithEmail }
-import org.mockito.Mockito._
-import repositories.application.ReportingRepository
-import repositories.contactdetails.ContactDetailsRepository
+//import factories.DateTimeFactory
+//import model.ProgressStatuses.ProgressStatus._
+//import model.ProgressStatuses._
+//import model.persisted.{ UserApplicationProfile, UserIdWithEmail }
+//import org.mockito.Mockito._
+//import repositories.application.ReportingRepository
+//import repositories.contactdetails.ContactDetailsRepository
 import services.BaseServiceSpec
 import testkit.ShortTimeout
 
-import scala.concurrent.Future
+//import scala.concurrent.Future
 
 // TODO: Resurrect as part of duplications ticket
 

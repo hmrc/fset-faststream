@@ -74,19 +74,19 @@ trait SuccessTestJob extends SingleInstanceScheduledJob[BasicJobConfig[Scheduled
 class SuccessPhase1TestJobConfig @Inject () (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.success-phase1-test-job",
-  name = "SuccessPhase1TestJob"
+  jobName = "SuccessPhase1TestJob"
 )
 
 @Singleton
 class SuccessPhase3TestJobConfig @Inject () (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.success-phase3-test-job",
-  name = "SuccessPhase3TestJob"
+  jobName = "SuccessPhase3TestJob"
 )
 
 @Singleton
 class SuccessPhase3SdipFsTestJobConfig @Inject () (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.success-phase3-sdipfs-test-job",
-  name = "SuccessPhase3SdipFsTestJob"
+  jobName = "SuccessPhase3SdipFsTestJob"
 )

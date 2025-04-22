@@ -58,5 +58,5 @@ trait SkipPhase3Job extends SingleInstanceScheduledJob[BasicJobConfig[WaitingSch
 class SkipPhase3JobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.skip-phase3-job",
-  name = "SkipPhase3Job"
+  jobName = "SkipPhase3Job"
 )

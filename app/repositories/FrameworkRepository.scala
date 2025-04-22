@@ -24,14 +24,14 @@ import javax.inject.{Inject, Singleton}
 import model.persisted.PersonalDetails
 import org.yaml.snakeyaml.Yaml
 import play.api.Application
-import repositories.FrameworkRepository.{CandidateHighestQualification, Framework, Location, Region}
-import repositories.FrameworkYamlRepository._
-import resource.managed
+import FrameworkRepository.{CandidateHighestQualification, Framework, Location, Region}
+// This results in a cyclic dependency error
+//import FrameworkYamlRepository._
 
-import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Using
 
-@deprecated("fasttrack version. Framework need to be renamed to Scheme", "July 2016")
+//@deprecated("fasttrack version. Framework need to be renamed to Scheme", "July 2016")
 @ImplementedBy(classOf[FrameworkYamlRepository])
 trait FrameworkRepository {
   def getFrameworksByRegion: Future[List[Region]]
@@ -53,6 +53,9 @@ trait FrameworkRepository {
 class FrameworkYamlRepository @Inject() (implicit application: Application, appConfig: MicroserviceAppConfig, ec: ExecutionContext)
   extends FrameworkRepository {
 
+  // Scala 3 - with this included in the top level imports, it results in a cyclic dependency error so keep it here
+  import FrameworkYamlRepository._
+
   private lazy val frameworks: Iterable[YamlFramework] = {
     val document = loadYamlDocument(appConfig.frameworksConfig.yamlFilePath)
     parseDocument(document)
@@ -69,9 +72,10 @@ class FrameworkYamlRepository @Inject() (implicit application: Application, appC
     frameworksByRegionCached
 
   private def loadYamlDocument(filename: String): Map[String, _] = {
-    val input = managed(application.environment.resourceAsStream(filename).get)
-    val document = input.acquireAndGet(new Yaml().load(_).asInstanceOf[util.LinkedHashMap[String, _]].asScala.toMap)
-    document
+    import scala.jdk.CollectionConverters._
+    Using.resource(application.environment.resourceAsStream(filename).get) { inputStream =>
+      new Yaml().load(inputStream).asInstanceOf[util.LinkedHashMap[String, _]].asScala.toMap
+    }
   }
 
   private def parseDocument(document: Map[String, _]): Iterable[YamlFramework] = document.map {
@@ -124,11 +128,12 @@ object FrameworkYamlRepository {
   case class YamlRegion(name: String, locations: List[String])
 
   implicit class YamlConversion[A](val obj: A) extends AnyVal {
+    import scala.jdk.CollectionConverters._
     def asMapOfObjects: Map[String, _] =
       obj.asInstanceOf[util.LinkedHashMap[String, _]].asScala.toMap
 
     def asMapOfStringLists: Map[String, List[String]] =
-      obj.asInstanceOf[util.LinkedHashMap[String, util.ArrayList[String]]].asScala.mapValues(_.asScala.toList).toMap
+      obj.asInstanceOf[util.LinkedHashMap[String, util.ArrayList[String]]].asScala.view.mapValues(_.asScala.toList).toMap
   }
 }
 

@@ -41,5 +41,5 @@ object ContactDetailsWithId {
       (__ \ subRoot \ "outsideUk").format[Boolean] and
       (__ \ subRoot \ "email").format[String] and
       (__ \ subRoot \ "phone").formatNullable[PhoneNumber]
-    )(ContactDetailsWithId.apply, unlift(ContactDetailsWithId.unapply))
+    )(ContactDetailsWithId.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 }

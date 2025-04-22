@@ -35,7 +35,7 @@ object ContactDetailsUserIdPostcode {
   val mongoFormat: Format[ContactDetailsUserIdPostcode] = (
     (__ \ "userId").format[String] and
       (__ \ root \ "postCode").format[PostCode]
-    )(ContactDetailsUserIdPostcode.apply, unlift(ContactDetailsUserIdPostcode.unapply))
+    )(ContactDetailsUserIdPostcode.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 }
 
 case class ContactDetails(outsideUk: Boolean,
@@ -57,5 +57,5 @@ object ContactDetails {
       (__ \ root \ "country").formatNullable[String] and
       (__ \ root \ "email").format[String] and
       (__ \ root \ "phone").format[PhoneNumber]
-    )(ContactDetails.apply, unlift(ContactDetails.unapply))
+    )(ContactDetails.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 }

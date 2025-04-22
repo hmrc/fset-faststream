@@ -16,7 +16,7 @@
 
 package services.testdata.candidate
 
-import connectors.AuthProviderClient
+import connectors.AuthProviderClientTDG
 import model.Schemes
 import model.exchange.testdata.CreateAdminResponse.AssessorResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
@@ -35,7 +35,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient,
+class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClientTDG,
                                           medRepository: MediaRepository,
                                           schemeRepository: SchemeRepository,
                                           assessorGenerator: AssessorCreatedStatusGenerator,
@@ -50,7 +50,7 @@ class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient
     val email = s"${generatorConfig.personalData.emailPrefix}@mailinator.com"
     val mediaReferrer = dataFaker.mediaReferrer
 
-    val roles = List(AuthProviderClient.CandidateRole)
+    val roles = List(connectors.AuthProviderClient.CandidateRole)
     for {
       user <- createUser(generationId, email, firstName, lastName, preferredName, roles)
       _ <- medRepository.create(Media(user.userId, mediaReferrer.getOrElse("")))
@@ -64,7 +64,7 @@ class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient
 
   def createUser(generationId: Int, email: String,
                  firstName: String, lastName: String,
-                 preferredName: Option[String], roles: List[AuthProviderClient.UserRole])
+                 preferredName: Option[String], roles: List[connectors.AuthProviderClient.UserRole])
                 (implicit hc: HeaderCarrier): Future[CreateCandidateResponse] = {
     val userFuture = for {
       user <- authProviderClient.addUser(email, "Service01", firstName, lastName, roles)
@@ -74,7 +74,7 @@ class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient
       CreateCandidateResponse(generationId, user.userId, applicationId = None, testAccountId = None, email, firstName, lastName)
     }
 
-    val assessorRoles = List(AuthProviderClient.AssessorRole, AuthProviderClient.QacRole)
+    val assessorRoles = List(connectors.AuthProviderClient.AssessorRole, connectors.AuthProviderClient.QacRole)
 
     userFuture.flatMap {
       case user if assessorRoles.intersect(roles).nonEmpty =>

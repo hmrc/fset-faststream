@@ -72,19 +72,19 @@ trait FirstReminderExpiringTestJob extends SingleInstanceScheduledJob[BasicJobCo
 class FirstPhase1ReminderExpiringTestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.first-phase1-reminder-expiring-test-job",
-  name = "FirstPhase1ReminderExpiringTestJob"
+  jobName = "FirstPhase1ReminderExpiringTestJob"
 )
 
 @Singleton
 class FirstPhase2ReminderExpiringTestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.first-phase2-reminder-expiring-test-job",
-  name = "FirstPhase2ReminderExpiringTestJob"
+  jobName = "FirstPhase2ReminderExpiringTestJob"
 )
 
 @Singleton
 class FirstPhase3ReminderExpiringTestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.first-phase3-reminder-expiring-test-job",
-  name = "FirstPhase3ReminderExpiringTestJob"
+  jobName = "FirstPhase3ReminderExpiringTestJob"
 )

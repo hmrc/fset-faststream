@@ -16,8 +16,9 @@
 
 package connectors
 
-import config.{ MicroserviceAppConfig, WSHttpT }
-import testkit.{ ShortTimeout, UnitSpec }
+import config.MicroserviceAppConfig
+import testkit.{ShortTimeout, UnitSpec}
+import uk.gov.hmrc.http.client.HttpClientV2
 
 class AuthProviderClientSpec extends UnitSpec with ShortTimeout {
 
@@ -50,7 +51,7 @@ class AuthProviderClientSpec extends UnitSpec with ShortTimeout {
   }
 
   trait TestFixture {
-    val mockWsHttp: WSHttpT = mock[WSHttpT]
+    val mockWsHttp: HttpClientV2 = mock[HttpClientV2]
     val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
     import scala.concurrent.ExecutionContext.Implicits.global
     val authProviderClient = new AuthProviderClient(mockWsHttp, mockMicroserviceAppConfig)

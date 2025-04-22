@@ -18,12 +18,13 @@ package repositories.application
 
 import config.MicroserviceAppConfig
 import factories.DateTimeFactoryMock
-import model.ApplicationRoute.{apply => _}
-import model.ProgressStatuses.{PHASE1_TESTS_PASSED => _, SUBMITTED => _}
+import model.ApplicationRoute.apply as _
+import model.ProgressStatuses.{PHASE1_TESTS_PASSED as _, SUBMITTED as _}
 import model.persisted.{ApplicationForDiversityReport, CivilServiceExperienceDetailsForDiversityReport, SchemeEvaluationResult}
-import model.report._
+import model.report.*
 import model.{ApplicationRoute, BSONExamples, Schemes}
 import org.mongodb.scala.bson.{BsonArray, BsonDateTime, BsonDocument}
+import org.mongodb.scala.bsonDocumentToDocument
 import testkit.UnitWithAppSpec
 
 class ReportingRepoBSONReaderSpec extends UnitWithAppSpec with Schemes {

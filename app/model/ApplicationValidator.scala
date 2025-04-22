@@ -21,12 +21,12 @@ import java.io.Serializable
 import model.persisted.{ AssistanceDetails, PersonalDetails }
 import repositories.FrameworkRepository.Region
 // scalastyle:off cyclomatic.complexity
-case class ApplicationValidator(gd: PersonalDetails, ad: AssistanceDetails, sl: Option[Preferences], availableRegions: List[Region]) {
+case class ApplicationValidator(pd: PersonalDetails, ad: AssistanceDetails, sl: Option[Preferences], availableRegions: List[Region]) {
 
   def validate: Boolean = validateGeneralDetails && validateAssistanceDetails && validateSchemes
 
   def validateGeneralDetails: Boolean =
-    !(gd.firstName.isEmpty || gd.lastName.isEmpty || gd.preferredName.isEmpty)
+    !(pd.firstName.isEmpty || pd.lastName.isEmpty || pd.preferredName.isEmpty)
 
   def validateAssistanceDetails: Boolean = {
 

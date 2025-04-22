@@ -17,16 +17,10 @@
 package repositories
 
 import com.google.inject.ImplementedBy
-import config.MicroserviceAppConfig
-import model.Exceptions.SchemeNotFoundException
 import model._
 import model.exchange.SdipLocation
-import net.jcazevedo.moultingyaml._
-import play.api.Application
-import resource._
 
 import javax.inject.{Inject, Singleton}
-import scala.io.Source
 
 @ImplementedBy(classOf[LocationInMemoryRepository])
 trait LocationRepository {

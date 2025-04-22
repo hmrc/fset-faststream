@@ -52,7 +52,9 @@ class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent)(impli
   override def add(contentType: String, fileContents: Array[Byte]): Future[String] = {
     val fileId = UUID.randomUUID().toString
 
-    val options: GridFSUploadOptions = new GridFSUploadOptions().metadata(Document("contentType" -> contentType))
+    import scala.jdk.CollectionConverters._
+
+    val options: GridFSUploadOptions = new GridFSUploadOptions().metadata(org.bson.Document(Map("contentType" -> contentType).asJava))
 
     val observableToUploadFrom: Observable[ByteBuffer] = Observable(
       Seq(ByteBuffer.wrap(fileContents))

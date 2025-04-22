@@ -59,5 +59,5 @@ trait ProgressToFsbOrOfferJob extends SingleInstanceScheduledJob[BasicJobConfig[
 class ProgressToFsbOrOfferJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.progress-to-fsb-or-offer-job",
-  name = "ProgressToFsbOrOfferJob"
+  jobName = "ProgressToFsbOrOfferJob"
 )

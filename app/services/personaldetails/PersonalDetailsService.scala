@@ -16,18 +16,19 @@
 
 package services.personaldetails
 
-import javax.inject.{Inject, Singleton}
-import model.ApplicationStatus._
+import model.ApplicationStatus.*
 import model.Exceptions.FSACCSVIndicatorNotFound
 import model.FSACIndicator
 import model.command.GeneralDetails
 import model.persisted.{ContactDetails, PersonalDetails}
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.csv.FSACIndicatorCSVRepository
 import repositories.fsacindicator.FSACIndicatorRepository
 import repositories.personaldetails.PersonalDetailsRepository
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

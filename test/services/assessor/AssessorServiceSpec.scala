@@ -17,30 +17,30 @@
 package services.assessor
 
 import connectors.ExchangeObjects.Candidate
-import connectors.{AuthProviderClient, OnlineTestEmailClient}
+import connectors.{AuthProviderClient2, OnlineTestEmailClient}
 import model.AllocationStatuses.AllocationStatus
-import model.Exceptions._
+import model.Exceptions.*
 import model.exchange.{AssessorAvailabilities, UpdateAllocationStatusRequest}
-import model.persisted.EventExamples._
-import model.persisted.assessor.AssessorExamples._
+import model.persisted.EventExamples.*
+import model.persisted.assessor.AssessorExamples.*
 import model.persisted.assessor.{Assessor, AssessorAvailability, AssessorStatus}
-import model.persisted.eventschedules._
+import model.persisted.eventschedules.*
 import model.persisted.{AssessorAllocation, EventExamples, ReferenceData}
 import model.{AllocationStatuses, Exceptions, UniqueIdentifier}
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.Mockito.*
 import repositories.events.LocationsWithVenuesRepository
 import repositories.{AssessorAllocationRepository, AssessorRepository}
 import services.BaseServiceSpec
 import services.events.EventsService
-import testkit.MockitoImplicits._
+import testkit.MockitoImplicits.*
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{LocalDate, LocalTime, OffsetDateTime}
 import java.time.format.DateTimeFormatter
+import java.time.{LocalDate, LocalTime, OffsetDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 
@@ -306,7 +306,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
     val mockAllocationRepo = mock[AssessorAllocationRepository]
     val mockEventService = mock[EventsService]
     val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
-    val mockAuthProviderClient = mock[AuthProviderClient]
+    val mockAuthProviderClient = mock[AuthProviderClient2]
 //    val mockemailClient = mock[CSREmailClient] //TODO:fix changed type
     val mockEmailClient = mock[OnlineTestEmailClient] //TODO:fix changed type
     val virtualVenue = Venue("virtual", "virtual venue")

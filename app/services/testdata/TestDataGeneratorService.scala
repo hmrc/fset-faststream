@@ -16,34 +16,35 @@
 
 package services.testdata
 
+import connectors.AuthProviderClientTDG
 import connectors.AuthProviderClient
-import connectors.AuthProviderClient._
 import model.exchange.testdata.CreateAdminResponse.CreateAdminResponse
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.exchange.testdata.{CreateAssessorAllocationResponse, CreateCandidateAllocationResponse, CreateEventResponse, CreateTestDataResponse}
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.testdata.{CreateAssessorAllocationData, CreateCandidateAllocationData, CreateEventData, CreateTestData}
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import services.testdata.admin.AdminUserBaseGenerator
 import services.testdata.allocation.{AssessorAllocationGenerator, CandidateAllocationGenerator}
-import services.testdata.candidate._
+import services.testdata.candidate.*
 import services.testdata.event.EventGenerator
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoComponent
 
 import javax.inject.{Inject, Singleton}
-import scala.collection.parallel.CollectionConverters._
+import scala.collection.parallel.CollectionConverters.*
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.collection.parallel.immutable.ParRange
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 
 @Singleton
-class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient,
+class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClientTDG,
                                           registeredStatusGenerator: RegisteredStatusGenerator,
                                           candidateRemover: CandidateRemover,
                                           candidateAllocationGenerator: CandidateAllocationGenerator,
@@ -114,7 +115,7 @@ class TestDataGeneratorService @Inject() (authProviderClient: AuthProviderClient
   }
 
   def createAdminUsers(numberToGenerate: Int, emailPrefix: Option[String],
-                       roles: List[UserRole])(implicit hc: HeaderCarrier): Future[List[CreateCandidateResponse]] = {
+                       roles: List[AuthProviderClient.UserRole])(implicit hc: HeaderCarrier): Future[List[CreateCandidateResponse]] = {
     Future.successful {
       val parNumbers = getParNumbers(numberToGenerate)
 

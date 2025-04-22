@@ -17,32 +17,31 @@
 package repositories.application
 
 import config.{MicroserviceAppConfig, PsiTestIds}
-import connectors.launchpadgateway.exchangeobjects.in.reviewed._
+import connectors.launchpadgateway.exchangeobjects.in.reviewed.*
 import factories.DateTimeFactory
-import org.apache.pekko.stream.Materializer
-import org.apache.pekko.stream.scaladsl.Source
-
-import javax.inject.{Inject, Singleton}
+import model.*
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Withdrawn
-import model._
 import model.assessmentscores.{AdaptsScores, RelatesScores, StrivesScores, ThinksScores}
 import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{FSACIndicator, SchemeEvaluationResult}
-import org.mongodb.scala.MongoCollection
-import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonRegularExpression}
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.scaladsl.Source
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.conversions.Bson
+import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonRegularExpression}
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
 import play.api.Logging
-import repositories._
+import repositories.*
 import services.reporting.SocioEconomicCalculator
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 import java.time.{OffsetDateTime, ZoneOffset}
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
@@ -672,7 +671,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
   // Limit the access so that test class still has access
   protected[application] def isSdipFsWithFsFailedAndSdipNotFailed(doc: Document) = {
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     val testEvalResultsListOpt = doc.get("currentSchemeStatus").map(_.asArray().getValues.asScala.toList)
     val css = testEvalResultsListOpt.map( bsonValueList => bsonValueList.map( bsonValue => Codecs.fromBson[SchemeEvaluationResult](bsonValue)) ).getOrElse(Nil)
 
@@ -1117,7 +1116,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         val questionsDocOpt = subDocRoot("questions")(doc)
         val universityNameAnswer = getAnswer(universityName, questionsDocOpt)
 
-        import scala.jdk.CollectionConverters._
+        import scala.jdk.CollectionConverters.*
 
         val allQuestionsAndAnswers = questionsDocOpt.map{ doc =>
           val keys = doc.keySet().asScala.toList
@@ -1436,7 +1435,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   private def videoInterview(doc: Document): List[Option[String]] = {
     val testGroupsOpt = subDocRoot("testGroups")(doc)
     val videoTestSectionOpt = testGroupsOpt.flatMap(testGroups => subDocRoot("PHASE3")(testGroups))
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     val videoTestsOpt = videoTestSectionOpt.flatMap{ p3 =>
       Try(p3.get("tests").asArray().getValues.asScala.toList.map ( _.asDocument() )).toOption
     }
@@ -1517,7 +1516,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       val testSectionOpt = testGroupsOpt.flatMap( section => subDocRoot(sectionName)(section) )
       val testsEvaluationOpt = testSectionOpt.flatMap ( evaluation => subDocRoot("evaluation")(evaluation) )
 
-      import scala.jdk.CollectionConverters._
+      import scala.jdk.CollectionConverters.*
       // Handle NPE
       val testEvalResults = testsEvaluationOpt.flatMap( eval => Try(eval.get("result").asArray().getValues.asScala.toList.map ( _.asDocument() )).toOption
         .orElse(testsEvaluationOpt.map( eval => eval.get("schemes-evaluation").asArray().getValues.asScala.toList.map ( _.asDocument() )) ))
@@ -1528,7 +1527,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   }
 
   private def currentSchemeStatus(doc: Document, numOfSchemes: Int): List[Option[String]] = {
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     val testEvalResults = doc.get("currentSchemeStatus").map(_.asArray().getValues.asScala.toList.map ( _.asDocument() ))
 
     val evalResultsMap = testEvalResults.map(getSchemeResults)
@@ -1591,7 +1590,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
     val testGroupsOpt = subDocRoot("testGroups")(doc)
 
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     val phase1Tests = for {
       testGroups <- testGroupsOpt
       phase1Tests <- subDocRoot("PHASE1")(testGroups).map(_.get("tests").asArray())
@@ -1712,7 +1711,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val etrayAdjustmentsOpt = Try(assistanceDetailsOpt.map( doc => doc.get("etray").asDocument() )).toOption.flatten // Handle NPE
     val videoAdjustmentsOpt = Try(assistanceDetailsOpt.map( doc => doc.get("video").asDocument() )).toOption.flatten // Handle NPE
 
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     val typeOfAdjustments = assistanceDetailsOpt.map { ad =>
       if (ad.containsKey("typeOfAdjustments"))
         ad.get("typeOfAdjustments").asArray().getValues.asScala.toList.map(_.asString().getValue)
@@ -1763,7 +1762,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   private def sdipLocationPreferencesAndInterests(doc: Document): List[Option[String]] = {
     val locationPreferencesOpt = subDocRoot("location-preferences")(doc)
 
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
 
     val locationPreferences = locationPreferencesOpt.map { ad =>
       if (ad.containsKey("locations"))
@@ -1786,7 +1785,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   private def disabilityDetails(doc: Document): List[Option[String]] = {
     val assistanceDetailsOpt = subDocRoot("assistance-details")(doc)
 
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
     val markedDisabilityCategories = markDisabilityCategories(
       assistanceDetailsOpt.map { ad =>
         if (ad.containsKey("disabilityCategories"))

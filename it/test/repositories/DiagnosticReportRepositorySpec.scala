@@ -16,13 +16,12 @@
 
 package repositories
 
-import org.apache.pekko.stream.scaladsl.{Keep, Sink}
 import model.Exceptions.ApplicationNotFound
-import org.mongodb.scala.MongoCollection
+import org.apache.pekko.stream.scaladsl.{Keep, Sink}
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import play.api.libs.json.JsValue
 import repositories.application.DiagnosticReportingMongoRepository
-
 import testkit.MongoRepositorySpec
 
 class DiagnosticReportRepositorySpec extends MongoRepositorySpec {

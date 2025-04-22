@@ -56,5 +56,5 @@ trait FirstSiftReminderJob extends SingleInstanceScheduledJob[BasicJobConfig[Sch
 class FirstSiftReminderJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.sift-first-reminder-job",
-  name = "SiftFirstReminderJob"
+  jobName = "SiftFirstReminderJob"
 )

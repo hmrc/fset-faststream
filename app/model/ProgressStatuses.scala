@@ -255,12 +255,15 @@ object ProgressStatuses {
       })
   }
 
+  // TODO: Scala 3 migration - investigate macros as a way to reimplement this Scala 2 reflection code
+
   // Reflection is generally 'A bad thing' but in this case it ensures that all progress statues are taken into account
   // Had considered an implementation with a macro, but that would need defining in another compilation unit
   // As it is a val in a object, it is only run once upon startup
 
   // TODO  this does NOT contain all the statuses as it cannot instantiate the SDIP statuses,
   // so we're a few progress statuses short of an application anywhere we're using this list.
+/*
   private[model] val allStatuses: Seq[ProgressStatus] = {
     import scala.reflect.runtime.universe._
     val mirror = runtimeMirror(this.getClass.getClassLoader)
@@ -274,6 +277,113 @@ object ProgressStatuses {
           (mirror reflectModule module).instance.asInstanceOf[ProgressStatus]
       }
     }.toSeq
+  }
+ */
+
+  private[model] val allStatuses: Seq[ProgressStatus] = {
+    Seq(
+      ProgressStatuses.CREATED,
+      ProgressStatuses.PERSONAL_DETAILS,
+      ProgressStatuses.SCHEME_PREFERENCES,
+      ProgressStatuses.LOCATION_PREFERENCES,
+      ProgressStatuses.ASSISTANCE_DETAILS,
+      ProgressStatuses.QUESTIONNAIRE_OCCUPATION,
+      ProgressStatuses.PREVIEW,
+      ProgressStatuses.SUBMITTED,
+      ProgressStatuses.WITHDRAWN,
+
+      ProgressStatuses.PHASE1_TESTS_INVITED,
+      ProgressStatuses.PHASE1_TESTS_STARTED,
+      ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE1_TESTS_COMPLETED,
+      ProgressStatuses.PHASE1_TESTS_EXPIRED,
+      ProgressStatuses.PHASE1_TESTS_RESULTS_READY,
+      ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE1_TESTS_PASSED,
+      ProgressStatuses.PHASE1_TESTS_FAILED,
+      ProgressStatuses.PHASE1_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN,
+
+      ProgressStatuses.PHASE2_TESTS_INVITED,
+      ProgressStatuses.PHASE2_TESTS_STARTED,
+      ProgressStatuses.PHASE2_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE2_TESTS_COMPLETED,
+      ProgressStatuses.PHASE2_TESTS_EXPIRED,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_READY,
+      ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE2_TESTS_PASSED,
+      ProgressStatuses.PHASE2_TESTS_FAILED,
+      ProgressStatuses.PHASE2_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE2_TESTS_FAILED_SDIP_GREEN,
+
+      ProgressStatuses.PHASE3_TESTS_INVITED,
+      ProgressStatuses.PHASE3_TESTS_STARTED,
+      ProgressStatuses.PHASE3_TESTS_FIRST_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_SECOND_REMINDER,
+      ProgressStatuses.PHASE3_TESTS_COMPLETED,
+      ProgressStatuses.PHASE3_TESTS_EXPIRED,
+      ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED,
+      ProgressStatuses.PHASE3_TESTS_PASSED_WITH_AMBER,
+      ProgressStatuses.PHASE3_TESTS_PASSED,
+      ProgressStatuses.PHASE3_TESTS_FAILED,
+      ProgressStatuses.PHASE3_TESTS_FAILED_NOTIFIED,
+      ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_AMBER,
+      ProgressStatuses.PHASE3_TESTS_FAILED_SDIP_GREEN,
+      ProgressStatuses.PHASE1_TESTS_PASSED_NOTIFIED,
+      ProgressStatuses.PHASE3_TESTS_PASSED_NOTIFIED,
+
+      ProgressStatuses.FAST_PASS_ACCEPTED,
+      ProgressStatuses.APPLICATION_ARCHIVED,
+
+      ProgressStatuses.SIFT_ENTERED,
+      ProgressStatuses.SIFT_TEST_INVITED,
+      ProgressStatuses.SIFT_TEST_STARTED,
+      ProgressStatuses.SIFT_TEST_COMPLETED,
+      ProgressStatuses.SIFT_FIRST_REMINDER,
+      ProgressStatuses.SIFT_SECOND_REMINDER,
+      ProgressStatuses.SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING,
+      ProgressStatuses.SIFT_TEST_RESULTS_READY,
+      ProgressStatuses.SIFT_TEST_RESULTS_RECEIVED,
+      ProgressStatuses.SIFT_READY,
+      ProgressStatuses.SIFT_COMPLETED,
+      ProgressStatuses.SIFT_EXPIRED,
+      ProgressStatuses.SIFT_EXPIRED_NOTIFIED,
+      ProgressStatuses.FAILED_AT_SIFT,
+      ProgressStatuses.FAILED_AT_SIFT_NOTIFIED,
+      ProgressStatuses.SDIP_FAILED_AT_SIFT,
+      ProgressStatuses.SIFT_FASTSTREAM_FAILED_SDIP_GREEN,
+
+      ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED_TO_ATTEND,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED,
+      ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED,
+      ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_RE_EVALUATION,
+      ProgressStatuses.ASSESSMENT_CENTRE_PASSED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED_NOTIFIED,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN,
+      ProgressStatuses.ASSESSMENT_CENTRE_FAILED_SDIP_GREEN_NOTIFIED,
+
+      ProgressStatuses.FSB_AWAITING_ALLOCATION,
+      ProgressStatuses.FSB_ALLOCATION_UNCONFIRMED,
+      ProgressStatuses.FSB_ALLOCATION_CONFIRMED,
+      ProgressStatuses.FSB_FAILED_TO_ATTEND,
+      ProgressStatuses.FSB_RESULT_ENTERED,
+      ProgressStatuses.FSB_PASSED,
+      ProgressStatuses.FSB_FAILED,
+
+      ProgressStatuses.FSB_FSAC_REEVALUATION_JOB_OFFER,
+      ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED,
+      ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED_NOTIFIED,
+      ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER,
+      ProgressStatuses.ELIGIBLE_FOR_JOB_OFFER_NOTIFIED
+    )
   }
 
   private[model] val nameToProgressStatusMap: Map[String, ProgressStatus] = {

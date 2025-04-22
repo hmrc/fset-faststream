@@ -49,5 +49,5 @@ trait ProgressSdipForFaststreamCandidateJob extends SingleInstanceScheduledJob[B
 class ProgressSdipForFaststreamCandidateJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.progress-sdipFs-candidate-for-sdip-job",
-  name = "ProgressSdipForFaststreamCandidateJob"
+  jobName = "ProgressSdipForFaststreamCandidateJob"
 )

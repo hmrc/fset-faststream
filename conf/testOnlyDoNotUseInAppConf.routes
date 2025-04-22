@@ -12,9 +12,9 @@
 # Add all the application routes to the prod.routes file
 ->         /                          prod.Routes
 
-GET     /candidate-application/test-only/test-data-generator/ping                             @controllers.testdata.TestDataGeneratorController.ping
+GET     /candidate-application/test-only/test-data-generator/ping                             @controllers.testdata.TestDataGeneratorController.ping()
 GET     /candidate-application/test-only/test-data-generator/clear-database                   @controllers.testdata.TestDataGeneratorController.clearDatabase(generateDefaultUsers: Boolean ?= true)
-POST    /candidate-application/test-only/test-data-generator/clear-candidates                 @controllers.testdata.TestDataGeneratorController.clearCandidates
+POST    /candidate-application/test-only/test-data-generator/clear-candidates                 @controllers.testdata.TestDataGeneratorController.clearCandidates()
 GET     /candidate-application/test-only/test-data-generator/create-admin-users               @controllers.testdata.TestDataGeneratorController.createAdmins(numberToGenerate: Int, emailPrefix: Option[String] ?= None, roles: List[String] ?= List("tech-admin"))
 POST    /candidate-application/test-only/test-data-generator/create-candidates                @controllers.testdata.TestDataGeneratorController.createCandidatesPOST(numberToGenerate: Int)
 POST    /candidate-application/test-only/test-data-generator/create-admin                     @controllers.testdata.TestDataGeneratorController.createAdminsPOST(numberToGenerate: Int)
@@ -24,12 +24,12 @@ POST    /candidate-application/test-only/test-data-generator/create-assessor-all
 POST    /candidate-application/test-only/test-data-generator/create-candidate-allocations     @controllers.testdata.TestDataGeneratorController.createCandidateAllocationsPOST(numberToGenerate: Int)
 
 # examples
-GET     /candidate-application/test-only/test-data-generator/example-candidate                @controllers.testdata.TestDataGeneratorController.exampleCreateCandidate
-GET     /candidate-application/test-only/test-data-generator/example-admin                    @controllers.testdata.TestDataGeneratorController.exampleCreateAdmin
-GET     /candidate-application/test-only/test-data-generator/example-event                    @controllers.testdata.TestDataGeneratorController.exampleCreateEvent
-GET     /candidate-application/test-only/test-data-generator/example-events                   @controllers.testdata.TestDataGeneratorController.exampleCreateEvents
-GET     /candidate-application/test-only/test-data-generator/example-assessor-allocations     @controllers.testdata.TestDataGeneratorController.exampleCreateAssessorAllocations
-GET     /candidate-application/test-only/test-data-generator/example-candidate-allocations    @controllers.testdata.TestDataGeneratorController.exampleCreateCandidateAllocations
+GET     /candidate-application/test-only/test-data-generator/example-candidate                @controllers.testdata.TestDataGeneratorController.exampleCreateCandidate()
+GET     /candidate-application/test-only/test-data-generator/example-admin                    @controllers.testdata.TestDataGeneratorController.exampleCreateAdmin()
+GET     /candidate-application/test-only/test-data-generator/example-event                    @controllers.testdata.TestDataGeneratorController.exampleCreateEvent()
+GET     /candidate-application/test-only/test-data-generator/example-events                   @controllers.testdata.TestDataGeneratorController.exampleCreateEvents()
+GET     /candidate-application/test-only/test-data-generator/example-assessor-allocations     @controllers.testdata.TestDataGeneratorController.exampleCreateAssessorAllocations()
+GET     /candidate-application/test-only/test-data-generator/example-candidate-allocations    @controllers.testdata.TestDataGeneratorController.exampleCreateCandidateAllocations()
 
 # Trigger Jobs manually
 GET     /candidate-application/test-only/online-test-invitation/:phase                        @controllers.testdata.TestJobsController.testInvitationJob(phase: String)

@@ -55,5 +55,5 @@ trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobC
 class ProgressToAssessmentCentreJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.progress-to-assessment-centre-job",
-  name = "ProgressToAssessmentCentreJob"
+  jobName = "ProgressToAssessmentCentreJob"
 )

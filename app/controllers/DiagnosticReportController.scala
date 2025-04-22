@@ -38,7 +38,7 @@ class DiagnosticReportController @Inject() (cc: ControllerComponents,
                                             assessorAssessmentCentreScoresRepo: AssessorAssessmentScoresMongoRepository,
                                             reviewerAssessmentCentreScoresRepo: ReviewerAssessmentScoresMongoRepository,
                                             eventsRepo: EventsRepository,
-                                            authProvider: AuthProviderClient,
+                                            authProviderClient: AuthProviderClient,
                                             assessorService: AssessorService
                                            ) extends BackendController(cc) {
 
@@ -65,7 +65,7 @@ class DiagnosticReportController @Inject() (cc: ControllerComponents,
   }
 
   def getAssessorDiagnosticDetail(userId: String): Action[AnyContent] = Action.async { implicit request =>
-    authProvider.findByUserIds(Seq(userId)).flatMap { users =>
+    authProviderClient.findByUserIds(Seq(userId)).flatMap { users =>
       users.headOption.map { user =>
         assessorService.findAssessor(userId).flatMap { assessor =>
           assessorService.findAssessorAllocations(userId).map { allocations =>

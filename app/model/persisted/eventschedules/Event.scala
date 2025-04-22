@@ -45,20 +45,19 @@ object Event {
   import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
   implicit val eventFormat: OFormat[Event] = Json.format[Event]
 
-  implicit def eventsToDistinctT(events: Seq[Event]) = new {
+  extension (events: Seq[Event])
     def distinctTransform[S, T](uniqueness: Event => S, transformer: Event => T)
-      (implicit bf: scala.collection.BuildFrom[Seq[Event], T, Seq[T]]) = {
+      (implicit bf: scala.collection.BuildFrom[Seq[Event], T, Seq[T]]): Seq[T] = {
       val builder = bf.newBuilder(Seq.empty)
       val seenAlready = scala.collection.mutable.HashSet[S]()
       for (event <- events) {
-        if (!seenAlready(uniqueness(event))){
+        if (!seenAlready(uniqueness(event))) {
           builder += transformer(event)
           seenAlready += uniqueness(event)
         }
       }
       builder.result()
     }
-  }
 
   def apply(exchangeEvent: ExchangeEvent): Event = {
     new Event(

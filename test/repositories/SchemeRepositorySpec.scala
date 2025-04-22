@@ -65,7 +65,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         Edip, Sdip
       )
       val fsbSchemes = repo.fsbSchemeIds
-      fsbSchemes must contain theSameElementsAs(expectedFsbSchemes)
+      fsbSchemes must contain theSameElementsAs expectedFsbSchemes
     }
 
     "return siftable schemes" in new TestFixture {
@@ -79,7 +79,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         Edip
       )
       val siftableSchemes = repo.siftableSchemeIds
-      siftableSchemes must contain theSameElementsAs(expectedSiftableSchemes)
+      siftableSchemes must contain theSameElementsAs expectedSiftableSchemes
     }
 
     "return siftable and evaluation required schemes" in new TestFixture {
@@ -89,7 +89,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         GovernmentStatisticalService, ScienceAndEngineering
       )
       val siftableSchemes = repo.siftableAndEvaluationRequiredSchemeIds
-      siftableSchemes must contain theSameElementsAs(expectedSiftableAndEvaluationRequiredSchemes)
+      siftableSchemes must contain theSameElementsAs expectedSiftableAndEvaluationRequiredSchemes
     }
 
     "return no sift evaluation required scheme ids" in new TestFixture {
@@ -102,7 +102,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         Edip, Sdip
       )
       val actual = repo.noSiftEvaluationRequiredSchemeIds
-      actual must contain theSameElementsAs(expected)
+      actual must contain theSameElementsAs expected
     }
 
     "return non siftable schemes" in new TestFixture {
@@ -117,7 +117,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
 
     "return numeric test sift schemes" in new TestFixture {
       val numericTestSchemes = repo.numericTestSiftRequirementSchemeIds
-      numericTestSchemes must contain theSameElementsAs(Nil)
+      numericTestSchemes must contain theSameElementsAs Nil
     }
 
     "return form must be filled in sift schemes" in new TestFixture {
@@ -131,7 +131,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         Edip
       )
       val formMustBeFilledInSiftSchemes = repo.formMustBeFilledInSchemeIds
-      formMustBeFilledInSiftSchemes must contain theSameElementsAs(expectedFormMustBeFilledInSiftableSchemes)
+      formMustBeFilledInSiftSchemes must contain theSameElementsAs expectedFormMustBeFilledInSiftableSchemes
     }
 
     "return fsb types" in new TestFixture {
@@ -146,7 +146,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         FsbType("SEFS FSB"), FsbType("EDIP - Telephone interview"), FsbType("SDIP - Telephone interview")
       )
       val actual = repo.getFsbTypes
-      actual must contain theSameElementsAs(expected)
+      actual must contain theSameElementsAs expected
     }
 
     "identify valid schemeIds" in new TestFixture {
