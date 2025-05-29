@@ -412,6 +412,16 @@ GET         /reference/fsac/assessment-centres                           @contro
 
 GET         /reference/sdip/locations                                    @controllers.reference.SdipLocationsController.locations
 
+# Upscan
+GET         /upscan/request-upload/:uploadId/:fileReference/:applicationId @controllers.upscan.UpscanController.requestUpload(uploadId: model.exchange.upscan.UploadId, fileReference: model.exchange.upscan.Reference, applicationId: String)
+PUT         /upscan/register-upload-result/:fileReference                @controllers.upscan.UpscanController.registerUploadResult(fileReference: model.exchange.upscan.Reference)
+GET         /upscan/upload-result/:uploadId                              @controllers.upscan.UpscanController.getUploadResult(uploadId: model.exchange.upscan.UploadId)
+GET         /upscan/upload-result/reference/:fileReference               @controllers.upscan.UpscanController.getUploadResultForFileReference(fileReference: model.exchange.upscan.Reference)
+
+# Internal call back from Upscan which is internal to HMRC platform (doesn't go out via internet)
+POST        /upscan/internal/upscan-callback                             @controllers.upscan.UpscanCallbackController.callback()
+
+# Campaign management
 GET         /campaign-reset/listCollections                              @controllers.CampaignManagementController.listCollections
 GET         /campaign-reset/removeCollection                             @controllers.CampaignManagementController.removeCollection(name: String)
 POST        /campaign-reset/setTScore                                    @controllers.CampaignManagementController.setTScore

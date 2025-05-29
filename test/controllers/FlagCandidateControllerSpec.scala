@@ -44,7 +44,7 @@ class FlagCandidateControllerSpec extends UnitWithAppSpec {
       when(mockFlagCandidateRepository.tryGetCandidateIssue("appId")).thenReturn(Future.successful(Some(flagCandidate)))
 
       val response = testableFlagCandidateController.find("appId")(FakeRequest())
-      asFlagCandidate(response) must be(FlagCandidateCommands.FlagCandidate(issue))
+      asFlagCandidate(response) mustBe FlagCandidateCommands.FlagCandidate(issue)
     }
 
     "Return Not Found for get issue if there it does not exist" in {

@@ -41,7 +41,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(playDefaultPort := 8101)
   .settings(
     routesImport += "controllers.Binders._",
-    targetJvm := "jvm-1.8",
     libraryDependencies ++= appDependencies,
 
     Test / parallelExecution := false,
@@ -80,7 +79,6 @@ lazy val microservice = Project(appName, file("."))
   //    (compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
   //  )
 
-  .settings(resolvers ++= Seq(Resolver.jcenterRepo))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
 lazy val it = (project in file("it"))

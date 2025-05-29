@@ -40,4 +40,5 @@ object CollectionNames {
   val PHASE2_PASS_MARK_SETTINGS = s"phase2-pass-mark-settings$suffixForThisCampaign"
   val PHASE3_PASS_MARK_SETTINGS = s"phase3-pass-mark-settings$suffixForThisCampaign"
   val SIFT_ANSWERS = s"sift-answers$suffixForThisCampaign"
+  val UPSCAN = s"upscan$suffixForThisCampaign"
 }
