@@ -32,6 +32,8 @@ class TestJobsController @Inject() (cc:ControllerComponents,
                                     sendPhase1InvitationJob: SendPhase1InvitationJob,
                                     sendPhase2InvitationJob: SendPhase2InvitationJob,
                                     sendPhase3InvitationJob: SendPhase3InvitationJob,
+                                    firstPhase1ReminderExpiringTestJob: FirstPhase1ReminderExpiringTestJob,
+                                    secondPhase1ReminderExpiringTestJob: SecondPhase1ReminderExpiringTestJob,
                                     siftNumericalTestInvitationJob: SiftNumericalTestInvitationJobImpl,
                                     expirePhase1TestJob: ExpirePhase1TestJob,
                                     expirePhase2TestJob: ExpirePhase2TestJob,
@@ -72,6 +74,20 @@ class TestJobsController @Inject() (cc:ControllerComponents,
       case "SIFT"   => siftNumericalTestInvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
       case _ => Future.successful(BadRequest(s"No such phase: $phase. Options are [phase1, phase2, phase3]"))
     }
+  }
+
+  def firstPhase1ReminderExpiringTest: Action[AnyContent] = Action.async {
+    implicit _ =>
+      firstPhase1ReminderExpiringTestJob.tryExecute().map { _ =>
+        Ok("First phase 1 expiry reminder job started")
+      }
+  }
+
+  def secondPhase1ReminderExpiringTest: Action[AnyContent] = Action.async {
+    implicit _ =>
+      secondPhase1ReminderExpiringTestJob.tryExecute().map { _ =>
+        Ok("Second phase 1 expiry reminder job started")
+      }
   }
 
   def expireOnlineTestJob(phase: String): Action[AnyContent] = Action.async { implicit _ =>

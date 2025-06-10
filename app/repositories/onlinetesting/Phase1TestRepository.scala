@@ -156,10 +156,16 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
 
   // Needed to satisfy OnlineTestRepository trait
   override def nextTestForReminder(reminder: ReminderNotice): Future[Option[NotificationExpiringOnlineTest]] = {
+    // This prevents the 2nd reminder being sent if the 1st has not already been sent
+    val previousStatusCondition = reminder.previousStatus.map { previousStatus =>
+        Document(s"progress-status.$previousStatus" -> Document("$eq" -> true))
+    }.getOrElse(Document.empty)
+
     val progressStatusQuery = Document("$and" -> BsonArray(
       Document(s"progress-status.$PHASE1_TESTS_COMPLETED" -> Document("$ne" -> true)),
       Document(s"progress-status.$PHASE1_TESTS_EXPIRED" -> Document("$ne" -> true)),
-      Document(s"progress-status.${reminder.progressStatuses}" -> Document("$ne" -> true))
+      previousStatusCondition,
+      Document(s"progress-status.${reminder.progressStatus}" -> Document("$ne" -> true))
     ))
 
     nextTestForReminder(reminder, progressStatusQuery)

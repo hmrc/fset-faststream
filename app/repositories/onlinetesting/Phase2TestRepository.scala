@@ -171,7 +171,7 @@ class Phase2TestMongoRepository @Inject()(dateTime: DateTimeFactory, mongoCompon
     val progressStatusQuery = Document("$and" -> BsonArray(
       Document(s"progress-status.$PHASE2_TESTS_COMPLETED" -> Document("$ne" -> true)),
       Document(s"progress-status.$PHASE2_TESTS_EXPIRED" -> Document("$ne" -> true)),
-      Document(s"progress-status.${reminder.progressStatuses}" -> Document("$ne" -> true))
+      Document(s"progress-status.${reminder.progressStatus}" -> Document("$ne" -> true))
     ))
 
     nextTestForReminder(reminder, progressStatusQuery)

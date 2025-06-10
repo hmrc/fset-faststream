@@ -30,7 +30,7 @@ lazy val playSettings : Seq[Setting[?]] = Seq.empty
 
 lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 
-ThisBuild / scalaVersion := "3.3.5"
+ThisBuild / scalaVersion := "3.3.6"
 ThisBuild / majorVersion := 1
 
 lazy val microservice = Project(appName, file("."))

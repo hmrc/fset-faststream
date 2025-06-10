@@ -21,13 +21,13 @@ import model.ReminderNotice.UnrecognisedReminderNoticeProgressStatusException
 
 import scala.concurrent.duration.{ DAYS, HOURS, TimeUnit }
 
-sealed case class ReminderNotice(hoursBeforeReminder: Int, progressStatuses: ProgressStatus) {
+sealed case class ReminderNotice(hoursBeforeReminder: Int, progressStatus: ProgressStatus, previousStatus: Option[ProgressStatus] = None) {
 
   private val Phase_1 = "PHASE1"
   private val Phase_2 = "PHASE2"
   private val Phase_3 = "PHASE3"
 
-  private def timeUnitAndPhase: (TimeUnit, String) = progressStatuses match {
+  private def timeUnitAndPhase: (TimeUnit, String) = progressStatus match {
     case PHASE1_TESTS_SECOND_REMINDER => (HOURS, Phase_1)
     case PHASE1_TESTS_FIRST_REMINDER => (DAYS, Phase_1)
     case PHASE2_TESTS_SECOND_REMINDER => (HOURS, Phase_2)
@@ -42,11 +42,12 @@ sealed case class ReminderNotice(hoursBeforeReminder: Int, progressStatuses: Pro
 }
 
 object Phase1FirstReminder extends ReminderNotice(72, PHASE1_TESTS_FIRST_REMINDER)
-object Phase1SecondReminder extends ReminderNotice(24, PHASE1_TESTS_SECOND_REMINDER)
+// Can only send the 2nd reminder if the 1st reminder has been sent
+object Phase1SecondReminder extends ReminderNotice(24, PHASE1_TESTS_SECOND_REMINDER, Some(PHASE1_TESTS_FIRST_REMINDER))
 object Phase2FirstReminder extends ReminderNotice(72, PHASE2_TESTS_FIRST_REMINDER)
-object Phase2SecondReminder extends ReminderNotice(24, PHASE2_TESTS_SECOND_REMINDER)
+object Phase2SecondReminder extends ReminderNotice(24, PHASE2_TESTS_SECOND_REMINDER, Some(PHASE2_TESTS_FIRST_REMINDER))
 object Phase3FirstReminder extends ReminderNotice(72, PHASE3_TESTS_FIRST_REMINDER)
-object Phase3SecondReminder extends ReminderNotice(24, PHASE3_TESTS_SECOND_REMINDER)
+object Phase3SecondReminder extends ReminderNotice(24, PHASE3_TESTS_SECOND_REMINDER, Some(PHASE3_TESTS_FIRST_REMINDER))
 
 object ReminderNotice {
   case class UnrecognisedReminderNoticeProgressStatusException(msg: String) extends Exception(msg)
