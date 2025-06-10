@@ -317,7 +317,10 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
         val date = Now.plusHours(Phase1SecondReminder.hoursBeforeReminder - 1).plusMinutes(55)
         val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
         createApplicationWithAllFields(UserId, AppId, TestAccountId, "frameworkId", "SUBMITTED").futureValue
+        // Will move the candidate into PHASE1_TESTS_INVITED
         phase1TestRepo.insertOrUpdateTestGroup(AppId, testProfile).futureValue
+        // You will only get the 24 hours to go reminder if you have already received the 72 hours to go reminder
+        helperRepo.addProgressStatusAndUpdateAppStatus(AppId, ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER).futureValue
         val notification = phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue
         notification.isDefined mustBe true
         notification.get.applicationId mustBe AppId
@@ -657,8 +660,16 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))
     val appId = "appId"
 
-    "fetch the application for reminder when we are 24 hours before the expiry" in {
+    "not fetch the application for reminder when we are 24 hours before the expiry and the 72 hour reminder has not been sent" in {
       createApplicationWithAllFields("userId", appId, "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
+      phase1TestRepo.insertOrUpdateTestGroup(appId, testProfile).futureValue
+
+      phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue must not be defined
+    }
+
+    "fetch the application for reminder when we are 24 hours before the expiry and the 72 hour reminder has already been sent" in {
+      createApplicationWithAllFields("userId", appId, "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS,
+        additionalProgressStatuses = List(PHASE1_TESTS_FIRST_REMINDER -> true)).futureValue
       phase1TestRepo.insertOrUpdateTestGroup(appId, testProfile).futureValue
 
       phase1TestRepo.nextTestForReminder(Phase1SecondReminder).futureValue mustBe defined

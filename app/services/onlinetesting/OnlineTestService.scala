@@ -97,8 +97,15 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
   def processNextTestForReminder(reminder: model.ReminderNotice)(
     implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] =
     testRepository.nextTestForReminder(reminder).flatMap {
-      case Some(expiringTest) => processReminder(expiringTest, reminder)
-      case None => Future.successful(())
+      case Some(expiringTest) =>
+        logger.warn(
+          s"Found candidate ${expiringTest.applicationId} to send reminder in ${reminder.phase} " +
+            s"${reminder.hoursBeforeReminder} hours before deadline"
+        )
+        processReminder(expiringTest, reminder)
+      case None =>
+        logger.warn(s"No candidates found to send reminder in ${reminder.phase} ${reminder.hoursBeforeReminder} hours before deadline")
+        Future.successful(())
     }
 
   protected def processTestForNotification(toNotify: TestResultNotification, `type`: NotificationTestType, phase: String)
@@ -230,8 +237,8 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
                                                            email: String)(
                                                           implicit hc: HeaderCarrier, rh: RequestHeader,
                                                           ec: ExecutionContext): Future[Unit] = eventSink {
-    appRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, reminder.progressStatuses).map { _ =>
-      AuditEvents.ApplicationExpiryReminder(Map("applicationId" -> expiringTest.applicationId, "status" -> reminder.progressStatuses )) ::
+    appRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, reminder.progressStatus).map { _ =>
+      AuditEvents.ApplicationExpiryReminder(Map("applicationId" -> expiringTest.applicationId, "status" -> reminder.progressStatus )) ::
         DataStoreEvents.ApplicationExpiryReminder(expiringTest.applicationId) :: Nil
     }
   }
