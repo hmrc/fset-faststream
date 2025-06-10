@@ -17,13 +17,14 @@
 package repositories.csv
 
 import com.google.inject.ImplementedBy
-import javax.inject.{ Inject, Singleton }
+
+import javax.inject.{Inject, Singleton}
 import model.School
 import play.api.Application
-import resource._
 
 import scala.concurrent.Future
 import scala.io.Source
+import scala.util.Using
 
 @ImplementedBy(classOf[SchoolsCSVRepository])
 trait SchoolsRepository {
@@ -36,8 +37,7 @@ class SchoolsCSVRepository @Inject() (application: Application) extends SchoolsR
 
   private lazy val schoolsCached = Future.successful {
 
-    val input = managed(application.environment.resourceAsStream("UK_schools_data_v2.csv").get)
-    input.acquireAndGet { inputStream =>
+    Using.resource(application.environment.resourceAsStream("UK_schools_data_v2.csv").get) { inputStream =>
       val rawData = Source.fromInputStream(inputStream).getLines().map(parseLine).toList
       val headers = rawData.head
       val values = rawData.tail

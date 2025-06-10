@@ -113,10 +113,10 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       val applicationStatus = ApplicationStatus.withName(applicationDetails.status)
       val progressStatus = applicationDetails.latestProgressStatus
 
-      val schemeResults = passMarkEvaluation.result.map {
-        SchemeEvaluationResult.unapply(_).map {
-          case (schemeType, resultStr) => schemeType -> Result(resultStr)
-        }.get
+      val schemeResults = passMarkEvaluation.result.map { schemeEvaluationResult =>
+        // Scala 3 pattern binding
+        val SchemeEvaluationResult(schemeType, resultStr) = schemeEvaluationResult
+        schemeType -> Result(resultStr)
       }
       phase2PassMarkSettings.version mustBe passMarkEvaluation.passmarkVersion
       applicationStatus mustBe expApplicationStatus
@@ -161,6 +161,7 @@ class Phase2TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     val appCollection: MongoCollection[Document] = mongo.database.getCollection(collectionName)
 
     def createUser(userId: String, appId: String) = {
+      import org.mongodb.scala.SingleObservableFuture
       appCollection.insertOne(Document("applicationId" -> appId, "userId" -> userId,
         "applicationStatus" -> ApplicationStatus.CREATED.toBson)).toFuture().map( _ => ())
     }

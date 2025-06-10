@@ -16,35 +16,34 @@
 
 package controllers
 
-import org.apache.pekko.stream.scaladsl.Source
 import com.google.inject.name.Named
 import connectors.AuthProviderClient
-import org.apache.pekko.stream.Materializer
-
-import javax.inject.{Inject, Singleton}
+import model.*
 import model.ApplicationRoute.{ApplicationRoute, Edip, Faststream, Sdip, SdipFaststream}
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
 import model.Exceptions.{NotFoundException, UnexpectedException}
-import model._
 import model.assessmentscores.AssessmentScoresExerciseExchange
 import model.command.{CandidateDetailsReportItem, CsvExtract}
 import model.persisted.eventschedules.Event
 import model.persisted.{ApplicationForOnlineTestPassMarkReport, ContactDetailsWithId, FsacStuckCandidate}
-import model.report._
+import model.report.*
+import org.apache.pekko.stream.Materializer
+import org.apache.pekko.stream.scaladsl.Source
 import play.api.Logging
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
-import repositories.application._
+import repositories.*
+import repositories.application.*
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.events.EventsRepository
 import repositories.fsb.FsbRepository
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories._
 import services.evaluation.AssessmentScoreCalculator
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 // scalastyle:off number.of.methods file.size.limit
@@ -1287,7 +1286,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
         q <- questionnaires.get(a.applicationId)
       } yield NumericTestExtractReportItem(a, c, q)
 
-      reports.map(list => Ok(Json.toJson(list)))
+    reports.map(list => Ok(Json.toJson(list)))
   }
 
   def candidateAcceptanceReport(): Action[AnyContent] = Action.async {

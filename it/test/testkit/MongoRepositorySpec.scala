@@ -16,10 +16,10 @@
 
 package testkit
 
-import org.apache.pekko.stream.Materializer
 import config.MicroserviceAppConfig
-import org.mongodb.scala.Document
-import org.scalatest._
+import org.apache.pekko.stream.Materializer
+import org.mongodb.scala.{Document, ObservableFuture, SingleObservableFuture}
+import org.scalatest.*
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Span}
 import org.scalatestplus.play.PlaySpec
@@ -31,7 +31,7 @@ import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.language.postfixOps
 
@@ -88,7 +88,7 @@ trait IndexesReader {
   this: ScalaFutures =>
 
   def indexDetails(repo: PlayMongoRepository[_])(implicit ec: ExecutionContext): Future[Seq[IndexDetails]] = {
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
 
     repo.collection.listIndexes().toFuture().map { _.map {
       doc =>

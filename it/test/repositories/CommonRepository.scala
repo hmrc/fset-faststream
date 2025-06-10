@@ -17,28 +17,28 @@
 package repositories
 
 import common.FutureEx
-import config._
+import config.*
 import factories.ITDateTimeFactoryMock
+import model.*
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.Green
-import model.Phase1TestExamples._
-import model.Phase2TestProfileExamples._
-import model.Phase3TestProfileExamples._
+import model.Phase1TestExamples.*
+import model.Phase2TestProfileExamples.*
+import model.Phase3TestProfileExamples.*
 import model.ProgressStatuses.ProgressStatus
-import model._
-import model.persisted._
+import model.persisted.*
 import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import org.scalatest.concurrent.ScalaFutures
 import play.api.libs.json.Json
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import repositories.fsb.FsbMongoRepository
-import repositories.onlinetesting._
-import repositories.passmarksettings._
+import repositories.onlinetesting.*
+import repositories.passmarksettings.*
 import repositories.sift.{ApplicationSiftMongoRepository, SiftAnswersMongoRepository}
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs

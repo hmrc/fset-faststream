@@ -17,13 +17,14 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, WSHttpT}
+import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig}
 import connectors.ExchangeObjects._
 import model.Exceptions.ConnectorException
 import model.OnlineTestCommands.PsiTestResult
 import org.mockito.Mockito.when
 import play.api.http.Status._
 import play.api.libs.json.Json
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -131,7 +132,7 @@ class OnlineTestsGatewayClientWithWireMockSpec extends BaseConnectorWithWireMock
   }
 
   trait TestFixture extends BaseConnectorTestFixture {
-    val ws = app.injector.instanceOf(classOf[WSHttpT])
+    val httpClient = app.injector.instanceOf(classOf[HttpClientV2])
 
     val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
     val mockOnlineTestsGatewayConfig = mock[OnlineTestsGatewayConfig]
@@ -139,6 +140,6 @@ class OnlineTestsGatewayClientWithWireMockSpec extends BaseConnectorWithWireMock
     when(mockMicroserviceAppConfig.onlineTestsGatewayConfig).thenReturn(mockOnlineTestsGatewayConfig)
     when(mockOnlineTestsGatewayConfig.url).thenReturn(s"http://localhost:$wireMockPort")
 
-    val client = new OnlineTestsGatewayClientImpl(ws, mockMicroserviceAppConfig)
+    val client = new OnlineTestsGatewayClientImpl(httpClient, mockMicroserviceAppConfig)
   }
 }

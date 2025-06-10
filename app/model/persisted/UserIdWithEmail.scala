@@ -30,5 +30,5 @@ object UserIdWithEmail {
   val mongoFormat: Format[UserIdWithEmail] = (
     (__ \ "userId").format[String] and
       (__ \ subRoot \ "email").format[String]
-    )(UserIdWithEmail.apply, unlift(UserIdWithEmail.unapply))
+    )(UserIdWithEmail.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 }

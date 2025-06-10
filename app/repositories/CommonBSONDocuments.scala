@@ -17,12 +17,13 @@
 package repositories
 
 import factories.DateTimeFactory
-import model.ApplicationStatus._
+import model.ApplicationStatus.*
 import model.ProgressStatuses.ProgressStatus
-import model.command._
-import org.mongodb.scala.bson.collection.immutable.Document
+import model.command.*
 import model.{ApplicationStatus, FailedSdipFsTestType, ProgressStatuses, SuccessfulSdipFsTestType}
 import org.mongodb.scala.bson.BsonDocument
+import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.bsonDocumentToDocument
 import uk.gov.hmrc.mongo.play.json.Codecs
 
 import scala.util.Try
@@ -91,7 +92,7 @@ trait CommonBSONDocuments extends BaseBSONReader {
       }
 
       def questionnaire(root: Document): List[String] = {
-        import scala.jdk.CollectionConverters._
+        import scala.jdk.CollectionConverters.*
         root.get("questionnaire").map { bsonValue =>
           bsonValue.asDocument().keySet().asScala.toList
         }.getOrElse(Nil)

@@ -56,9 +56,9 @@ class SiftFormsSubmittedStatusGenerator @Inject() (val previousStatusGenerator: 
           if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
             siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
           } else {
-            Future()
+            Future.successful(())
           }
-        }.getOrElse(Future())
+        }.getOrElse(Future.successful(()))
       }
     ).getOrElse(Future.successful(Nil))
   }
@@ -71,9 +71,9 @@ class SiftFormsSubmittedStatusGenerator @Inject() (val previousStatusGenerator: 
           if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
             siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
           } else {
-            Future()
+            Future.successful(())
           }
-        }.getOrElse(Future())
+        }.getOrElse(Future.successful(()))
       }
     }.getOrElse(Future.successful(Nil))
   }
@@ -85,9 +85,9 @@ class SiftFormsSubmittedStatusGenerator @Inject() (val previousStatusGenerator: 
           if (scheme.siftRequirement.contains(SiftRequirement.FORM)) {
             siftService.addSchemeSpecificAnswer(appId, scheme.id, generateSchemeAnswers)
           } else {
-            Future()
+            Future.successful(())
           }
-        }.getOrElse(Future())
+        }.getOrElse(Future.successful(()))
       }
     }.getOrElse(Future.successful(Nil))
   }

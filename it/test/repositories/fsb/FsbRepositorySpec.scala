@@ -17,15 +17,16 @@
 package repositories.fsb
 
 import factories.{ITDateTimeFactoryMock, UUIDFactory}
+import model.*
 import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
 import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord}
-import model._
 import model.command.ApplicationForProgression
-import model.persisted._
+import model.persisted.*
 import model.persisted.fsb.ScoresAndFeedback
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.SingleObservableFuture
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec

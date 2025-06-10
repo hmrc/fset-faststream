@@ -72,5 +72,5 @@ trait SiftNumericalTestInvitationJob extends SingleInstanceScheduledJob[BasicJob
 class SiftNumericalTestInvitationConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.sift-numerical-test-invitation-job",
-  name = "SiftNumericalTestInvitationJob"
+  jobName = "SiftNumericalTestInvitationJob"
 )

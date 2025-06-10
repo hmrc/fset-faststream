@@ -16,11 +16,11 @@
 
 package repositories
 
-import model.ApplicationRoute.{apply => _}
+import model.ApplicationRoute.apply as _
 import model.Exceptions.CannotAddMedia
 import model.persisted.Media
-import org.mongodb.scala.MongoException
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoException, ObservableFuture, SingleObservableFuture}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 

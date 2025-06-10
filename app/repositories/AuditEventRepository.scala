@@ -17,6 +17,7 @@
 package repositories
 
 import model.persisted.AuditEvent
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 

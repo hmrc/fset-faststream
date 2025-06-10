@@ -247,7 +247,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
         Ok("No candidates found")
       } else {
         Ok((Seq("applicationId,fsac scheme evaluation") ++ resultList.map { user =>
-          s"""${user.applicationId},"${user.schemeEvaluation.map(eval => eval.schemeId + " -> " + eval.result).mkString(",")}""""
+          s"""${user.applicationId},"${user.schemeEvaluation.map(eval => eval.schemeId.toString + " -> " + eval.result).mkString(",")}""""
         }).mkString("\n"))
       }
     )

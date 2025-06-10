@@ -76,5 +76,5 @@ trait NotifyAssessorsOfNewEventsJob extends SingleInstanceScheduledJob[BasicJobC
 class NotifyAssessorsOfNewEventsJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.notify-assessors-of-new-events-job",
-  name = "NotifyAssessorsOfNewEventsJob"
+  jobName = "NotifyAssessorsOfNewEventsJob"
 )

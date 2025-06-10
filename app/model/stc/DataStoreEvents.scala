@@ -110,7 +110,5 @@ object DataStoreEvents {
   case class SiftNumericExerciseExtended(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class SiftTestResultsReceived(appId: String) extends DataStoreEventWithAppId
   // scalastyle:on
-
-
   // scalastyle:on number.of.methods
 }

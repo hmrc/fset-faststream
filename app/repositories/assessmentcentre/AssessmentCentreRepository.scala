@@ -17,20 +17,20 @@
 package repositories.assessmentcentre
 
 import factories.DateTimeFactory
+import model.*
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{Amber, AssessmentEvaluationResult, ExerciseAverageResult, FsacResults}
 import model.Exceptions.NotFoundException
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_FAILED, ASSESSMENT_CENTRE_PASSED}
-import model._
 import model.assessmentscores.FixUserStuckInScoresAccepted
 import model.command.{ApplicationForProgression, ApplicationForSift}
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import repositories._
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
+import repositories.*
 import repositories.application.GeneralApplicationRepoBSONReader
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}

@@ -62,5 +62,5 @@ object CivilServiceExperienceDetails {
       (__ \ root \ "fastPassReceived").formatNullable[Boolean] and
       (__ \ root \ "fastPassAccepted").formatNullable[Boolean] and
       (__ \ root \ "certificateNumber").formatNullable[String]
-    )(CivilServiceExperienceDetails.apply, unlift(CivilServiceExperienceDetails.unapply))
+    )(CivilServiceExperienceDetails.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 }

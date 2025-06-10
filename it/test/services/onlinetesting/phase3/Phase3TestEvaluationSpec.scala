@@ -249,10 +249,10 @@ class Phase3TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       val applicationStatus = ApplicationStatus.withName(
         applicationRepository.findStatus(applicationReadyForEvaluation.applicationId).futureValue.status)
 
-      val schemeResults = passMarkEvaluation.result.map {
-        SchemeEvaluationResult.unapply(_).map {
-          case (schemeType, resultStr) => schemeType -> Result(resultStr)
-        }.get
+      val schemeResults = passMarkEvaluation.result.map { schemeEvaluationResult =>
+        // Scala 3 pattern binding
+        val SchemeEvaluationResult(schemeType, resultStr) = schemeEvaluationResult
+        schemeType -> Result(resultStr)
       }
       phase3PassMarkSettings.version mustBe passMarkEvaluation.passmarkVersion
       applicationStatus mustBe expApplicationStatus

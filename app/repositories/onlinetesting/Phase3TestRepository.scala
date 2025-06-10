@@ -18,26 +18,25 @@ package repositories.onlinetesting
 
 import common.Phase3TestConcern
 import factories.DateTimeFactory
+import model.*
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{ApplicationNotFound, NotFoundException, TokenNotFound}
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses._
+import model.ProgressStatuses.*
 import model.command.ApplicationForSkippingPhases
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{NotificationExpiringOnlineTest, PassmarkEvaluation, Phase3TestGroupWithAppId, SchemeEvaluationResult}
-import model.{ApplicationRoute, ApplicationStatus, EvaluationResults, ProgressStatuses, ReminderNotice}
-
-import java.time.OffsetDateTime
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString}
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
 import play.api.libs.json.{Reads, Writes}
-import repositories._
+import repositories.*
 import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
+import java.time.OffsetDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 

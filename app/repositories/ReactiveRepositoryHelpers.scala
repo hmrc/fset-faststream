@@ -18,6 +18,7 @@ package repositories
 
 import model.Exceptions.{CannotUpdateRecord, NotFoundException, TooManyEntries}
 import org.mongodb.scala.result.{DeleteResult, UpdateResult}
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import play.api.Logging
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 

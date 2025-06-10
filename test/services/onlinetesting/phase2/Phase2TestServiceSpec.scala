@@ -854,7 +854,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       dateTimeFactoryMock,
       emailClientMock,
       auditServiceMock,
-      authProviderClientMock,
+      authProviderClient2Mock,
       phase3TestServiceMock,
       siftServiceMock,
       appConfigMock,

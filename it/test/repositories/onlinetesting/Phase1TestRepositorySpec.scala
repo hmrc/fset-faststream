@@ -35,7 +35,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   override val collectionName: String = CollectionNames.APPLICATION
 
-  implicit val Now = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
+  implicit val Now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
   val DatePlus7Days = Now.plusDays(7)
 
   val phase1Test = model.Phase1TestExamples.firstPsiTest.copy(testResult = None)

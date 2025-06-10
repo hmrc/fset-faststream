@@ -29,18 +29,18 @@ import scala.language.postfixOps
 class LockKeeperSpec extends UnitSpec {
   implicit val ec: ExecutionContext = ExecutionContext.global
 
-  val lockRepositoryMock = mock[LockRepository]
+  val lockRepositoryMock: LockRepository = mock[LockRepository]
 
   class TestableLockKeeper extends LockKeeper {
     val repo: LockRepository = lockRepositoryMock
     val lockId = "lockId"
     val serverId = "serverId"
-    val forceLockReleaseAfter = Duration.ofMillis(1000)
+    val forceLockReleaseAfter: Duration = Duration.ofMillis(1000)
     val greedyLockingEnabled = true
   }
 
   val lockKeeper = new TestableLockKeeper
-  val timeout = 5 seconds
+  val timeout: FiniteDuration = 5 seconds
 
   val workException = new Exception("failed")
   val workResult = "success"
@@ -60,19 +60,19 @@ class LockKeeperSpec extends UnitSpec {
   }
 
   "Greedy lockKeeper lock" must {
-    "not do work work if the lock is not taken" in {
+    "not do any work if the lock is not taken" in {
       when(lockRepositoryMock.lock(eqTo("lockId"), eqTo("serverId"), any[Duration]))
         .thenReturn(Future.successful(false))
 
-      lockKeeper.tryLock(successfulWorkMethod)(ec).futureValue mustBe None
+      lockKeeper.tryLock(successfulWorkMethod())(ec).futureValue mustBe None
     }
 
     "do work if the lock can be taken and not release the lock" in {
       when(lockRepositoryMock.lock(eqTo("lockId"), eqTo("serverId"), any[Duration]))
         .thenReturn(Future.successful(true))
 
-      lockKeeper.tryLock(successfulWorkMethod)(ec).futureValue mustBe Some(workResult)
-      verify(lockRepositoryMock, times(0)).releaseLock("lockId", "serverId")
+      lockKeeper.tryLock(successfulWorkMethod())(ec).futureValue mustBe Some(workResult)
+      verify(lockRepositoryMock, never()).releaseLock("lockId", "serverId")
     }
 
     "fail when the lock method throws an exception" in {
@@ -80,18 +80,16 @@ class LockKeeperSpec extends UnitSpec {
       when(lockRepositoryMock.lock(eqTo("lockId"), eqTo("serverId"), any[Duration]))
         .thenReturn(Future.failed(lockAquiringException))
 
-      lockKeeper.tryLock(successfulWorkMethod)(ec).failed.futureValue mustBe lockAquiringException
-
-      verify(lockRepositoryMock, times(0)).releaseLock("lockId", "serverId")
+      lockKeeper.tryLock(successfulWorkMethod())(ec).failed.futureValue mustBe lockAquiringException
+      verify(lockRepositoryMock, never()).releaseLock("lockId", "serverId")
     }
 
     "not release the lock when the work method throws an exception" in {
       when(lockRepositoryMock.lock(eqTo("lockId"), eqTo("serverId"), any[Duration]))
         .thenReturn(Future.successful(true))
 
-      lockKeeper.tryLock(failedWorkMethod)(ec).failed.futureValue mustBe workException
-
-      verify(lockRepositoryMock, times(0)).releaseLock("lockId", "serverId")
+      lockKeeper.tryLock(failedWorkMethod())(ec).failed.futureValue mustBe workException
+      verify(lockRepositoryMock, never()).releaseLock("lockId", "serverId")
     }
   }
 }

@@ -20,19 +20,19 @@ import services.AuditService
 import org.apache.pekko.actor.ActorSystem
 import com.google.inject.name.Named
 import common.{FutureEx, Phase2TestConcern}
-import config._
-import connectors.ExchangeObjects._
-import connectors.{AuthProviderClient, OnlineTestEmailClient, OnlineTestsGatewayClient}
+import config.*
+import connectors.ExchangeObjects.*
+import connectors.{AuthProviderClient2, OnlineTestEmailClient, OnlineTestsGatewayClient}
 import factories.{DateTimeFactory, UUIDFactory}
 
 import javax.inject.{Inject, Singleton}
-import model.Exceptions._
-import model.OnlineTestCommands._
-import model.ProgressStatuses._
-import model._
+import model.Exceptions.*
+import model.OnlineTestCommands.*
+import model.ProgressStatuses.*
+import model.*
 import model.command.{ApplicationForSkippingPhases, Phase3ProgressResponse, ProgressResponse}
 import model.exchange.{Phase2TestGroupWithActiveTest, PsiRealTimeResults, PsiTestResultReady}
-import model.persisted._
+import model.persisted.*
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{AuditEvent, AuditEvents, DataStoreEvents}
 import play.api.Logging
@@ -49,7 +49,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.language.postfixOps
 import scala.util.{Failure, Success, Try}
 
@@ -63,7 +63,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
                                    val dateTimeFactory: DateTimeFactory,
                                    @Named("Phase2OnlineTestEmailClient") val emailClient: OnlineTestEmailClient,
                                    val auditService: AuditService,
-                                   authProvider: AuthProviderClient,
+                                   authProviderClient: AuthProviderClient2,
                                    phase3TestService: Phase3TestService,
                                    val siftService: ApplicationSiftService,
                                    appConfig: MicroserviceAppConfig,
@@ -127,7 +127,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
   def resetTest(application: OnlineTestApplication, orderIdToReset: String, actionTriggeredBy: String)
                (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
 
-    val (invitationDate, expirationDate) = calcOnlineTestDates(onlineTestsGatewayConfig.phase2Tests.expiryTimeInDays)
+    val (inviteDate, expiryDate) = calcOnlineTestDates(onlineTestsGatewayConfig.phase2Tests.expiryTimeInDays)
 
     for {
       // Fetch existing test group that should exist
@@ -147,7 +147,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
       _ = logger.info(s"psiIds -- $psiIds")
 
       // Register applicant
-      testInvite <- registerPsiApplicant(application, psiIds, invitationDate)
+      testInvite <- registerPsiApplicant(application, psiIds, inviteDate)
       newPsiTest = testInvite.psiTest
       _ = logger.info(s"newPsiTest -- $newPsiTest")
 
@@ -161,8 +161,8 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
       updatedTests = insertTest(testsWithInactiveTest, idxOfResetTest, newPsiTest)
       _ = logger.info(s"updatedTests -- $updatedTests")
 
-      _ <- insertOrUpdateTestGroup(application)(testGroup.copy(expirationDate = expirationDate, tests = updatedTests))
-      _ <- emailInviteToApplicant(application)(hc, rh, invitationDate, expirationDate)
+      _ <- insertOrUpdateTestGroup(application)(testGroup.copy(expirationDate = expiryDate, tests = updatedTests))
+      _ <- emailInviteToApplicant(application)(hc, rh, inviteDate, expiryDate)
 
     } yield ()
   }
@@ -450,7 +450,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
                                      expirationDate: OffsetDateTime, hc: HeaderCarrier): Future[Unit] = {
     Future.sequence(o.map { completedInvite =>
       val maybeInvigilatedAccessCodeFut = if (completedInvite.application.isInvigilatedETray) {
-        authProvider.generateAccessCode.map(ac => Some(ac.token))
+        authProviderClient.generateAccessCode.map(ac => Some(ac.token))
       } else {
         Future.successful(None)
       }
@@ -469,7 +469,7 @@ class Phase2TestService @Inject() (val appRepository: GeneralApplicationReposito
                                      expirationDate: OffsetDateTime, hc: HeaderCarrier): Future[Unit] = {
 
     val maybeInvigilatedAccessCodeFut = if (completedInvite.application.isInvigilatedETray) {
-      authProvider.generateAccessCode.map(ac => Some(ac.token))
+      authProviderClient.generateAccessCode.map(ac => Some(ac.token))
     } else {
       Future.successful(None)
     }

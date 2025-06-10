@@ -473,8 +473,8 @@ class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 
   trait Phase3TestServiceFixture extends StcEventServiceFixture {
 
-    implicit val hc = mock[HeaderCarrier]
-    implicit val rh = mock[RequestHeader]
+    implicit val hc: HeaderCarrier = mock[HeaderCarrier]
+    implicit val rh: RequestHeader = mock[RequestHeader]
 
     val appRepositoryMock = mock[GeneralApplicationRepository]
     val cdRepositoryMock = mock[ContactDetailsRepository]

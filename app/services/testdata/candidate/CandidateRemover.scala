@@ -16,7 +16,7 @@
 
 package services.testdata.candidate
 
-import connectors.AuthProviderClient
+import connectors.AuthProviderClientTDG
 
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.RequestHeader
@@ -26,8 +26,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class CandidateRemover @Inject() (appRemovalRepo: ApplicationRemovalRepository,
-                                  authClient: AuthProviderClient)(implicit ec: ExecutionContext) {
+class CandidateRemover @Inject()(appRemovalRepo: ApplicationRemovalRepository,
+                                  authClient: AuthProviderClientTDG)(implicit ec: ExecutionContext) {
 
   def remove(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Int] = {
     for {

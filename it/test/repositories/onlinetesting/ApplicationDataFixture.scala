@@ -18,12 +18,12 @@ package repositories.onlinetesting
 
 import factories.ITDateTimeFactoryMock
 import model.ProgressStatuses.ProgressStatus
-import model.{ApplicationRoute, Schemes}
 import model.persisted.phase3tests.Phase3TestGroup
 import model.persisted.{Phase1TestProfile, Phase2TestGroup, SchemeEvaluationResult}
-import org.mongodb.scala.MongoCollection
+import model.{ApplicationRoute, Schemes}
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.CollectionNames
 import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec

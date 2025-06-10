@@ -39,8 +39,12 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
                                              appConfig: MicroserviceAppConfig,
                                              val uuidFactory: UUIDFactory
                                             )(implicit ec: ExecutionContext)
-  extends EvaluateOnlineTestResultService[Phase1PassMarkSettingsPersistence] with Phase1TestSelector with
-  Phase1TestEvaluation with PassMarkSettingsService[Phase1PassMarkSettingsPersistence] with Logging with Schemes {
+  extends EvaluateOnlineTestResultService[Phase1PassMarkSettingsPersistence]
+    with Phase1TestSelector
+    with Phase1TestEvaluation
+    with PassMarkSettingsService[Phase1PassMarkSettingsPersistence]
+    with Logging
+    with Schemes {
 
   val phase = Phase.PHASE1
   val gatewayConfig = appConfig.onlineTestsGatewayConfig

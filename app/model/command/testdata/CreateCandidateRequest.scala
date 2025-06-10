@@ -134,7 +134,7 @@ object CreateCandidateRequest {
   case class StatusDataRequest(
     applicationStatus: String = "registered",
     previousApplicationStatus: Option[String] = None,
-    progressStatus: Option[String] = Some("registered"),
+    progressStatus: Option[String] = None,
     applicationRoute: Option[String] = Some(ApplicationRoute.Faststream.toString)
   )
 

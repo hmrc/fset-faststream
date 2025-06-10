@@ -16,20 +16,20 @@
 
 package services.stc
 
-import connectors.AuthProviderClient
+import connectors.{AuthProviderClient, AuthProviderClient2}
 import model.exchange.SimpleTokenResponse
-import model.stc._
+import model.stc.*
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.*
+import org.mockito.Mockito.*
 import org.scalatest.matchers.must.Matchers
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.mvc.RequestHeader
-import services.stc.handler._
+import services.stc.handler.*
 import testkit.UnitSpec
-import testkit.MockitoImplicits._
+import testkit.MockitoImplicits.*
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -39,8 +39,8 @@ class StcEventServiceSpec extends UnitSpec with StcEventServiceFixture {
 
   "Event service" should {
     "consume lists of events properly" in {
-      implicit val hc = mock[HeaderCarrier]
-      implicit val rh = mock[RequestHeader]
+      implicit val hc: HeaderCarrier = mock[HeaderCarrier]
+      implicit val rh: RequestHeader = mock[RequestHeader]
 
       stcEventServiceMock.handle(model.stc.AuditEvents.ApplicationSubmitted("appId"))
       verifyAuditEvents(1)
@@ -61,6 +61,8 @@ trait StcEventServiceFixture extends MockitoSugar with Matchers {
   )
 
   val authProviderClientMock = mock[AuthProviderClient]
+  // Added during Scala 3 migration which flagged up a circular dependency
+  val authProviderClient2Mock = mock[AuthProviderClient2]
 
   when(dataStoreEventHandlerMock.handle(any[DataStoreEvent])(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])).thenReturnAsync()
   when(auditEventHandlerMock.handle(any[AuditEvent])(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])).thenReturnAsync()

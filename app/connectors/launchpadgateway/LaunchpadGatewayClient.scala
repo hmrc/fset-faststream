@@ -16,38 +16,46 @@
 
 package connectors.launchpadgateway
 
-import config.{MicroserviceAppConfig, WSHttpT}
-import connectors.launchpadgateway.exchangeobjects.out._
+import config.MicroserviceAppConfig
+import connectors.launchpadgateway.exchangeobjects.out.*
 import model.Exceptions.ConnectorException
-import play.api.http.Status._
-import play.api.libs.json.Reads
+import play.api.http.Status.*
+import play.api.libs.json.{Json, Reads}
+import play.api.libs.ws.writeableOf_JsValue
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class LaunchpadGatewayClient @Inject() (http: WSHttpT, config: MicroserviceAppConfig)(implicit ec: ExecutionContext) {
+class LaunchpadGatewayClient @Inject()(http: HttpClientV2, config: MicroserviceAppConfig)(implicit ec: ExecutionContext) {
   val url: String = config.launchpadGatewayConfig.url
 
   // Blank out header carriers for calls to VIG. Passing on someone's true-client-ip header will cause them to be reassessed
   // for allowlisting in the VIG as well (even though they've gone from front -> back -> VIG), which leads to undesirable behaviour.
-  implicit def blankedHeaderCarrier = HeaderCarrier()
+  implicit def blankedHeaderCarrier: HeaderCarrier = HeaderCarrier()
 
   lazy val urlWithPathPrefix = s"$url/fset-video-interview-gateway/faststream"
 
   def registerApplicant(registerApplicant: RegisterApplicantRequest): Future[RegisterApplicantResponse] =
-    http.POST[RegisterApplicantRequest, HttpResponse](s"$urlWithPathPrefix/register", registerApplicant)
+    http.post(url"$urlWithPathPrefix/register")
+      .withBody(Json.toJson( registerApplicant))
+      .execute[HttpResponse]
       .map(responseAsOrThrow[RegisterApplicantResponse])
 
   def inviteApplicant(inviteApplicant: InviteApplicantRequest): Future[InviteApplicantResponse] =
-    http.POST[InviteApplicantRequest, HttpResponse](s"$urlWithPathPrefix/invite", inviteApplicant)
+    http.post(url"$urlWithPathPrefix/invite")
+      .withBody(Json.toJson(inviteApplicant))
+      .execute[HttpResponse]
       .map(responseAsOrThrow[InviteApplicantResponse])
 
   def resetApplicant(resetApplicant: ResetApplicantRequest): Future[ResetApplicantResponse] =
-    http.POST[ResetApplicantRequest, HttpResponse](s"$urlWithPathPrefix/reset", resetApplicant)
+    http.post(url"$urlWithPathPrefix/reset")
+      .withBody(Json.toJson(resetApplicant))
+      .execute[HttpResponse]
       .map {
         case response if response.status == OK => response.json.as[ResetApplicantResponse]
         case response if response.status == CONFLICT => throw new CannotResetPhase3Tests
@@ -55,7 +63,9 @@ class LaunchpadGatewayClient @Inject() (http: WSHttpT, config: MicroserviceAppCo
       }
 
   def retakeApplicant(retakeApplicant: RetakeApplicantRequest): Future[RetakeApplicantResponse] = {
-    http.POST[RetakeApplicantRequest, HttpResponse](s"$urlWithPathPrefix/retake", retakeApplicant)
+    http.post(url"$urlWithPathPrefix/retake")
+      .withBody(Json.toJson(retakeApplicant))
+      .execute[HttpResponse]
       .map {
         case response if response.status == OK => response.json.as[RetakeApplicantResponse]
         // TODO: looks like the wrong exception is being thrown?
@@ -65,7 +75,10 @@ class LaunchpadGatewayClient @Inject() (http: WSHttpT, config: MicroserviceAppCo
   }
 
   def extendDeadline(extendDeadline: ExtendDeadlineRequest): Future[Unit] =
-    http.POST[ExtendDeadlineRequest, HttpResponse](s"$urlWithPathPrefix/extend", extendDeadline).map { response =>
+    http.post(url"$urlWithPathPrefix/extend")
+      .withBody(Json.toJson(extendDeadline))
+      .execute[HttpResponse]
+      .map { response =>
       if (response.status != OK) { throwConnectorException(response) }
     }
 

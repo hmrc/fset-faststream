@@ -18,20 +18,20 @@ package repositories.application
 
 import config.MicroserviceAppConfig
 import factories.{ITDateTimeFactoryMock, UUIDFactory}
-import services.testdata.TestDataGeneratorService
-import services.testdata.candidate.CandidateStatusGeneratorFactory
-import model.ApplicationRoute.{apply => _}
-import model.ProgressStatuses.{PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED => _}
-import model._
+import model.*
+import model.ApplicationRoute.apply as _
+import model.ProgressStatuses.{PREVIEW, SUBMITTED, PHASE1_TESTS_PASSED as _}
 import model.command.ProgressResponse
 import model.command.testdata.CreateCandidateRequest.{AdjustmentsRequest, AssistanceDetailsRequest, CreateCandidateRequest, StatusDataRequest}
-import model.persisted._
+import model.persisted.*
 import model.report.{AdjustmentReportItem, CandidateProgressReportItem}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.CollectionNames
 import services.GBTimeZoneService
+import services.testdata.TestDataGeneratorService
+import services.testdata.candidate.CandidateStatusGeneratorFactory
 import services.testdata.faker.DataFaker
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.http.HeaderCarrier
@@ -56,7 +56,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   def dataFaker = app.injector.instanceOf(classOf[DataFaker])
 
-  implicit def blankedHeaderCarrier = HeaderCarrier()
+  implicit def blankedHeaderCarrier: HeaderCarrier = HeaderCarrier()
 
   val getCandidateStatusGeneratorFactory = app.injector.instanceOf(classOf[CandidateStatusGeneratorFactory])
 

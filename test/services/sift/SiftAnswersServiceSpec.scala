@@ -57,7 +57,7 @@ class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
     val mockSiftAnswersRepo = mock[SiftAnswersRepository]
     // Needed to create the SchemeYamlRepository. The implicit for the app is provided by ScalaMockUnitWithAppSpec
 //    implicit val appConfig = app.injector.instanceOf(classOf[MicroserviceAppConfig])
-    implicit val mockAppConfig = mock[MicroserviceAppConfig] // This also works
+    implicit val mockAppConfig: MicroserviceAppConfig = mock[MicroserviceAppConfig] // This also works
     val schemeRepo = new SchemeYamlRepository {
       override lazy val schemes = CommercialScheme :: DDTaCScheme :: HoPScheme :: OperationalDeliveryScheme ::
         HumanResourcesScheme :: SdipScheme :: Nil

@@ -225,9 +225,19 @@ class CandidateStatusGeneratorFactory @Inject() (registeredStatusGenerator: Regi
   }
   // scalastyle:on cyclomatic.complexity
 }
-
+/*
 trait ApplicationStatusOnlyForTest {
+  // This means that the ApplicationStatusOnlyForTest trait can only be mixed in something that mixes Enumeration,
+  // which makes Enumeration members available to ApplicationStatusOnlyForTest
   this: Enumeration =>
-  val REGISTERED, IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES,
-  IN_PROGRESS_ASSISTANCE_DETAILS, IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
+  val REGISTERED, IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES = Value
+  val IN_PROGRESS_ASSISTANCE_DETAILS, IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
+}
+*/
+
+trait ApplicationStatusOnlyForTest extends Enumeration {
+  // This means that the ApplicationStatusOnlyForTest trait can only be mixed in something that mixes Enumeration,
+  // which makes Enumeration members available to ApplicationStatusOnlyForTest
+  val REGISTERED, IN_PROGRESS_PERSONAL_DETAILS, IN_PROGRESS_SCHEME_PREFERENCES = Value
+  val IN_PROGRESS_ASSISTANCE_DETAILS, IN_PROGRESS_QUESTIONNAIRE, IN_PROGRESS_PREVIEW = Value
 }

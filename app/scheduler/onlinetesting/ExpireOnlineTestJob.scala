@@ -72,19 +72,19 @@ trait ExpireOnlineTestJob extends SingleInstanceScheduledJob[BasicJobConfig[Sche
 class ExpirePhase1TestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.expiry-phase1-job",
-  name = "ExpirePhase1TestJob"
+  jobName = "ExpirePhase1TestJob"
 )
 
 @Singleton
 class ExpirePhase2TestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.expiry-phase2-job",
-  name = "ExpirePhase2TestJob"
+  jobName = "ExpirePhase2TestJob"
 )
 
 @Singleton
 class ExpirePhase3TestJobConfig @Inject() (config: Configuration) extends BasicJobConfig[ScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.expiry-phase3-job",
-  name = "ExpirePhase3TestJob"
+  jobName = "ExpirePhase3TestJob"
 )

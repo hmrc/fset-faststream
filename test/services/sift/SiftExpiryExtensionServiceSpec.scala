@@ -219,8 +219,8 @@ class SiftExpiryExtensionServiceSpec extends UnitSpec with ShortTimeout {
   }
 
   trait TestFixture extends StcEventServiceFixture {
-    implicit val hc = HeaderCarrier()
-    implicit val rh = mock[RequestHeader]
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val rh: RequestHeader = mock[RequestHeader]
     val applicationId = "appId"
     val twoDays = 2
     val tenDays = 10

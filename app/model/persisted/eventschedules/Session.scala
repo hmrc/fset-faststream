@@ -31,7 +31,18 @@ case class Session(
   attendeeSafetyMargin: Int,
   startTime: LocalTime,
   endTime: LocalTime
-)
+) {
+  override def toString: String =
+    "Session(" +
+      s"id=$id," +
+      s"description=$description," +
+      s"capacity=$capacity," +
+      s"minViableAttendees=$minViableAttendees," +
+      s"attendeeSafetyMargin=$attendeeSafetyMargin," +
+      s"startTime=$startTime," +
+      s"endTime=$endTime" +
+      ")"
+}
 
 case class UpdateSession(id: String, capacity: Int, minViableAttendees: Int, attendeeSafetyMargin: Int, startTime: LocalTime, endTime: LocalTime)
 

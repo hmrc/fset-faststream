@@ -17,28 +17,27 @@
 package repositories.fsb
 
 import factories.DateTimeFactory
-
-import javax.inject.{Inject, Singleton}
+import model.*
 import model.ApplicationRoute.ApplicationRoute
 import model.EvaluationResults.{Amber, Green, Red}
 import model.Exceptions.{AlreadyEvaluatedForSchemeException, ApplicationNotFound}
 import model.ProgressStatuses.{ELIGIBLE_FOR_JOB_OFFER, FSB_AWAITING_ALLOCATION}
-import model._
 import model.command.ApplicationForProgression
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
+import repositories.*
+import repositories.assessmentcentre.AssessmentCentreRepository
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
-import scala.util.Try
-import repositories._
-import repositories.assessmentcentre.AssessmentCentreRepository
-
 import java.time.OffsetDateTime
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 trait FsbRepository {
   def nextApplicationReadyForFsbEvaluation: Future[Option[UniqueIdentifier]]

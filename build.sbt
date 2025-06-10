@@ -30,7 +30,7 @@ lazy val playSettings : Seq[Setting[?]] = Seq.empty
 
 lazy val compileScalastyle = taskKey[Unit]("compileScalastyle")
 
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "3.3.5"
 ThisBuild / majorVersion := 1
 
 lazy val microservice = Project(appName, file("."))
@@ -41,13 +41,16 @@ lazy val microservice = Project(appName, file("."))
   .settings(playDefaultPort := 8101)
   .settings(
     routesImport += "controllers.Binders._",
-    targetJvm := "jvm-1.8",
     libraryDependencies ++= appDependencies,
 
     Test / parallelExecution := false,
     Test / fork := false,
     retrieveManaged := true,
     scalacOptions += "-feature",
+    // Use these to help troubleshoot Scala 3 cyclic dependency compile errors
+//    scalacOptions += "-Ydebug-cyclic",
+//    scalacOptions += "-explain-cyclic",
+//    scalacOptions += "-explain",
     // Currently don't enable warning in value discard in tests until ScalaTest 3
     Compile / compile / scalacOptions += "-Ywarn-value-discard",
     Compile / compile / scalacOptions += "-Xlint:-missing-interpolator,_",
@@ -76,7 +79,6 @@ lazy val microservice = Project(appName, file("."))
   //    (compile in Compile) := ((compile in Compile) dependsOn compileScalastyle).value
   //  )
 
-  .settings(resolvers ++= Seq(Resolver.jcenterRepo))
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
 
 lazy val it = (project in file("it"))

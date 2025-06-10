@@ -16,15 +16,16 @@
 
 package repositories.assistancedetails
 
-import javax.inject.{Inject, Singleton}
 import model.Exceptions.{AssistanceDetailsNotFound, CannotUpdateAssistanceDetails}
 import model.persisted.AssistanceDetails
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.{Filters, Projections}
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
+import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait AssistanceDetailsRepository {

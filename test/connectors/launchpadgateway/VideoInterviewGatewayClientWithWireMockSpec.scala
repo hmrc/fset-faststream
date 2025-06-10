@@ -17,7 +17,7 @@
 package connectors.launchpadgateway
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import config.{LaunchpadGatewayConfig, MicroserviceAppConfig, WSHttpT}
+import config.{LaunchpadGatewayConfig, MicroserviceAppConfig}
 import connectors.BaseConnectorWithWireMockSpec
 import connectors.launchpadgateway.exchangeobjects.out._
 import model.Exceptions.ConnectorException
@@ -25,6 +25,7 @@ import org.mockito.Mockito.when
 import play.api.http.Status._
 import play.api.libs.json.Json
 import services.onlinetesting.phase3.ResetPhase3Test.CannotResetPhase3Tests
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -213,7 +214,7 @@ class VideoInterviewGatewayClientWithWireMockSpec extends BaseConnectorWithWireM
   }
 
   trait TestFixture extends BaseConnectorTestFixture {
-    val ws = app.injector.instanceOf(classOf[WSHttpT])
+    val http = app.injector.instanceOf(classOf[HttpClientV2])
 
     val mockMicroserviceAppConfig = mock[MicroserviceAppConfig]
     val mockLaunchpadGatewayConfig = mock[LaunchpadGatewayConfig]
@@ -221,6 +222,6 @@ class VideoInterviewGatewayClientWithWireMockSpec extends BaseConnectorWithWireM
     when(mockMicroserviceAppConfig.launchpadGatewayConfig).thenReturn(mockLaunchpadGatewayConfig)
     when(mockLaunchpadGatewayConfig.url).thenReturn(s"http://localhost:$wireMockPort")
 
-    val client = new LaunchpadGatewayClient(ws, mockMicroserviceAppConfig)
+    val client = new LaunchpadGatewayClient(http, mockMicroserviceAppConfig)
   }
 }

@@ -16,15 +16,16 @@
 
 package repositories.events
 
-import org.apache.pekko.stream.scaladsl.Source
 import config.MicroserviceAppConfig
 import model.Exceptions.EventNotFoundException
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.SkillType.SkillType
 import model.persisted.eventschedules.{Event, EventType, Location, Venue}
+import org.apache.pekko.stream.scaladsl.Source
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections}
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import play.api.libs.json.{JsValue, Json}
 import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -35,7 +36,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait EventsRepository {
-  def save(events: List[Event]): Future[Unit]
+  def save(events: Seq[Event]): Future[Unit]
   //TODO: mongo fix
 //  def findAll(readPreference: ReadPreference = ReadPreference.primaryPreferred)(implicit ec: ExecutionContext): Future[List[Event]]
   def findAll: Future[Seq[Event]]
@@ -67,7 +68,7 @@ class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig
     )
   ) with EventsRepository with ReactiveRepositoryHelpers {
 
-  override def save(events: List[Event]): Future[Unit] = {
+  override def save(events: Seq[Event]): Future[Unit] = {
     collection.insertMany(events).toFuture().map ( _ => () )
   }
 

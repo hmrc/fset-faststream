@@ -18,22 +18,23 @@ package repositories.application
 
 import config.{MicroserviceAppConfig, PsiTestIds}
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.{ReviewSectionQuestionRequest, ReviewedCallbackRequest}
+import model.*
 import model.ApplicationRoute.ApplicationRoute
-import model.ApplicationStatus.{apply => _}
+import model.ApplicationStatus.apply as _
 import model.CivilServantAndInternshipType.CivilServantAndInternshipType
 import model.OnlineTestCommands.PsiTestResult
 import model.Phase.Phase
-import model._
-import model.command._
-import model.persisted._
+import model.command.*
+import model.persisted.*
 import model.persisted.sift.SiftTestGroup
-import model.report._
-import org.slf4j.{Logger, LoggerFactory}
-import repositories.{ BaseBSONReader, CommonBSONDocuments }
+import model.report.*
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonDocument, BsonValue}
-import repositories._
+import org.mongodb.scala.bsonDocumentToDocument
+import org.slf4j.{Logger, LoggerFactory}
+import repositories.*
 import uk.gov.hmrc.mongo.play.json.Codecs
+
 import scala.util.Try
 
 trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
@@ -343,7 +344,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
         val testSectionOpt = testGroupsOpt.flatMap(section => subDocRoot(phaseName)(section))
         val testsEvaluationOpt = testSectionOpt.flatMap(evaluation => subDocRoot("evaluation")(evaluation))
 
-        import scala.jdk.CollectionConverters._
+        import scala.jdk.CollectionConverters.*
         // Handle NPE
         val testEvalResults = testsEvaluationOpt.flatMap(eval => Try(eval.get("result").asArray().getValues.asScala.toList.map(_.asDocument())).toOption
           .orElse(testsEvaluationOpt.map(eval => eval.get("schemes-evaluation").asArray().getValues.asScala.toList.map(_.asDocument()))))

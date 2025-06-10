@@ -16,11 +16,11 @@
 
 package repositories
 
-import model.ApplicationStatus._
-import model.CivilServiceExperienceDetailsExamples._
+import model.ApplicationStatus.*
+import model.CivilServiceExperienceDetailsExamples.*
 import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsMongoRepository
 import testkit.MongoRepositorySpec
 

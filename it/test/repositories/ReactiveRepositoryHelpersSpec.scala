@@ -17,9 +17,9 @@
 package repositories
 
 import model.Exceptions.{CannotUpdateRecord, NotFoundException}
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
-import play.api.libs.json.Json
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
+import play.api.libs.json.{Json, OFormat}
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
@@ -88,21 +88,24 @@ class ReactiveRepositoryHelpersSpec extends MongoRepositorySpec {
     val repo = new TestRepository(mongo)
   }
 
-  val collectionName = "reactive-repository-helpers-test"
+  val collectionNameForTest = "reactive-repository-helpers-test"
+
+  override val collectionName = collectionNameForTest
 
   case class TestType(testType: String)
-  implicit val testTypeFormat = Json.format[TestType]
+
+  implicit val testTypeFormat: OFormat[TestType] = Json.format[TestType]
 
   class TestRepository(mongoComponent: MongoComponent)
     extends PlayMongoRepository[TestType](
-      collectionName = collectionName,
+      collectionName = collectionNameForTest,
       mongoComponent = mongoComponent,
       domainFormat = testTypeFormat,
       indexes = Nil
     ) with ReactiveRepositoryHelpers {
 
     // Use this collection when using hand written bson documents
-    val testCollection: MongoCollection[Document] = mongoComponent.database.getCollection(collectionName)
+    val testCollection: MongoCollection[Document] = mongoComponent.database.getCollection(collectionNameForTest)
 
     def update(updateKvp: (String, TestType)) = {
       val query = Document.empty

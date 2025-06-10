@@ -17,8 +17,6 @@
 package repositories.sift
 
 import com.mongodb.client.model.Projections
-
-import javax.inject.{Inject, Singleton}
 import model.Exceptions.{NotFoundException, SiftAnswersIncomplete, SiftAnswersSubmitted}
 import model.SchemeId
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
@@ -27,10 +25,12 @@ import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions}
-import repositories.insertIfNoRecordFound
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-import repositories.{BaseBSONReader, CollectionNames, ReactiveRepositoryHelpers}
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
+import repositories.{BaseBSONReader, CollectionNames, ReactiveRepositoryHelpers, insertIfNoRecordFound}
 import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
+
+import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps

@@ -56,5 +56,5 @@ trait ProcessSiftNumericalResultsReceivedJob extends SingleInstanceScheduledJob[
 class ProcessSiftNumericalResultsReceivedJobConfig @Inject()(config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.process-sift-numerical-results-received-job",
-  name = "ProcessSiftNumericalResultsReceivedJob"
+  jobName = "ProcessSiftNumericalResultsReceivedJob"
 )

@@ -44,5 +44,5 @@ object ApplicationResponse {
       (__ \ "progressResponse").format[ProgressResponse] and
       (__ \ CivilServiceExperienceDetails.root).formatNullable[CivilServiceExperienceDetails] and
       (__ \ "overriddenSubmissionDeadline").formatNullable[OffsetDateTime]
-    )(ApplicationResponse.apply, unlift(ApplicationResponse.unapply))
+    )(ApplicationResponse.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 }

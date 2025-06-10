@@ -17,11 +17,11 @@
 package repositories.locationpreferences
 
 import factories.ITDateTimeFactoryMock
-import model.ApplicationStatus._
+import model.ApplicationStatus.*
 import model.Exceptions.{CannotUpdateLocationPreferences, LocationPreferencesNotFound}
 import model.{ApplicationRoute, LocationId, Schemes, SelectedLocations}
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.CollectionNames
 import repositories.application.GeneralApplicationMongoRepository
 import testkit.MongoRepositorySpec

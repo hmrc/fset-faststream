@@ -20,6 +20,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.ExerciseAverageResult
 import model.persisted.SchemeEvaluationResult
 import model.{ProgressStatuses, SchemeId}
+import play.api.libs.json.{Json, OFormat}
 
 case class AssessmentScoreEvaluationTestExpectation(
                                                      applicationStatus: Option[ApplicationStatus],
@@ -72,4 +73,9 @@ case class AssessmentScoreEvaluationTestExpectation(
         SchemeEvaluationResult(SchemeId(scheme), result)
       }.toList
     }
+}
+
+object AssessmentScoreEvaluationTestExpectation {
+  // We specify a json format here for reading test cases in json when running integration tests - AssessmentCentreServiceIntSpec
+  implicit val format: OFormat[AssessmentScoreEvaluationTestExpectation] = Json.format[AssessmentScoreEvaluationTestExpectation]
 }

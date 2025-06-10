@@ -296,7 +296,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 }
 
 object Phase1EvaluationMongoRepositorySpec {
-  implicit val now = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
+  implicit val now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
   val phase1Tests = List(
     model.Phase1TestExamples.firstPsiTest.copy(testResult = None),
     model.Phase1TestExamples.secondPsiTest.copy(testResult = None),

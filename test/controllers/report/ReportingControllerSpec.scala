@@ -21,25 +21,25 @@ import connectors.AuthProviderClient
 import connectors.ExchangeObjects.{Candidate, UserAuthInfo}
 import controllers.ReportingController
 import model.EvaluationResults.Green
-import model.persisted._
+import model.persisted.*
 import model.persisted.assessor.{Assessor, AssessorStatus}
 import model.persisted.eventschedules.SkillType
 import model.report.onlinetestpassmark.TestResultsForOnlineTestPassMarkReportItemExamples
-import model.report.{CandidateProgressReportItem, _}
-import model.{Scheme, _}
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
+import model.report.{CandidateProgressReportItem, *}
+import model.{Scheme, *}
+import org.mockito.ArgumentMatchers.*
+import org.mockito.Mockito.*
 import play.api.libs.json.JsArray
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import play.api.test.{FakeHeaders, FakeRequest, Helpers}
-import repositories._
+import repositories.*
 import repositories.application.{GeneralApplicationRepository, PreviousYearCandidatesDetailsRepository, ReportingRepository}
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.events._
-import repositories.fsb._
+import repositories.events.*
+import repositories.fsb.*
 import repositories.personaldetails.PersonalDetailsRepository
-import repositories.sift._
-import testkit.MockitoImplicits._
+import repositories.sift.*
+import testkit.MockitoImplicits.*
 import testkit.UnitWithAppSpec
 import uk.gov.hmrc.http.HeaderCarrier
 

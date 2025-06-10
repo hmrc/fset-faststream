@@ -19,6 +19,7 @@ package repositories.application
 import factories.{ITDateTimeFactoryMock, UUIDFactory}
 import model.Exceptions.CannotUpdateRecord
 import model.FlagCandidatePersistedObject.FlagCandidate
+import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.bson.collection.immutable.Document
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec

@@ -107,7 +107,7 @@ class SearchForApplicantServiceSpec extends BaseServiceSpec with ShortTimeout {
       authProviderClientMock
     )
 
-    implicit val headerCarrier = HeaderCarrier()
+    implicit val headerCarrier: HeaderCarrier = HeaderCarrier()
 
     val testAddress = Address(line1 = "1 Test Street", line2 = None, line3 = None, line4 = None)
     val testEmail = "test@test.com"

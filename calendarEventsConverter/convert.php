@@ -318,8 +318,8 @@ foreach ($csv as $line) {
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: $eventStartTime
-  endTime: $eventEndTime
+  startTime: !!str $eventStartTime
+  endTime: !!str $eventEndTime
   skillRequirements:
 ".includeSkillIfNotZero('ASSESSOR', $fsacAssessors).includeSkillIfNotZero('CHAIR', $chairAssessors).includeSkillIfNotZero('DEPARTMENTAL_ASSESSOR', $departmentAssessors).includeSkillIfNotZero('EXERCISE_MARKER', $writtenExerciseAssessors).includeSkillIfNotZero('DAT_ASSESSOR', $datAssessors).includeSkillIfNotZero('FCO_ASSESSOR', $fcoAssessors).includeSkillIfNotZero('CFS_ASSESSOR', $cfsAssessors).includeSkillIfNotZero('PRO_ASSESSOR', $proAssessors).includeSkillIfNotZero('EAC_ASSESSOR', $eacAssessors).includeSkillIfNotZero('EAC_DS_ASSESSOR', $eacDsAssessors).includeSkillIfNotZero('SAC_ASSESSOR', $sacAssessors).includeSkillIfNotZero('SAC_EM_ASSESSOR', $sacExerciseMarkers).includeSkillIfNotZero('SAC_SAM_ASSESSOR', $sacSams).includeSkillIfNotZero('HOP_ASSESSOR', $hopAssessors).includeSkillIfNotZero('PDFS_ASSESSOR', $pdfsAssessors).includeSkillIfNotZero('SEFS_ASSESSOR', $sefsAssessors).includeSkillIfNotZero('EDIP_ASSESSOR', $edipAssessors).includeSkillIfNotZero('EDIP_QAC', $edipQacs).includeSkillIfNotZero('SDIP_ASSESSOR', $sdipAssessors).includeSkillIfNotZero('SDIP_QAC', $sdipQacs).includeSkillIfNotZero('SRAC_ASSESSOR', $sracAssessors).includeSkillIfNotZero('ORAC_ASSESSOR', $oracAssessors).includeSkillIfNotZero('ORAC_EM_ASSESSOR', $oracExerciseMarkers).includeSkillIfNotZero('ORAC_QAC', $oracQacs).includeSkillIfNotZero('QUALITY_ASSURANCE_COORDINATOR', $qacAssessors).includeSkillIfNotZero('SIFTER', $sifterAssessors)."  sessions:\n";
         $sessionCounter = 1;
@@ -330,8 +330,8 @@ foreach ($csv as $line) {
       capacity: ".$session[2]."
       minViableAttendees: ".$session[3]."
       attendeeSafetyMargin: ".$session[4]."
-      startTime: ".$session[0]."
-      endTime: ".$session[1]."\n";
+      startTime: !!str ".$session[0]."
+      endTime: !!str ".$session[1]."\n";
             }
         }
 

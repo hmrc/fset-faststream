@@ -19,24 +19,24 @@ package repositories.application
 import config.MicroserviceAppConfig
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
-import model.ApplicationStatus._
+import model.ApplicationStatus.*
 import model.ProgressStatuses.ProgressStatus
-import model.command._
-import model.persisted._
-import model.report._
-import model.{ApplicationStatus, _}
+import model.command.*
+import model.persisted.*
+import model.report.*
+import model.{ApplicationStatus, *}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
-import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
-
-import javax.inject.{Inject, Singleton}
-import scala.util.Try
-import repositories._
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
+import repositories.*
 import services.TimeZoneService
 import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import java.time.{LocalDate, OffsetDateTime}
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 trait ReportingRepository {
   def adjustmentReport(frameworkId: String): Future[Seq[AdjustmentReportItem]]
@@ -76,11 +76,15 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService,
     indexes = Nil
   ) with ReportingRepository with ReportingRepoBSONReader with ReactiveRepositoryHelpers with Schemes {
 
-  override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[Seq[CandidateProgressReportItem]] =
-    candidateProgressReport(BsonDocument("$and" -> BsonArray(
-      BsonDocument("frameworkId" -> frameworkId),
-      BsonDocument("applicationStatus" -> BsonDocument("$ne" -> "WITHDRAWN"))
-    )))
+  override def candidateProgressReportNotWithdrawn(frameworkId: String): Future[Seq[CandidateProgressReportItem]] = {
+    import org.mongodb.scala.bsonDocumentToDocument
+    candidateProgressReport(
+      BsonDocument("$and" -> BsonArray(
+        BsonDocument("frameworkId" -> frameworkId),
+        BsonDocument("applicationStatus" -> BsonDocument("$ne" -> "WITHDRAWN"))
+      ))
+    )
+  }
 
   override def candidateProgressReport(frameworkId: String): Future[Seq[CandidateProgressReportItem]] =
     candidateProgressReport(Document("frameworkId" -> frameworkId))
@@ -582,8 +586,9 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService,
         // We need this implicit in scope to perform the maxBy below
         implicit val dateOrdering: Ordering[OffsetDateTime] = _ compareTo _
 
-        import scala.jdk.CollectionConverters._
-        import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
+        import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
+
+        import scala.jdk.CollectionConverters.* // Needed for ISODate
 
         val latestProgressStatusOpt = progressStatusTimeStampDocOpt.flatMap { timestamps =>
           val convertedTimestamps = timestamps.entrySet().asScala.toSet

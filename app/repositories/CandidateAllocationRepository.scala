@@ -16,7 +16,6 @@
 
 package repositories
 
-import javax.inject.{Inject, Singleton}
 import model.AllocationStatuses
 import model.AllocationStatuses.AllocationStatus
 import model.Exceptions.{TooManyEventIdsException, TooManySessionIdsException}
@@ -25,10 +24,12 @@ import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
 import java.time.LocalDate
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait CandidateAllocationRepository {

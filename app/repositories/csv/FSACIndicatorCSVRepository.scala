@@ -17,13 +17,12 @@
 package repositories.csv
 
 import model.FSACIndicator
-import resource._
-//import com.github.ghik.silencer.silent
 import com.google.inject.ImplementedBy
 import play.api.Application
 
 import javax.inject.{Inject, Singleton}
 import scala.io.Source
+import scala.util.Using
 
 @ImplementedBy(classOf[FSACIndicatorCSVRepositoryImpl])
 trait FSACIndicatorCSVRepository extends CsvHelper {
@@ -43,8 +42,7 @@ class FSACIndicatorCSVRepositoryImpl @Inject() (application: Application) extend
   override def expectedNumberOfHeaders = 3
 
   override private[repositories] val indicators: Map[String, FSACIndicator] =  {
-    val input = managed(application.environment.resourceAsStream(CsvFileName).get)
-    input.acquireAndGet { inputStream =>
+    Using.resource(application.environment.resourceAsStream(CsvFileName).get) { inputStream =>
       val rawData = Source.fromInputStream(inputStream).getLines().map(parseLine).toList
       val headers = rawData.head
       val values = rawData.tail

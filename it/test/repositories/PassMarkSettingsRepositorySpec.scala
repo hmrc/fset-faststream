@@ -35,8 +35,8 @@ class Phase1PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture wit
   )
   val phase1PassMarks = List(Phase1PassMark(Finance, phase1PassMarkThresholds))
   override val passMarkSettings = Phase1PassMarkSettingsPersistence(phase1PassMarks, version, createdDate, createdByUser)
-  override val newPassMarkThresholds = Phase1PassMarkThresholds(
-    PassMarkThreshold(30d, 80d), PassMarkThreshold(20d, 60d), PassMarkThreshold(30d, 80d)
+  override val newPassMarkThresholds: Phase1PassMarkThresholds =
+    Phase1PassMarkThresholds(PassMarkThreshold(30d, 80d), PassMarkThreshold(20d, 60d), PassMarkThreshold(30d, 80d)
   )
   override val newPassMarks = List(Phase1PassMark(Finance, newPassMarkThresholds))
   override def passMarkSettingsRepo = new Phase1PassMarkSettingsMongoRepository(mongo)
@@ -53,10 +53,11 @@ class Phase2PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture wit
   override type T = Phase2PassMarkSettingsPersistence
   override type U = Phase2PassMark
   override implicit val formatter: OFormat[Phase2PassMarkSettingsPersistence] = Phase2PassMarkSettingsPersistence.jsonFormat
-  val phase2PassMarkThresholds = Phase2PassMarkThresholds(PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d))
+  val phase2PassMarkThresholds: Phase2PassMarkThresholds = Phase2PassMarkThresholds(PassMarkThreshold(20d, 80d), PassMarkThreshold(20d, 80d))
   val phase2PassMarks = List(Phase2PassMark(Finance, phase2PassMarkThresholds))
   override val passMarkSettings = Phase2PassMarkSettingsPersistence(phase2PassMarks, version, createdDate, createdByUser)
-  override val newPassMarkThresholds = Phase2PassMarkThresholds(PassMarkThreshold(30d, 80d), PassMarkThreshold(30d, 80d))
+  override val newPassMarkThresholds: Phase2PassMarkThresholds =
+    Phase2PassMarkThresholds(PassMarkThreshold(30d, 80d), PassMarkThreshold(30d, 80d))
   override val newPassMarks = List(Phase2PassMark(Finance, newPassMarkThresholds))
   override def passMarkSettingsRepo = new Phase2PassMarkSettingsMongoRepository(mongo)
   override val collectionName: String = CollectionNames.PHASE2_PASS_MARK_SETTINGS
@@ -74,7 +75,7 @@ class Phase3PassMarkSettingsRepositorySpec extends PassMarkRepositoryFixture wit
   val phase3PassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(20d, 80d))
   val phase3PassMarks = List(Phase3PassMark(Finance, phase3PassMarkThresholds))
   override val passMarkSettings = Phase3PassMarkSettingsPersistence(phase3PassMarks, version, createdDate, createdByUser)
-  override val newPassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(30d, 80d))
+  override val newPassMarkThresholds: Phase3PassMarkThresholds = Phase3PassMarkThresholds(PassMarkThreshold(30d, 80d))
   override val newPassMarks = List(Phase3PassMark(Finance, newPassMarkThresholds))
   override def passMarkSettingsRepo = new Phase3PassMarkSettingsMongoRepository(mongo)
   override val collectionName: String = CollectionNames.PHASE3_PASS_MARK_SETTINGS
@@ -97,7 +98,7 @@ class AssessmentCentrePassMarkSettingsRepositorySpec extends PassMarkRepositoryF
   val assessmentCentrePassMarks = List(AssessmentCentreExercisePassMark(Finance, assessmentCentrePassMarkThresholds))
   val passMarkSettings = AssessmentCentrePassMarkSettingsPersistence(assessmentCentrePassMarks, version, createdDate, createdByUser)
   val newOverallPassMark = PassMarkThreshold(2.0d, 16.0d)
-  val newPassMarkThresholds = AssessmentCentreExercisePassMarkThresholds(
+  val newPassMarkThresholds: AssessmentCentreExercisePassMarkThresholds = AssessmentCentreExercisePassMarkThresholds(
     exercisePassMark, exercisePassMark, exercisePassMark, newOverallPassMark
   )
   val newPassMarks = List(AssessmentCentreExercisePassMark(Finance, newPassMarkThresholds))

@@ -42,8 +42,8 @@ class EventsConfigRepositorySpec extends UnitWithAppSpec with ScalaFutures with 
           |  capacity: 36
           |  minViableAttendees: 12
           |  attendeeSafetyMargin: 2
-          |  startTime: 11:00
-          |  endTime: 12:00
+          |  startTime: !!str 11:00 # Need to explicitly use the string tag to avoid "Invalid numeric string" circe parsing failure
+          |  endTime: "12:00"       # Double quotes also works
           |  skillRequirements:
           |    ASSESSOR: 6
           |    CHAIR: 3
@@ -55,8 +55,8 @@ class EventsConfigRepositorySpec extends UnitWithAppSpec with ScalaFutures with 
           |      capacity: 36
           |      minViableAttendees: 12
           |      attendeeSafetyMargin: 4
-          |      startTime: 11:00
-          |      endTime: 12:00
+          |      startTime: !!str 11:00
+          |      endTime: !!str 12:00
           |- eventType: FSAC
           |  description: PDFS FSB
           |  location: London
@@ -65,8 +65,8 @@ class EventsConfigRepositorySpec extends UnitWithAppSpec with ScalaFutures with 
           |  capacity: 36
           |  minViableAttendees: 12
           |  attendeeSafetyMargin: 2
-          |  startTime: 9:00
-          |  endTime: 12:00
+          |  startTime: !!str 09:00
+          |  endTime: !!str 12:00
           |  skillRequirements:
           |    ASSESSOR: 6
           |    CHAIR: 3
@@ -78,14 +78,14 @@ class EventsConfigRepositorySpec extends UnitWithAppSpec with ScalaFutures with 
           |      capacity: 36
           |      minViableAttendees: 12
           |      attendeeSafetyMargin: 4
-          |      startTime: 9:00
-          |      endTime: 10:30
+          |      startTime: !!str 09:00
+          |      endTime: !!str 10:30
           |    - description: Second
           |      capacity: 36
           |      minViableAttendees: 12
           |      attendeeSafetyMargin: 4
-          |      startTime: 10:30
-          |      endTime: 12:00
+          |      startTime: !!str 10:30
+          |      endTime: !!str 12:00
           |- eventType: FSAC
           |  description: PDFS FSB
           |  location: Newcastle
@@ -94,8 +94,8 @@ class EventsConfigRepositorySpec extends UnitWithAppSpec with ScalaFutures with 
           |  capacity: 36
           |  minViableAttendees: 12
           |  attendeeSafetyMargin: 2
-          |  startTime: 09:00
-          |  endTime: 12:00
+          |  startTime: !!str 09:00
+          |  endTime: !!str 12:00
           |  skillRequirements:
           |    ASSESSOR: 6
           |    CHAIR: 3
@@ -107,14 +107,14 @@ class EventsConfigRepositorySpec extends UnitWithAppSpec with ScalaFutures with 
           |      capacity: 36
           |      minViableAttendees: 12
           |      attendeeSafetyMargin: 4
-          |      startTime: 9:00
-          |      endTime: 10:30
+          |      startTime: !!str 09:00
+          |      endTime: !!str 10:30
           |    - description: Second
           |      capacity: 36
           |      minViableAttendees: 12
           |      attendeeSafetyMargin: 4
-          |      startTime: 10:30
-          |      endTime: 12:00""".stripMargin
+          |      startTime: !!str 10:30
+          |      endTime: !!str 12:00""".stripMargin
 
       val mockLocationsWithVenuesRepo = mock[LocationsWithVenuesRepository]
       when(mockLocationsWithVenuesRepo.venue(any[String])).thenReturn(Future.successful(Venue("london fsac", "bush house")))
@@ -135,10 +135,11 @@ class EventsConfigRepositorySpec extends UnitWithAppSpec with ScalaFutures with 
       implicit val patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(5, Seconds), interval = Span(500, Millis))
 
       def withDefaultFields(event: Event) = {
-          event.copy(id = "e1", createdAt = EventExamples.eventCreatedAt, sessions = event.sessions.map { session =>
-              session.copy(id = "s1")
-            }, wasBulkUploaded = true
-          )
+        event.copy(
+          id = "e1", createdAt = EventExamples.eventCreatedAt,
+          sessions = event.sessions.map ( session => session.copy(id = "s1") ),
+          wasBulkUploaded = true
+        )
       }
 
       whenReady(repo.events) { result =>

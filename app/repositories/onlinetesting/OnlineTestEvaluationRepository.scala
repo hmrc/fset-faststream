@@ -19,17 +19,18 @@ package repositories.onlinetesting
 import config.{LaunchpadGatewayConfig, MicroserviceAppConfig}
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
-import model.ApplicationStatus._
+import model.ApplicationStatus.*
 import model.Exceptions.PassMarkEvaluationNotFound
-import model.Phase._
+import model.Phase.*
 import model.ProgressStatuses.ProgressStatus
-import model.persisted._
+import model.persisted.*
 import model.persisted.phase3tests.{LaunchpadTest, Phase3TestGroup}
-import model.{ApplicationStatus, Phase => _, _}
+import model.{ApplicationStatus, Phase as _, *}
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import repositories._
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
+import repositories.*
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 

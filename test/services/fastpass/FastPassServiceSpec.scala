@@ -191,8 +191,8 @@ class FastPassServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
   }
 
   trait TestFixture extends StcEventServiceFixture {
-    implicit val hc = HeaderCarrier()
-    implicit val rh = mock[RequestHeader]
+    implicit val hc: HeaderCarrier = HeaderCarrier()
+    implicit val rh: RequestHeader = mock[RequestHeader]
     val appRepoMock = mock[GeneralApplicationRepository]
     val personalDetailsServiceMock = mock[PersonalDetailsService]
     val emailClientMock = mock[OnlineTestEmailClient]

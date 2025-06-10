@@ -58,7 +58,7 @@ object AssistanceDetails {
       (__ \ root \ "needsSupportAtVenueDescription").formatNullable[String] and
       (__ \ root \ "needsSupportForPhoneInterview").formatNullable[Boolean] and
       (__ \ root \ "needsSupportForPhoneInterviewDescription").formatNullable[String]
-    )(AssistanceDetails.apply, unlift(AssistanceDetails.unapply))
+    )(AssistanceDetails.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 
   def apply(ex: AssistanceDetailsExchange): AssistanceDetails =
     AssistanceDetails(ex.hasDisability, ex.disabilityImpact, ex.disabilityCategories,

@@ -16,25 +16,25 @@
 
 package config
 
-import org.apache.pekko.actor.ActorSystem
-import com.google.inject.ImplementedBy
-import com.google.inject.name.Named
-import com.typesafe.config.Config
-import javax.inject.{ Inject, Singleton }
-import play.api.Configuration
-import play.api.libs.ws.WSClient
-import uk.gov.hmrc.http._
-import uk.gov.hmrc.play.audit.http.HttpAuditing
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.http.ws._
+//import org.apache.pekko.actor.ActorSystem
+//import com.google.inject.ImplementedBy
+//import com.google.inject.name.Named
+//import com.typesafe.config.Config
+//import javax.inject.{ Inject, Singleton }
+//import play.api.Configuration
+//import play.api.libs.ws.WSClient
+//import uk.gov.hmrc.http._
+//import uk.gov.hmrc.play.audit.http.HttpAuditing
+//import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+//import uk.gov.hmrc.play.http.ws._
 
-@ImplementedBy(classOf[HttpVerbs])
-trait WSHttpT extends HttpGet with HttpPut with HttpPost with HttpDelete with HttpPatch with WSHttp
+//@ImplementedBy(classOf[HttpVerbs])
+//trait WSHttpT extends HttpGet with HttpPut with HttpPost with HttpDelete with HttpPatch with WSHttp
 
-@Singleton
-class HttpVerbs @Inject() (@Named("appName") val appName: String, val auditConnector: AuditConnector, val wsClient: WSClient,
-                           val actorSystem: ActorSystem, config: Configuration)
-  extends WSHttpT with HttpAuditing {
-  override val hooks = Seq(AuditingHook)
-  override def configuration: Config = config.underlying
-}
+//@Singleton
+//class HttpVerbs @Inject() (@Named("appName") val appName: String, val auditConnector: AuditConnector, val wsClient: WSClient,
+//                           val actorSystem: ActorSystem, config: Configuration)
+//  extends WSHttpT with HttpAuditing {
+//  override val hooks = Seq(AuditingHook)
+//  override def configuration: Config = config.underlying
+//}

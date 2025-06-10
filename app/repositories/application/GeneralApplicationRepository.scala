@@ -19,24 +19,24 @@ package repositories.application
 import config.MicroserviceAppConfig
 import factories.DateTimeFactory
 import model.ApplicationRoute.ApplicationRoute
-import model.ApplicationStatus._
-import model.Exceptions._
+import model.ApplicationStatus.*
+import model.Exceptions.*
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{EventProgressStatuses, PREVIEW}
-import model.command._
+import model.command.*
 import model.exchange.{CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
-import model.persisted._
+import model.persisted.*
 import model.persisted.eventschedules.EventType
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.fsb.ScoresAndFeedback
-import model.{ApplicationStatus, _}
-import org.mongodb.scala.MongoCollection
+import model.{ApplicationStatus, *}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonRegularExpression}
 import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.Sorts.ascending as sortAsc
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections}
-import org.mongodb.scala.model.Sorts.{ascending => sortAsc}
-import repositories._
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
+import repositories.*
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -275,7 +275,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
 
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
 
     def progressStatusDateFallback(applicationStatus: ApplicationStatus, document: Document) = {
       val docOpt = document.get("progress-status-dates").map( _.asDocument() )
@@ -657,7 +657,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
   }
 
   override def fixDataByRemovingETray(appId: String): Future[Unit] = {
-    import ProgressStatuses._
+    import ProgressStatuses.*
 
     val query = Document(
       "applicationId" -> appId,
@@ -696,7 +696,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
   }
 
   override def fixDataByRemovingVideoInterviewFailed(appId: String): Future[Unit] = {
-    import ProgressStatuses._
+    import ProgressStatuses.*
 
     val query = Document("$and" ->
       BsonArray(
@@ -1101,7 +1101,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
   }
 
-  import ProgressStatuses._
+  import ProgressStatuses.*
 
   private val progressStatuses = Map(
     ASSESSMENT_CENTRE -> List(
@@ -1189,7 +1189,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
 
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
 
     val query = Document.empty
     val projection = Projections.include("progress-status-timestamp")
@@ -1216,7 +1216,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat
 
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
 
     collection.find[Document](query).projection(projection).headOption().map {
       case Some(doc) =>

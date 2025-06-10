@@ -27,4 +27,7 @@ object VenueType extends Enumeration {
     override def reads(json: JsValue): JsResult[VenueType] = JsSuccess(VenueType.withName(json.as[String].toUpperCase))
     override def writes(venueType: VenueType): JsValue = JsString(venueType.toString)
   }
+
+    
+  
 }

@@ -42,7 +42,7 @@ class SiftFailureJob @Inject() (service: ApplicationSiftService,
 class SiftFailureJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.sift-failure-job",
-  name = "SiftFailureJob"
+  jobName = "SiftFailureJob"
 )
 
 @Singleton
@@ -68,5 +68,5 @@ class FsbOverallFailureJob @Inject() (service: FsbService,
 class FsbOverallFailureJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.fsb-overall-failure-job",
-  name = "FsbOverallFailureJob"
+  jobName = "FsbOverallFailureJob"
 )

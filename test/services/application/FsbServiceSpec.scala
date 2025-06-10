@@ -17,28 +17,26 @@
 package services.application
 
 import connectors.OnlineTestEmailClient
-import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
-import model.Exceptions.SchemeWithdrawnException
+import model.*
+import model.EvaluationResults.{Amber, Green, Red}
 import model.ProgressStatuses.{ALL_FSBS_AND_FSACS_FAILED, ELIGIBLE_FOR_JOB_OFFER, FSB_FAILED, FSB_PASSED}
-import model._
-import model.command.ApplicationStatusDetails
-import model.exchange.{ApplicationResult, FsbScoresAndFeedback}
+import model.exchange.FsbScoresAndFeedback
 import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{ContactDetails, FsbTestGroup, SchemeEvaluationResult}
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.Mockito.*
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import services.scheme.SchemePreferencesService
-import testkit.MockitoImplicits._
+import testkit.MockitoImplicits.*
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.*
+import scala.concurrent.{Await, ExecutionContext}
 
 class FsbServiceSpec extends UnitSpec with ExtendedTimeout with Schemes {
 

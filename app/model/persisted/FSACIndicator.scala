@@ -31,7 +31,7 @@ object FSACIndicator {
     (__ \ root \ "area").format[String] and
       (__ \ root \ "assessmentCentre").format[String] and
       (__ \ root \ "version").format[String]
-    )(FSACIndicator.apply, unlift(FSACIndicator.unapply))
+    )(FSACIndicator.apply, unlift(o => Some(Tuple.fromProductTyped(o))))
 
   def apply(indicator: model.FSACIndicator, fsacIndicatorVersion: String): FSACIndicator = {
     FSACIndicator(indicator.area, indicator.assessmentCentre, fsacIndicatorVersion)

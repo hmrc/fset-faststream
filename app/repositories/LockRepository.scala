@@ -19,7 +19,7 @@ package repositories
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import org.mongodb.scala.{MongoCollection, MongoException}
+import org.mongodb.scala.{MongoCollection, MongoException, ObservableFuture, SingleObservableFuture}
 import play.api.Logging
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.MongoComponent
@@ -63,7 +63,7 @@ class LockMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit ec
   ) with LockRepository with Logging with CurrentTime {
   private val DuplicateKeyErrorCode = 11000
 
-  import LockFormats._
+  import LockFormats.*
 
   // Use this collection when using hand written bson documents
   val lockCollection: MongoCollection[Document] = mongoComponent.database.getCollection(CollectionNames.LOCKS)

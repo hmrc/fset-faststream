@@ -116,5 +116,3 @@ case class AssessmentCentreExercisePassMarkThresholds(
 object AssessmentCentreExercisePassMarkThresholds {
   implicit val jsonFormat: OFormat[AssessmentCentreExercisePassMarkThresholds] = Json.format[AssessmentCentreExercisePassMarkThresholds]
 }
-
-

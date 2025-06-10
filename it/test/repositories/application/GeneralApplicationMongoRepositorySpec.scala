@@ -17,25 +17,25 @@
 package repositories.application
 
 import factories.{ITDateTimeFactoryMock, UUIDFactory}
-import model.ApplicationRoute.{ApplicationRoute, apply => _}
-import model.ApplicationStatus._
+import model.ApplicationRoute.{ApplicationRoute, apply as _}
+import model.ApplicationStatus.*
 import model.EvaluationResults.{Green, Red}
-import model.Exceptions.{toString, _}
+import model.Exceptions.{toString, *}
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.{PHASE1_TESTS_PASSED => _, PHASE3_TESTS_FAILED => _, SUBMITTED => _, _}
+import model.ProgressStatuses.{PHASE1_TESTS_PASSED as _, PHASE3_TESTS_FAILED as _, SUBMITTED as _, *}
 import model.command.{ProgressResponse, WithdrawScheme}
 import model.exchange.CandidatesEligibleForEventResponse
-import model.persisted._
+import model.persisted.*
 import model.persisted.eventschedules.EventType
 import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
-import model.{ApplicationStatus, _}
-import org.mongodb.scala.MongoCollection
+import model.{ApplicationStatus, *}
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import repositories.{CollectionNames, SchemeRepository}
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.assessmentcentre.AssessmentCentreMongoRepository
 import repositories.onlinetesting.{Phase1TestMongoRepository, Phase2TestMongoRepository}
+import repositories.{CollectionNames, SchemeRepository}
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{PassToPhase2, ResetPhase1TestInvitedSubmitted}
 import testkit.MongoRepositorySpec
@@ -364,7 +364,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "fix a PassToPhase2 issue" should {
     "update the application status from PHASE1_TESTS to PHASE2_TESTS" in {
-      import ProgressStatuses._
+      import ProgressStatuses.*
       val statuses = List(SUBMITTED, PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED,
         PHASE1_TESTS_RESULTS_READY, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_PASSED, PHASE2_TESTS_INVITED)
         .map(_ -> true)
@@ -383,7 +383,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
     "perform no update if, in the meanwhile, the pre-conditions of the update have changed" in {
       // no "PHASE2_TESTS_INVITED" -> true (which is a pre-condition)
-      import ProgressStatuses._
+      import ProgressStatuses.*
       val statuses = List(SUBMITTED, PHASE1_TESTS_INVITED, PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED,
         PHASE1_TESTS_RESULTS_READY, PHASE1_TESTS_RESULTS_RECEIVED, PHASE1_TESTS_PASSED)
         .map(_ -> true)
@@ -652,7 +652,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
   "Remove video interview failed" should {
     "Remove evaluation section, progress failed statuses and update application status" in {
-      import ProgressStatuses._
+      import ProgressStatuses.*
       val progressStatuses = (PHASE3_TESTS_RESULTS_RECEIVED, true) :: (PHASE3_TESTS_FAILED, true) ::
         (PHASE3_TESTS_FAILED_NOTIFIED, true) :: Nil
       testDataRepo.createApplicationWithAllFields(

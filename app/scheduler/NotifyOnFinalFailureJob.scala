@@ -57,5 +57,5 @@ trait NotifyOnFinalFailureJob extends SingleInstanceScheduledJob[BasicJobConfig[
 class NotifyOnFinalFailureJobConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.notify-on-final-failure-job",
-  name = "NotifyOnFinalFailureJob"
+  jobName = "NotifyOnFinalFailureJob"
 )

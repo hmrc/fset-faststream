@@ -17,7 +17,7 @@
 package services.testdata.admin
 
 import javax.inject.{Inject, Singleton}
-import connectors.AuthProviderClient
+import connectors.AuthProviderClientTDG
 import model.exchange.testdata.CreateAdminResponse.{AssessorResponse, CreateAdminResponse}
 import model.testdata.CreateAdminData.CreateAdminData
 import play.api.mvc.RequestHeader
@@ -29,7 +29,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 //  override val authProviderClient = AuthProviderClient
 //}
 @Singleton
-class AdminCreatedStatusGenerator @Inject() (authProviderClient: AuthProviderClient)(
+class AdminCreatedStatusGenerator @Inject()(authProviderClient: AuthProviderClientTDG)(
   implicit ec: ExecutionContext) extends AdminUserBaseGenerator {
 
   def generate(generationId: Int, createData: CreateAdminData)

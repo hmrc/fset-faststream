@@ -26,8 +26,8 @@ import model.exchange.passmarksettings.{PassMarkThreshold, Phase1PassMark, Phase
 import model.persisted.{ApplicationReadyForEvaluation, PassmarkEvaluation, SchemeEvaluationResult}
 import model.{ApplicationRoute, ApplicationStatus, SchemeId, Schemes}
 import org.mockito.Mockito.when
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor7}
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
@@ -136,10 +136,10 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       val applicationStatus = ApplicationStatus.withName(applicationDetails.status)
       val progressStatus = applicationDetails.latestProgressStatus
 
-      val schemeResults = passMarkEvaluation.result.map {
-        SchemeEvaluationResult.unapply(_).map {
-          case (schemeType, resultStr) => schemeType -> Result(resultStr)
-        }.get
+      val schemeResults = passMarkEvaluation.result.map { schemeEvaluationResult =>
+        // Scala 3 pattern binding
+        val SchemeEvaluationResult(schemeType, resultStr) = schemeEvaluationResult
+        schemeType -> Result(resultStr)
       }
       phase1PassMarkSettings.version mustBe passMarkEvaluation.passmarkVersion
       applicationStatus mustBe expApplicationStatus

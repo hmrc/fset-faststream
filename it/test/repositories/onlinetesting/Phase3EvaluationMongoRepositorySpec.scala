@@ -36,7 +36,7 @@ class Phase3EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
   // Create the data with callbacks that were received 72 + 1 hours ago so they are before the 72 hour wait
   // time defined in config below. Note that this implicit is needed for the tests
-  implicit val hrsBeforeLastReviewed = 72 + 1
+  implicit val hrsBeforeLastReviewed: Int = 72 + 1
 
   override val mockLaunchpadConfig = {
     LaunchpadGatewayConfig(

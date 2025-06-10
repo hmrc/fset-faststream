@@ -18,7 +18,7 @@ package services.allocation
 
 import com.google.inject.name.Named
 import config.MicroserviceAppConfig
-import connectors.{AuthProviderClient, OnlineTestEmailClient}
+import connectors.{AuthProviderClient2, OnlineTestEmailClient}
 import model.AllocationStatuses.AllocationStatus
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{CandidateAlreadyAssignedToOtherEventException, OptimisticLockException}
@@ -64,7 +64,7 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
                                            allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
                                            val eventService: StcEventService,
                                            @Named("CSREmailClient") emailClient: OnlineTestEmailClient, //TODO:fix change type
-                                           authProviderClient: AuthProviderClient,
+                                           authProviderClient: AuthProviderClient2,
                                            appConfig: MicroserviceAppConfig
                                           )(implicit ec: ExecutionContext) extends EventSink with Logging with CurrentSchemeStatusHelper {
 

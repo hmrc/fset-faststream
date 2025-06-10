@@ -17,6 +17,7 @@
 package repositories.stc
 
 import model.persisted.StcEvent
+import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository

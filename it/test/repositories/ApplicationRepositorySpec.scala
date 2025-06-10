@@ -17,15 +17,15 @@
 package repositories
 
 import factories.ITDateTimeFactoryMock
-import model.ApplicationStatus._
+import model.ApplicationStatus.*
 import model.Exceptions.{ApplicationNotFound, CannotUpdateRecord}
 import model.command.WithdrawApplication
 import model.persisted.AssistanceDetails
 import model.{ApplicationRoute, ProgressStatuses}
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import testkit.MongoRepositorySpec

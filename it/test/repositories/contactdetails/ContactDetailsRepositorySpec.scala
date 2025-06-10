@@ -18,10 +18,10 @@ package repositories.contactdetails
 
 import model.Address
 import model.Exceptions.{ContactDetailsNotFound, ContactDetailsNotFoundForEmail}
-import model.persisted.ContactDetailsExamples._
+import model.persisted.ContactDetailsExamples.*
 import model.persisted.{ContactDetails, UserIdWithEmail}
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.CollectionNames
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.play.json.Codecs

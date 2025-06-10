@@ -21,9 +21,9 @@ import model.ApplicationRoute
 import model.ApplicationRoute.ApplicationRoute
 import model.EvaluationResults.{Green, Red, Withdrawn}
 import model.persisted.SchemeEvaluationResult
-import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.{CollectionNames, SchemeRepository}
 import testkit.MongoRepositorySpec
 

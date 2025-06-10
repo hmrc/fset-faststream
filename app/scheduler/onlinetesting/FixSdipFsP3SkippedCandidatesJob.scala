@@ -59,5 +59,5 @@ trait FixSdipFsP3SkippedCandidatesJob extends SingleInstanceScheduledJob[BasicJo
 class FixSdipFsP3SkippedCandidatesConfig @Inject() (config: Configuration) extends BasicJobConfig[WaitingScheduledJobConfig](
   config = config,
   configPrefix = "scheduling.online-testing.fix-sdipfs-p3-skipped-candidates-job",
-  name = "FixSdipFsP3SkippedCandidatesJob"
+  jobName = "FixSdipFsP3SkippedCandidatesJob"
 )
