@@ -42,7 +42,7 @@ import scheduler.fixer.RequiredFixes.{AddMissingPhase2ResultReceived, PassToPhas
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}
 
-import java.time.{LocalDate, OffsetDateTime, ZoneOffset}
+import java.time.{LocalDate, OffsetDateTime}
 import java.util.UUID
 import java.util.regex.Pattern
 import javax.inject.{Inject, Singleton}
@@ -63,7 +63,7 @@ trait GeneralApplicationRepository {
   //TODO so remove at the end of the campaign and change the one above
   def findForReport(applicationIds: Seq[String]): Future[List[Candidate]]
   def findProgress(applicationId: String): Future[ProgressResponse]
-  def findStatus(applicationId: String): Future[ApplicationStatusDetails]
+  def findStatus(applicationId: String, excludeFsacAllocationStatuses: Boolean = false): Future[ApplicationStatusDetails]
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
   def findCandidateByUserId(userId: String): Future[Option[Candidate]]
   def findByCriteria(firstOrPreferredName: Option[String], lastName: Option[String],
@@ -262,8 +262,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     }
   }
 
-  //scalastyle:off method.length
-  def findStatus(applicationId: String): Future[ApplicationStatusDetails] = {
+  def findStatus(applicationId: String, excludeFsacAllocationStatuses: Boolean = false): Future[ApplicationStatusDetails] = {
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include(
       "applicationStatus",
@@ -277,46 +276,44 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     import scala.jdk.CollectionConverters.*
 
-    def progressStatusDateFallback(applicationStatus: ApplicationStatus, document: Document) = {
-      val docOpt = document.get("progress-status-dates").map( _.asDocument() )
-      docOpt.flatMap { doc =>
-        Try(Codecs.fromBson[LocalDate](doc.get(applicationStatus.toLowerCase)))
-          .toOption.map( d => OffsetDateTime.of( d.atStartOfDay, ZoneOffset.UTC ))
-      }
-    }
-
     collection.find[Document](query).projection(projection).headOption() map {
       case Some(doc) =>
         val applicationStatus = Codecs.fromBson[ApplicationStatus](doc.get("applicationStatus").get)
         val applicationRoute = Codecs.fromBson[ApplicationRoute](doc.get("applicationRoute").getOrElse(ApplicationRoute.Faststream.toBson))
         val progressStatusTimeStampDoc = doc.get("progress-status-timestamp").map(_.asDocument())
 
-        val latestProgressStatus = progressStatusTimeStampDoc.flatMap { timestamps =>
+        val fsacAllocationProgressStatuses = Seq(
+          ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED.toString,
+          ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED.toString
+        )
+
+        val latest = progressStatusTimeStampDoc.map { timestamps =>
           val convertedTimestamps = timestamps.entrySet().asScala.toSet
-          val relevantProgressStatuses = convertedTimestamps.filter( _.getKey.startsWith(applicationStatus) )
+          val relevantProgressStatuses = if (excludeFsacAllocationStatuses) {
+            convertedTimestamps.filter( ps => ps.getKey.startsWith(applicationStatus) && !fsacAllocationProgressStatuses.contains(ps.getKey) )
+          } else {
+            convertedTimestamps.filter( _.getKey.startsWith(applicationStatus) )
+          }
           val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element =>
             Codecs.fromBson[OffsetDateTime](timestamps.get(element.getKey))
           )
-          Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus.getKey)).toOption
+          val progressStatus = Try(ProgressStatuses.nameToProgressStatus(latestRelevantProgressStatus.getKey)).toOption
+          val timestamp = Try(Codecs.fromBson[OffsetDateTime](timestamps.get(latestRelevantProgressStatus.getKey))).toOption
+          progressStatus -> timestamp
         }
 
-        val progressStatusTimeStamp = progressStatusTimeStampDoc.flatMap { timestamps =>
-          val convertedTimestamps = timestamps.entrySet().asScala.toSet
-          val relevantProgressStatuses = convertedTimestamps.filter( _.getKey.startsWith(applicationStatus) )
-          val latestRelevantProgressStatus = relevantProgressStatuses.maxBy(element =>
-            Codecs.fromBson[OffsetDateTime](timestamps.get(element.getKey))
-          )
-          Try(Codecs.fromBson[OffsetDateTime](timestamps.get(latestRelevantProgressStatus.getKey))).toOption
+        val (latestProgressStatus, latestProgressStatusTimeStamp) = latest match {
+          case Some(data) => data
+          case _ => None -> None // Tuple with 2 None values
         }
-          .orElse(
-            progressStatusDateFallback(applicationStatus, doc)
-          )
+
         val submissionDeadline = doc.get("submissionDeadline").map( sd => Codecs.fromBson[OffsetDateTime](sd) )
-        ApplicationStatusDetails(applicationStatus, applicationRoute, latestProgressStatus, progressStatusTimeStamp, submissionDeadline)
+
+        ApplicationStatusDetails(applicationStatus, applicationRoute, latestProgressStatus, latestProgressStatusTimeStamp, submissionDeadline)
 
       case None => throw ApplicationNotFound(applicationId)
     }
-  } //scalastyle:on
+  }
 
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse] = {
     val query = Document("userId" -> userId, "frameworkId" -> frameworkId)

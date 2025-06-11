@@ -214,7 +214,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         .returning(evaluationResult)
 
       (mockAppRepo.findStatus _)
-        .expects(applicationId.toString())
+        .expects(applicationId.toString(), true)
         .returningAsync(scoresAcceptedApplicationStatusDetails)
 
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
@@ -251,7 +251,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         .returning(evaluationResult)
 
       (mockAppRepo.findStatus _)
-        .expects(applicationId.toString())
+        .expects(applicationId.toString(), true)
         .returningAsync(sdipFaststreamScoresAcceptedApplicationStatusDetails)
 
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
@@ -292,7 +292,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         .returning(evaluationResult)
 
       (mockAppRepo.findStatus _)
-        .expects(applicationId.toString())
+        .expects(applicationId.toString(), true)
         .returningAsync(sdipFaststreamScoresAcceptedApplicationStatusDetails)
 
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
@@ -332,7 +332,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         .returning(evaluationResult)
 
       (mockAppRepo.findStatus _)
-        .expects(applicationId.toString())
+        .expects(applicationId.toString(), true)
         .returningAsync(scoresAcceptedApplicationStatusDetails)
 
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
@@ -372,7 +372,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         .returning(evaluationResult)
 
       (mockAppRepo.findStatus _)
-        .expects(applicationId.toString())
+        .expects(applicationId.toString(), true)
         .returningAsync(scoresAcceptedApplicationStatusDetails)
 
       (mockAppRepo.addProgressStatusAndUpdateAppStatus _)
@@ -412,7 +412,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         .returning(evaluationResult)
 
       (mockAppRepo.findStatus _)
-        .expects(applicationId.toString())
+        .expects(applicationId.toString(), true)
         .returningAsync(scoresAcceptedApplicationStatusDetails)
 
       val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Green.toString),
@@ -458,7 +458,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
       )
 
       (mockAppRepo.findStatus _)
-        .expects(applicationId.toString())
+        .expects(applicationId.toString(), true)
         .returningAsync(fsbApplicationStatusDetails)
 
       val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Withdrawn.toString), // This needs a fsb
@@ -532,7 +532,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
       )
 
       (mockAppRepo.findStatus _)
-        .expects(applicationId.toString())
+        .expects(applicationId.toString(), true)
         .returningAsync(fsbApplicationStatusDetails)
 
       val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Withdrawn.toString), // This needs a fsb
@@ -604,7 +604,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
       )
 
       (mockAppRepo.findStatus _)
-        .expects(applicationId.toString())
+        .expects(applicationId.toString(), true)
         .returningAsync(fsbApplicationStatusDetails)
 
       val currentSchemeStatus = List(SchemeEvaluationResult(Commercial, Withdrawn.toString), // This needs a fsb
