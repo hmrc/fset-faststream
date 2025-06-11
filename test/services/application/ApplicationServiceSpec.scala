@@ -247,7 +247,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
@@ -284,7 +284,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
 
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
@@ -323,7 +323,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
 
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
@@ -362,7 +362,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme],
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.ASSESSMENT_CENTRE, ApplicationRoute.Faststream,
           Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION), None, None))
 
@@ -402,7 +402,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
       val withdraw = WithdrawScheme(DiplomaticAndDevelopment, "reason", "Candidate")
@@ -439,7 +439,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
 
       val withdraw = WithdrawScheme(DiplomaticAndDevelopment, "reason", "Candidate")
@@ -478,7 +478,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
       val withdraw = WithdrawScheme(DiplomaticAndDevelopment, "reason", "Candidate")
@@ -516,7 +516,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream, Some(ProgressStatuses.SIFT_READY), None, None))
 
       val withdraw = WithdrawScheme(Commercial, "reason", "Candidate")
@@ -555,7 +555,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
       val withdraw = WithdrawScheme(Sdip, "reason", "Candidate")
@@ -593,7 +593,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
         any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream, Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
       val withdraw = WithdrawScheme(Sdip, "reason", "Candidate")
@@ -633,7 +633,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
         any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream, Some(ProgressStatuses.SIFT_COMPLETED), None, None))
 
       val withdraw = WithdrawScheme(Sdip, "reason", "Candidate")
@@ -671,7 +671,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream,
           Some(ProgressStatuses.ASSESSMENT_CENTRE_AWAITING_ALLOCATION), None, None))
 
@@ -713,7 +713,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream,
           Some(ProgressStatuses.SIFT_COMPLETED), None, None))
 
@@ -757,7 +757,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.SdipFaststream,
           Some(ProgressStatuses.SIFT_COMPLETED), None, None))
 
@@ -787,7 +787,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
           Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
 
@@ -824,7 +824,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
           Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
@@ -863,7 +863,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
           Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
@@ -902,7 +902,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
         any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
           Some(ProgressStatuses.SIFT_TEST_RESULTS_READY), None, None))
 
@@ -941,7 +941,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
           Some(ProgressStatuses.SIFT_ENTERED), statusDate = None, overrideSubmissionDeadline = None))
 
@@ -980,7 +980,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS, ApplicationRoute.Faststream,
           Some(ProgressStatuses.SIFT_ENTERED), statusDate = None, overrideSubmissionDeadline = None))
 
@@ -1015,7 +1015,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
           Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
 
@@ -1051,7 +1051,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
           Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
 
@@ -1087,7 +1087,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
           Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
 
@@ -1123,7 +1123,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
           Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
 
@@ -1158,7 +1158,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
       when(appRepositoryMock.withdrawScheme(any[String], any[WithdrawScheme], any[Seq[SchemeEvaluationResult]])).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.PHASE1_TESTS_PASSED, ApplicationRoute.Faststream,
           Some(ProgressStatuses.PHASE1_TESTS_PASSED), statusDate = None, overrideSubmissionDeadline = None))
 
@@ -1197,7 +1197,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
           any[Seq[SchemeEvaluationResult]]
       )).thenReturnAsync()
       when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])).thenReturnAsync()
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.SIFT, ApplicationRoute.Faststream,
           Some(ProgressStatuses.SIFT_ENTERED), None, None))
 
@@ -1274,7 +1274,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
 
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.FSB, ApplicationRoute.Faststream, Some(ProgressStatuses.FSB_ALLOCATION_CONFIRMED),
           statusDate = None, overrideSubmissionDeadline = None
         )
@@ -1303,7 +1303,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
 
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(
           ApplicationStatus.ASSESSMENT_CENTRE, ApplicationRoute.Faststream, Some(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED),
           statusDate = None, overrideSubmissionDeadline = None
@@ -1342,7 +1342,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
 
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(
           ApplicationStatus.ASSESSMENT_CENTRE, ApplicationRoute.Faststream, Some(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED),
           statusDate = None, overrideSubmissionDeadline = None
@@ -1381,7 +1381,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
 
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.FSB, ApplicationRoute.Faststream, Some(ProgressStatuses.FSB_ALLOCATION_CONFIRMED),
           statusDate = None, overrideSubmissionDeadline = None
         )
@@ -1418,7 +1418,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       when(appRepositoryMock.find(any[String])).thenReturnAsync(Some(candidate1))
       when(cdRepositoryMock.find(candidate1.userId)).thenReturnAsync(cd1)
 
-      when(appRepositoryMock.findStatus(any[String])).thenReturnAsync(
+      when(appRepositoryMock.findStatus(any[String], any[Boolean])).thenReturnAsync(
         ApplicationStatusDetails(ApplicationStatus.FSB, ApplicationRoute.Faststream, Some(ProgressStatuses.FSB_ALLOCATION_CONFIRMED),
           statusDate = None, overrideSubmissionDeadline = None
         )
