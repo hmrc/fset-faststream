@@ -26,6 +26,7 @@ import play.api.libs.json.Json
 case class CivilServiceExperienceDetails(
   applicable: Boolean,
   civilServantAndInternshipTypes: Option[Seq[CivilServantAndInternshipType]] = None,
+  civilServantDepartment: Option[String] = None,
   edipYear: Option[String] = None,
   sdipYear: Option[String] = None,
   otherInternshipName: Option[String] = None,
@@ -37,6 +38,7 @@ case class CivilServiceExperienceDetails(
   override def toString = {
     s"applicable=$applicable," +
       s"civilServantAndInternshipTypes=$civilServantAndInternshipTypes," +
+      s"civilServantDepartment=$civilServantDepartment," +
       s"edipYear=$edipYear," +
       s"sdipYear=$sdipYear," +
       s"otherInternshipName=$otherInternshipName," +
@@ -55,6 +57,7 @@ object CivilServiceExperienceDetails {
   val mongoFormat: Format[CivilServiceExperienceDetails] = (
     (__ \ root \ "applicable").format[Boolean] and
       (__ \ root \ "civilServantAndInternshipTypes").formatNullable[Seq[CivilServantAndInternshipType]] and
+      (__ \ root \ "civilServantDepartment").formatNullable[String] and
       (__ \ root \ "edipYear").formatNullable[String] and
       (__ \ root \ "sdipYear").formatNullable[String] and
       (__ \ root \ "otherInternshipName").formatNullable[String] and
