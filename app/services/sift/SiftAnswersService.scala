@@ -18,6 +18,7 @@ package services.sift
 
 import javax.inject.{Inject, Singleton}
 import model._
+import model.exchange.sift.SiftSchemes
 import model.persisted.sift.SiftAnswersStatus.SiftAnswersStatus
 import play.api.Logging
 import repositories.SchemeRepository
@@ -44,6 +45,12 @@ class SiftAnswersService @Inject() (appRepo: GeneralApplicationRepository,
       persisted.map(
         psa => model.exchange.sift.SiftAnswers(psa)
       )
+    )
+  }
+
+  def findSiftSchemes(applicationId: String): Future[Option[SiftSchemes]] = {
+    siftAnswersRepo.findSiftAnswers(applicationId).map(persisted =>
+      persisted.map( psa => SiftSchemes(psa.schemeAnswers.keySet.toList))
     )
   }
 

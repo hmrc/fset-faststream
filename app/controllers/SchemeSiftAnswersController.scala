@@ -85,6 +85,13 @@ class SchemeSiftAnswersController @Inject() (cc: ControllerComponents,
     }
   }
 
+  def getSiftSchemes(applicationId: String): Action[AnyContent] = Action.async { implicit request =>
+    siftAnswersService.findSiftSchemes(applicationId).map {
+      case Some(schemes) => Ok(Json.toJson(schemes))
+      case _ => NotFound(s"Cannot find sift schemes for applicationId: $applicationId")
+    }
+  }
+
   def submitAnswers(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     (for {
       isSiftExpired <- applicationSiftService.isSiftExpired(applicationId)
