@@ -20,12 +20,14 @@ import config.MicroserviceAppConfig
 import model.EvaluationResults.{Green, Withdrawn}
 import model.ProgressStatuses.{SIFT_COMPLETED, SIFT_FORMS_COMPLETE_NUMERIC_TEST_PENDING, SIFT_READY}
 import model.command.ProgressResponseExamples
+import model.exchange.sift.SiftSchemes
 import model.persisted.SchemeEvaluationResult
+import model.persisted.sift.{SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus}
 import model.{Scheme, Schemes, SiftRequirement}
 import repositories.SchemeYamlRepository
 import repositories.application.GeneralApplicationRepository
 import repositories.sift.SiftAnswersRepository
-import testkit.ScalaMockImplicits._
+import testkit.ScalaMockImplicits.*
 import testkit.ScalaMockUnitWithAppSpec
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -157,6 +159,26 @@ class SiftAnswersServiceSpec extends ScalaMockUnitWithAppSpec with Schemes {
 
       whenReady(service.submitAnswers(AppId)) { result =>
         result mustBe unit
+      }
+    }
+  }
+
+  "Find sift schemes" must {
+    "return the schemes which have scheme answers" in new TestFixture {
+      val siftAnswers = SiftAnswers(
+        AppId,
+        SiftAnswersStatus.SUBMITTED,
+        generalAnswers = None,
+        schemeAnswers = Map(
+          "Commercial" -> SchemeSpecificAnswer("Test text"),
+          "Finance" -> SchemeSpecificAnswer("Test text")
+        )
+      )
+
+      (mockSiftAnswersRepo.findSiftAnswers _).expects(AppId).returningAsync(Some(siftAnswers))
+
+      whenReady(service.findSiftSchemes(AppId)) { result =>
+        result mustBe Some(SiftSchemes(Seq("Commercial", "Finance")))
       }
     }
   }

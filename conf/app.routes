@@ -389,6 +389,7 @@ GET         /sift-answers/:applicationId/general                         @contro
 PUT         /sift-answers/:applicationId/general                         @controllers.SchemeSiftAnswersController.addOrUpdateGeneralAnswers(applicationId: String)
 GET         /sift-answers/:applicationId/status                          @controllers.SchemeSiftAnswersController.getSiftAnswersStatus(applicationId: String)
 PUT         /sift-answers/:applicationId/submit                          @controllers.SchemeSiftAnswersController.submitAnswers(applicationId: String)
+GET         /sift-answers/:applicationId/schemes                         @controllers.SchemeSiftAnswersController.getSiftSchemes(applicationId: String)
 GET         /sift-answers/:applicationId/:schemeId                       @controllers.SchemeSiftAnswersController.getSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
 PUT         /sift-answers/:applicationId/:schemeId                       @controllers.SchemeSiftAnswersController.addOrUpdateSchemeSpecificAnswer(applicationId: String, schemeId: model.SchemeId)
 GET         /sift-answers/:applicationId                                 @controllers.SchemeSiftAnswersController.getSiftAnswers(applicationId: String)
