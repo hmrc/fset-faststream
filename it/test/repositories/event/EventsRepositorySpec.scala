@@ -153,6 +153,7 @@ class EventsRepositorySpec extends MongoRepositorySpec {
       repository.save(EventExamples.EventsNew).futureValue
       repository.getEvents(EventType.FSAC).futureValue.size mustBe 2
       repository.getEvents(EventType.FSB).futureValue.size mustBe 3
+      repository.getEvents(EventType.FSB, "ORAC").futureValue.size mustBe 1
     }
   }
 

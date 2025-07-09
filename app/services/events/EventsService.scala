@@ -37,6 +37,7 @@ trait EventsService {
   def getEvent(id: String): Future[Event]
   def delete(id: String): Future[Unit]
   def getEvents(eventType: EventType, venue: Venue, description: Option[String] = None): Future[List[Event]]
+  def getEvents(eventType: EventType, description: String): Future[List[Event]]
   def getEvents(eventType: EventType): Future[Seq[Event]]
   def getEvents(ids: List[String]): Future[List[Event]]
   def getEventsWithAllocationsSummary(venue: Venue, eventType: EventType,
@@ -91,6 +92,10 @@ class EventsServiceImpl @Inject() (eventsRepo: EventsRepository,
 
   override def getEvents(eventType: EventType, venue: Venue, description: Option[String] = None): Future[List[Event]] = {
     eventsRepo.getEvents(Some(eventType), Some(venue), description = description).map { events => events.toList}
+  }
+
+  override def getEvents(eventType: EventType, description: String): Future[List[Event]] = {
+    eventsRepo.getEvents(eventType, description = description).map { events => events.toList}
   }
 
   override def getEvents(eventType: EventType): Future[List[Event]] = {

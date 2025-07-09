@@ -936,6 +936,107 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
     }
   }
 
+  "get candidate allocation" must {
+    val fsbName = "PRO - Skype interview"
+    val propertyFsbEvent1 = Event(
+      id = "eventId1", eventType = EventType.FSB, description = fsbName, location = Location("Virtual"),
+      venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+      skillRequirements = Map(), sessions = List()
+    )
+
+    val propertyFsbEvent2 = Event(
+      id = "eventId2", eventType = EventType.FSB, description = fsbName, location = Location("Virtual"),
+      venue = Venue("VIRTUAL", "Virtual"), date = LocalDate.now().plusDays(2), capacity = 60, minViableAttendees = 55,
+      attendeeSafetyMargin = 10, startTime = LocalTime.now(), endTime = LocalTime.now().plusHours(3), createdAt = now,
+      skillRequirements = Map(), sessions = List()
+    )
+
+    "return the single allocation for a candidate's fsb" in new TestFixture {
+      when(mockSchemeRepository.getSchemeForId(Property)).thenReturn(
+        Some(Scheme(
+          Property, "PRO", "Property",
+          civilServantEligible = true,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType(fsbName)),
+          schemeGuide = None,
+          schemeQuestion = None
+        ))
+      )
+
+      when(mockEventsService.getEvents(EventType.FSB, fsbName))
+        .thenReturnAsync(Seq(propertyFsbEvent1))
+
+      val allocation = model.persisted.CandidateAllocation(
+        AppId,
+        "eventId1",
+        "sessionId1",
+        AllocationStatuses.CONFIRMED,
+        "version",
+        removeReason = None,
+        createdAt = LocalDate.now,
+        reminderSent = false
+      )
+
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(Seq(AppId), List("eventId1")))
+        .thenReturnAsync(Seq(allocation))
+
+      val result = service.getCandidateAllocation(AppId, Property).futureValue
+      result mustBe Some(allocation)
+    }
+
+    "generate an exception if more than one allocation is returned for a candidate's fsb" in new TestFixture {
+      val fsbName = "PRO - Skype interview"
+      when(mockSchemeRepository.getSchemeForId(Property)).thenReturn(
+        Some(Scheme(
+          Property, "PRO", "Property",
+          civilServantEligible = true,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = Some(FsbType(fsbName)),
+          schemeGuide = None,
+          schemeQuestion = None
+        ))
+      )
+
+      when(mockEventsService.getEvents(EventType.FSB, fsbName))
+        .thenReturnAsync(Seq(propertyFsbEvent1, propertyFsbEvent2))
+
+      // This should never happen, but if it does, we deal with it by generating an exception
+      when(mockCandidateAllocationRepository.findAllConfirmedOrUnconfirmedAllocations(Seq(AppId), List("eventId1","eventId2")))
+        .thenReturnAsync(
+          Seq(
+            model.persisted.CandidateAllocation(
+              AppId,
+              "eventId1",
+              "sessionId1",
+              AllocationStatuses.CONFIRMED,
+              "version",
+              removeReason = None,
+              createdAt = LocalDate.now,
+              reminderSent = false
+            ),
+            model.persisted.CandidateAllocation(
+              AppId,
+              "eventId2",
+              "sessionId1",
+              AllocationStatuses.CONFIRMED,
+              "version",
+              removeReason = None,
+              createdAt = LocalDate.now,
+              reminderSent = false
+            )
+          )
+        )
+
+      val result = service.getCandidateAllocation(AppId, Property).failed.futureValue
+      result mustBe an[IllegalArgumentException]
+    }
+  }
+
   trait TestFixture extends StcEventServiceFixture with Schemes {
     val mockCandidateAllocationRepository = mock[CandidateAllocationMongoRepository]
     val mockAppRepo = mock[GeneralApplicationRepository]
