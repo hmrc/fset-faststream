@@ -50,6 +50,7 @@ trait EventsRepository {
   def getEvents(eventType: Option[EventType] = None, venue: Option[Venue] = None,
     location: Option[Location] = None, skills: Seq[SkillType] = Nil, description: Option[String] = None): Future[Seq[Event]]
   def getEvents(eventType: EventType): Future[Seq[Event]]
+  def getEvents(eventType: EventType, description: String): Future[Seq[Event]]
   def getEventsById(eventIds: Seq[String], eventType: Option[EventType] = None): Future[Seq[Event]]
   def getEventsManuallyCreatedAfter(dateTime: OffsetDateTime): Future[Seq[Event]]
   def updateStructure(): Future[Unit]
@@ -130,6 +131,15 @@ class EventsMongoRepository @Inject() (mongoComponent: MongoComponent, appConfig
   override def getEvents(eventType: EventType): Future[Seq[Event]] = {
     val query = List(
       buildEventTypeFilter(Some(eventType))
+    ).flatten.fold(Document.empty)(_ ++ _)
+
+    collection.find(query).toFuture()
+  }
+
+  override def getEvents(eventType: EventType, description: String): Future[Seq[Event]] = {
+    val query = List(
+      buildEventTypeFilter(Some(eventType)),
+      Some(Document("description" -> description))
     ).flatten.fold(Document.empty)(_ ++ _)
 
     collection.find(query).toFuture()

@@ -16,25 +16,25 @@
 
 package controllers
 
-import javax.inject.{Inject, Singleton}
 import model.Exceptions.{ApplicationNotFound, LastSchemeWithdrawException, SiftExpiredException}
 import model.command.{WithdrawApplication, WithdrawScheme}
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents}
-import services.application.ApplicationService
+import services.application.WithdrawService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
 class WithdrawController @Inject() (cc: ControllerComponents,
-                                    applicationService: ApplicationService) extends BackendController(cc) {
+                                    withdrawService: WithdrawService) extends BackendController(cc) {
 
   implicit val ec: ExecutionContext = cc.executionContext
 
   def withdrawApplication(applicationId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[WithdrawApplication] { withdrawRequest =>
-      applicationService.withdraw(applicationId, withdrawRequest).map { _ =>
+      withdrawService.withdraw(applicationId, withdrawRequest).map { _ =>
         Ok
       }.recover {
         case e: ApplicationNotFound => NotFound(s"Cannot find application with id: ${e.id}")
@@ -44,7 +44,7 @@ class WithdrawController @Inject() (cc: ControllerComponents,
 
   def withdrawScheme(applicationId: String) = Action.async(parse.json) { implicit request =>
     withJsonBody[WithdrawScheme] { withdrawRequest =>
-      applicationService.withdraw(applicationId, withdrawRequest).map { _ => Ok }
+      withdrawService.withdraw(applicationId, withdrawRequest).map { _ => Ok }
         .recover {
           case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
           case e: LastSchemeWithdrawException => BadRequest(e.m)

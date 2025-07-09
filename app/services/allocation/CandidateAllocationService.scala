@@ -23,7 +23,7 @@ import model.AllocationStatuses.AllocationStatus
 import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{CandidateAlreadyAssignedToOtherEventException, OptimisticLockException}
 import model.ProgressStatuses.EventProgressStatuses
-import model._
+import model.*
 import model.command.CandidateAllocation
 import model.exchange.CandidatesEligibleForEventResponse
 import model.exchange.candidateevents.{CandidateAllocationSummary, CandidateAllocationWithEvent, CandidateRemoveReason}
@@ -348,6 +348,30 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
     }
   }
 
+  def getCandidateAllocation(appId: String, schemeId: SchemeId): Future[Option[persisted.CandidateAllocation]] = {
+    // Does the scheme the candidate is withdrawing have a fsb associated with it?
+    val schemeOpt = schemeRepository.getSchemeForId(schemeId)
+    val fsbTypeOpt = schemeOpt.flatMap { scheme => scheme.fsbType }
+
+    fsbTypeOpt.map { fsbType =>
+      for {
+        // Look for all fsb events, with a description matching the fsb type
+        events <- eventsService.getEvents(EventType.FSB, fsbType.key)
+        // Look for candidate allocations for the set of event ids - there should be a max of 1
+        candidateAllocations <- candidateAllocationRepo.findAllConfirmedOrUnconfirmedAllocations(Seq(appId), events.map(_.id))
+      } yield {
+        //There should be max of 1 candidate allocation for the combination of candidate and fsb
+        val allocationData = candidateAllocations.map(ca => s"eventId:${ca.eventId},sessionId:${ca.sessionId}").mkString(",")
+        val msg = s"Fsb candidate allocations should be a max of 1 for scheme: ${schemeId.value}, candidate: $appId " +
+          s"but was ${candidateAllocations.size} - allocation data:  $allocationData"
+        require(candidateAllocations.size < 2, msg)
+        candidateAllocations.headOption
+      }
+    }.getOrElse{
+      Future.successful(None)
+    }
+  }
+
   def removeCandidateRemovalReason(appId: String, eventType: EventType): Future[Unit] = {
     candidateAllocationRepo.removeCandidateRemovalReason(appId).flatMap(_ =>
       applicationRepo.resetApplicationAllocationStatus(appId, eventType)
@@ -436,6 +460,12 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
         s"does not match existing allocations version=${existingAllocations.version}")
       throw OptimisticLockException(s"Stored allocations for event ${newAllocations.eventId} have been updated since reading")
     }
+  }
+
+  def saveCandidateAllocations(toPersist: Seq[model.persisted.CandidateAllocation]) = {
+    for {
+      _ <- candidateAllocationRepo.save(toPersist)
+    } yield ()
   }
 
   private def eventGuide(event: Event) = event.eventType match {
