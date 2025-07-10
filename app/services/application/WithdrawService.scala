@@ -299,6 +299,10 @@ class WithdrawService @Inject() (appRepository: GeneralApplicationRepository,
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)
       latestSchemeStatus = buildLatestSchemeStatus(currentSchemeStatus, withdrawRequest)
       appStatusDetails <- appRepository.findStatus(applicationId)
+
+      // We attempt this before withdrawing the scheme in case there is a problem so the scheme doesn't get withdrawn
+      _ <- maybeRemoveCandidateFromFsb(appStatusDetails)
+
       _ <- appRepository.withdrawScheme(applicationId, withdrawRequest, latestSchemeStatus)
 
       _ <- maybeProgressToSiftEntered(appStatusDetails.status, latestSchemeStatus)
@@ -308,8 +312,6 @@ class WithdrawService @Inject() (appRepository: GeneralApplicationRepository,
 
       progress <- appRepository.findProgress(applicationId)
       _ <- maybeProgressToSiftReady(latestSchemeStatus, progress, appStatusDetails.status, siftAnswersStatus)
-
-      _ <- maybeRemoveCandidateFromFsb(appStatusDetails)
 
       _ <- maybeOfferJobForFsacOrFsbCandidate(latestSchemeStatus, appStatusDetails.status, progress)
     } yield {
