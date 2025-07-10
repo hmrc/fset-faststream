@@ -18,6 +18,7 @@ package controllers
 
 import model.Exceptions.{ApplicationNotFound, LastSchemeWithdrawException, SiftExpiredException}
 import model.command.{WithdrawApplication, WithdrawScheme}
+import play.api.Logging
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, ControllerComponents}
 import services.application.WithdrawService
@@ -28,7 +29,7 @@ import scala.concurrent.ExecutionContext
 
 @Singleton
 class WithdrawController @Inject() (cc: ControllerComponents,
-                                    withdrawService: WithdrawService) extends BackendController(cc) {
+                                    withdrawService: WithdrawService) extends BackendController(cc) with Logging {
 
   implicit val ec: ExecutionContext = cc.executionContext
 
@@ -48,7 +49,10 @@ class WithdrawController @Inject() (cc: ControllerComponents,
         .recover {
           case e: ApplicationNotFound => NotFound(s"cannot find application with id: ${e.id}")
           case e: LastSchemeWithdrawException => BadRequest(e.m)
-          case e: SiftExpiredException=> Forbidden(e.m)
+          case e: SiftExpiredException => Forbidden(e.m)
+          case e: IllegalArgumentException =>
+            logger.error(e.getMessage)
+            PreconditionFailed(e.getMessage)
         }
     }
   }
