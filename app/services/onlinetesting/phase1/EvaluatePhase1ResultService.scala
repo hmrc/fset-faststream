@@ -57,27 +57,26 @@ class EvaluatePhase1ResultService @Inject() (@Named("Phase1EvaluationRepository"
       logger.warn(s"Evaluating PHASE1 appId=${application.applicationId}")
 
       val activeTests = application.activePsiTests
-      require(activeTests.nonEmpty && (activeTests.length == 2 || activeTests.length == 3), "Allowed active number of tests is 2 or 3")
+      require(activeTests.nonEmpty && (activeTests.length == 2), "Allowed active number of tests is 2")
       val test1Opt = findFirstTest1Test(activeTests)
       val test2Opt = findFirstTest2Test(activeTests)
-      val test3Opt = findFirstTest3Test(activeTests)
 
-      savePassMarkEvaluation(application, getSchemeResults(test1Opt, test2Opt, test3Opt), passmark, phase)
+      savePassMarkEvaluation(application, getSchemeResults(test1Opt, test2Opt), passmark, phase)
     }
   }
 
   //scalastyle:off cyclomatic.complexity
-  private def getSchemeResults(test1Opt: Option[PsiTest], test2Opt: Option[PsiTest], test3Opt: Option[PsiTest])
+  private def getSchemeResults(test1Opt: Option[PsiTest], test2Opt: Option[PsiTest])
                               (implicit application: ApplicationReadyForEvaluation, passmark: Phase1PassMarkSettingsPersistence) =
-    (test1Opt, test2Opt, test3Opt) match {
-      case (Some(test1), None, Some(test3)) if application.isGis && test1.testResult.isDefined && test3.testResult.isDefined =>
-        evaluateForGis(application.applicationId, getSchemesToEvaluate(application), test1.testResult.get, test3.testResult.get, passmark)
-      case (Some(test1), Some(test2), Some(test3)) if application.nonGis &&
-        test1.testResult.isDefined && test2.testResult.isDefined && test3.testResult.isDefined =>
+    (test1Opt, test2Opt) match {
+      case (Some(test1), Some(test2)) if application.isGis && test1.testResult.isDefined =>
+        evaluateForGis(application.applicationId, getSchemesToEvaluate(application), test1.testResult.get, test2.testResult.get, passmark)
+      case (Some(test1), Some(test2)) if application.nonGis &&
+        test1.testResult.isDefined && test2.testResult.isDefined =>
         evaluateForNonGis(application.applicationId, getSchemesToEvaluate(application),
-          test1.testResult.get, test2.testResult.get, test3.testResult.get, passmark)
+          test1.testResult.get, test2.testResult.get, passmark)
       case _ =>
-        val testCount = List(test1Opt, test2Opt, test3Opt).count(test => test.isDefined && test.get.testResult.isDefined)
+        val testCount = List(test1Opt, test2Opt).count(test => test.isDefined && test.get.testResult.isDefined)
         val gis = if (application.isGis) {
           s"This application is GIS so expecting ${gatewayConfig.phase1Tests.gis.size} tests with results in phase1 but found $testCount"
         } else {

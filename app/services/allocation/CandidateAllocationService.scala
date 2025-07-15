@@ -350,8 +350,10 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
 
   def getCandidateAllocation(appId: String, schemeId: SchemeId): Future[Option[persisted.CandidateAllocation]] = {
     // Does the scheme the candidate is withdrawing have a fsb associated with it?
-    val schemeOpt = schemeRepository.getSchemeForId(schemeId)
-    val fsbTypeOpt = schemeOpt.flatMap { scheme => scheme.fsbType }
+    val fsbTypeOpt = for {
+      scheme <- schemeRepository.getSchemeForId(schemeId)
+      fsbType <- scheme.fsbType
+    } yield fsbType
 
     fsbTypeOpt.map { fsbType =>
       for {

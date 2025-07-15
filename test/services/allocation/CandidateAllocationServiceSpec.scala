@@ -1035,6 +1035,27 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
       val result = service.getCandidateAllocation(AppId, Property).failed.futureValue
       result mustBe an[IllegalArgumentException]
     }
+
+    "return None if the candidate is withdrawing a scheme that has no fsb" in new TestFixture {
+      val fsbName = "PRO - Skype interview"
+      when(mockSchemeRepository.getSchemeForId(Digital)).thenReturn(
+        Some(Scheme(
+          Digital, "DDTAC", "Digital",
+          civilServantEligible = true,
+          degree = None,
+          siftRequirement = None,
+          siftEvaluationRequired = false,
+          fsbType = None,
+          schemeGuide = None,
+          schemeQuestion = None
+        ))
+      )
+
+      val result = service.getCandidateAllocation(AppId, Digital).futureValue
+      result mustBe None
+      verify(mockEventsService, never()).getEvents(any[EventType], any[String])
+      verify(mockCandidateAllocationRepository, never()).findAllConfirmedOrUnconfirmedAllocations(any[Seq[String]], any[Seq[String]])
+    }
   }
 
   trait TestFixture extends StcEventServiceFixture with Schemes {

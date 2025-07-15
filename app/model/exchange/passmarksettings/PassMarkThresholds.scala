@@ -23,7 +23,6 @@ trait PassMarkThresholds
 trait Phase1Thresholds {
   def test1: PassMarkThreshold
   def test2: PassMarkThreshold
-  def test3: PassMarkThreshold
 }
 
 trait Phase2Thresholds {
@@ -53,8 +52,7 @@ trait AssessmentCentreExerciseThresholds {
 
 case class Phase1PassMarkThresholds(
                                      test1: PassMarkThreshold,
-                                     test2: PassMarkThreshold,
-                                     test3: PassMarkThreshold
+                                     test2: PassMarkThreshold
 ) extends PassMarkThresholds with Phase1Thresholds
 
 object Phase1PassMarkThresholds {

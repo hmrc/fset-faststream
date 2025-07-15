@@ -50,10 +50,19 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
   case class SchemeValidation(isValid: Boolean, message: String)
 
   def validateSchemes(request: CreateCandidateRequest): SchemeValidation = {
-    val validSchemes = schemeRepository.schemes.map( _.id ).toSet
+    // Schemes that are still in schemes.yaml but which the business doesn't want to use
+    val invalidSchemes = Seq(GovernmentCommunicationService)
+    val validSchemes = schemeRepository.schemes.map( _.id ).filterNot(id => invalidSchemes.contains(id)).toSet
     val requestSchemes = request.schemeTypes.map( _.toSet ).getOrElse(Set.empty[SchemeId])
-    val result = requestSchemes diff validSchemes
-    SchemeValidation(result.isEmpty, result.mkString(","))
+    val invalidRequestSchemes = requestSchemes diff validSchemes
+
+    val maxNumberOfSchemes = 3
+    if (invalidRequestSchemes.isEmpty && requestSchemes.size > maxNumberOfSchemes) {
+      // The schemes are valid but there are too many
+      SchemeValidation(isValid = false, s"The maximum number of schemes you can select is $maxNumberOfSchemes")
+    } else {
+      SchemeValidation(invalidRequestSchemes.isEmpty, invalidRequestSchemes.mkString(","))
+    }
   }
 
   case class LocationValidation(isValid: Boolean, message: String)
