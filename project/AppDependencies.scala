@@ -20,7 +20,7 @@ import sbt.*
 //scalastyle:off line.size.limit
 object AppDependencies {
 
-  val bootstrapVersion = "9.13.0"
+  val bootstrapVersion = "9.14.0"
 
   val circe = Seq(
     "io.circe" %% "circe-yaml"  % "1.15.0"
