@@ -24,27 +24,24 @@ import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
 
-  def evaluateForGis(applicationId: String, schemes: List[SchemeId], test1Result: PsiTestResult, test3Result: PsiTestResult,
+  def evaluateForGis(applicationId: String, schemes: List[SchemeId], test1Result: PsiTestResult, test2Result: PsiTestResult,
                      passmark: Phase1PassMarkSettingsPersistence): List[SchemeEvaluationResult] = {
-    evaluate(applicationId, isGis = true, schemes, passmark, test1Result, None, test3Result)
+    evaluate(applicationId, isGis = true, schemes, passmark, test1Result, Some(test2Result))
   }
 
   def evaluateForNonGis(applicationId: String, schemes: List[SchemeId], test1Result: PsiTestResult, test2Result: PsiTestResult,
-                        test3Result: PsiTestResult,
                         passmark: Phase1PassMarkSettingsPersistence): List[SchemeEvaluationResult] = {
-    evaluate(applicationId, isGis = false, schemes, passmark, test1Result, Some(test2Result), test3Result)
+    evaluate(applicationId, isGis = false, schemes, passmark, test1Result, Some(test2Result))
   }
 
   private def evaluate(applicationId: String, isGis: Boolean, schemes: List[SchemeId], passmark: Phase1PassMarkSettingsPersistence,
-                       test1Result: PsiTestResult, test2ResultOpt: Option[PsiTestResult] = None,
-                       test3Result: PsiTestResult) = {
+                       test1Result: PsiTestResult, test2ResultOpt: Option[PsiTestResult] = None) = {
     for {
       schemeToEvaluate <- schemes
       schemePassmark <- passmark.schemes find (_.schemeId == schemeToEvaluate)
     } yield {
       val t1Result = evaluateTestResult(schemePassmark.schemeThresholds.test1)(test1Result.tScore)
       val t2Result = test2ResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.test2)).getOrElse(Green)
-      val t3Result = evaluateTestResult(schemePassmark.schemeThresholds.test3)(test3Result.tScore)
       logger.warn(s"PHASE1 - appId $applicationId processing scheme $schemeToEvaluate, " +
         s"p1 test1 score = ${test1Result.tScore}, " +
         s"p1 test1 fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
@@ -53,15 +50,11 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
         s"p1 test2 score = ${test2ResultOpt.map(_.tScore)}, " +
         s"p1 test2 fail = ${schemePassmark.schemeThresholds.test2.failThreshold}, " +
         s"p1 test2 pass = ${schemePassmark.schemeThresholds.test2.passThreshold}, " +
-        s"p1 test2 result = $t2Result, " +
-        s"p1 test3 score = ${test3Result.tScore}, " +
-        s"p1 test3 fail = ${schemePassmark.schemeThresholds.test3.failThreshold}, " +
-        s"p1 test3 pass = ${schemePassmark.schemeThresholds.test3.passThreshold}, " +
-        s"p1 test3 result = $t3Result"
+        s"p1 test2 result = $t2Result"
       )
       SchemeEvaluationResult(
         schemeToEvaluate,
-        combineTestResults(applicationId, Phase.PHASE1, schemeToEvaluate, t1Result, t2Result, t3Result).toString
+        combineTestResults(applicationId, Phase.PHASE1, schemeToEvaluate, t1Result, t2Result).toString
       )
     }
   }

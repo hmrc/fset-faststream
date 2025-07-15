@@ -30,7 +30,7 @@ object Phase1PassMarkSettingsExamples {
 
   def createPhase1PassMark(schemeName: SchemeId, fail: Double, pass: Double) = {
     Phase1PassMark(schemeName, Phase1PassMarkThresholds(
-      PassMarkThreshold(fail, pass), PassMarkThreshold(fail, pass), PassMarkThreshold(fail, pass)
+      PassMarkThreshold(fail, pass), PassMarkThreshold(fail, pass)
     ))
   }
 }

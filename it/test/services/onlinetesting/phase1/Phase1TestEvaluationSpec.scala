@@ -28,7 +28,7 @@ import model.{ApplicationRoute, ApplicationStatus, SchemeId, Schemes}
 import org.mockito.Mockito.when
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
-import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor7}
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor5}
 import repositories.{CollectionNames, CommonRepository}
 import testkit.MongoRepositorySpec
 
@@ -72,32 +72,32 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     // format: OFF
     //scalastyle:off
-    val phase1PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double, Double, Double](
-      ("Scheme Name",                           "Test1 Fail", "Test1 Pass", "Test2 Fail", "Test2 Pass", "Test3 Fail", "Test3 Pass"),
-      (Commercial,                                20.0,         80.0,         30.0,         70.0,         20.0,         70.0),
-      (Digital,             20.001,       20.001,       20.01,        20.05,        19.0,         20.0),
-      (DiplomaticAndDevelopment,                  20.01,        20.02,        20.01,        20.02,        20.0,         80.0),
-      (DiplomaticAndDevelopmentEconomics,         30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
-      (Finance,                                   25.01,        25.02,        25.01,        25.02,        25.01,        25.02),
-      (GovernmentCommunicationService,            30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
-      (GovernmentEconomicsService,                30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
-      (GovernmentOperationalResearchService,      30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
-      (GovernmentPolicy,                          30.0,         70.0,         30.0,         70.0,         30.0,         70.0),
-      (GovernmentSocialResearchService,           30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
-      (GovernmentStatisticalService,              30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
-      (HousesOfParliament,                        30.0,         79.999,       30.0,         78.08,        20.0,         77.77),
-      (HumanResources,                            30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
-      (OperationalDelivery,                       30.0,         30.0,         30.0,         30.0,         30.0,         30.0),
-      (ProjectDelivery,                           30.0,         70.0,         30.0,         70.0,         20.0,         80.0),
-      (Property,                                  40.0,         70.0,         30.0,         70.0,         30.0,         70.0),
-      (ScienceAndEngineering,                     69.00,        69.00,        78.99,        78.99,        20.0,         80.0)
+    val phase1PassMarkSettingsTable = Table[SchemeId, Double, Double, Double, Double](
+      ("Scheme Name",                           "Test1 Fail", "Test1 Pass", "Test2 Fail", "Test2 Pass"),
+      (Commercial,                                20.0,         80.0,         30.0,         70.0),
+      (Digital,                                   20.001,       20.001,       20.01,        20.05),
+      (DiplomaticAndDevelopment,                  20.01,        20.02,        20.01,        20.02),
+      (DiplomaticAndDevelopmentEconomics,         30.0,         70.0,         30.0,         70.0),
+      (Finance,                                   25.01,        25.02,        25.01,        25.02),
+      (GovernmentCommunicationService,            30.0,         70.0,         30.0,         70.0),
+      (GovernmentEconomicsService,                30.0,         70.0,         30.0,         70.0),
+      (GovernmentOperationalResearchService,      30.0,         70.0,         30.0,         70.0),
+      (GovernmentPolicy,                          30.0,         70.0,         30.0,         70.0),
+      (GovernmentSocialResearchService,           30.0,         70.0,         30.0,         70.0),
+      (GovernmentStatisticalService,              30.0,         70.0,         30.0,         70.0),
+      (HousesOfParliament,                        30.0,         79.999,       30.0,         78.08),
+      (HumanResources,                            30.0,         70.0,         30.0,         70.0),
+      (OperationalDelivery,                       30.0,         30.0,         30.0,         30.0),
+      (ProjectDelivery,                           30.0,         70.0,         30.0,         70.0),
+      (Property,                                  40.0,         70.0,         30.0,         70.0),
+      (ScienceAndEngineering,                     69.00,        69.00,        78.99,        78.99)
     )
     //scalastyle:on
     // format: ON
 
     val phase1PassMarkSettingWithSdipTable =
       getPassMarkSettingWithNewSettings(
-        phase1PassMarkSettingsTable, (Finance, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00)
+        phase1PassMarkSettingsTable, (Finance, 90.00, 90.00, 90.00, 90.00)
       )
 
     var phase1PassMarkSettings: Phase1PassMarkSettingsPersistence = _
@@ -106,27 +106,27 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
 
     var passMarkEvaluation: PassmarkEvaluation = _
 
-    def gisApplicationEvaluation(applicationId:String, t1Score: Double, t3Score: Double, selectedSchemes: SchemeId*): TestFixture = {
+    def gisApplicationEvaluation(applicationId:String, t1Score: Double, t2Score: Double, selectedSchemes: SchemeId*): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(
-        applicationId, t1Score, None, t3Score, isGis = true)(selectedSchemes: _*)
+        applicationId, t1Score, Some(t2Score), isGis = true)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, phase1PassMarkSettings).futureValue
       this
     }
 
     def applicationEvaluationWithPassMarks(passmarks: Phase1PassMarkSettingsPersistence, applicationId:String,
                                            t1Score: Double, t2Score: Double,
-                                           t3Score: Double, selectedSchemes: SchemeId*)(
+                                           selectedSchemes: SchemeId*)(
                                             implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
       applicationReadyForEvaluation = insertApplicationWithPhase1TestResults(
-        applicationId, t1Score, Some(t2Score), t3Score, applicationRoute = applicationRoute)(selectedSchemes: _*)
+        applicationId, t1Score, Some(t2Score), applicationRoute = applicationRoute)(selectedSchemes: _*)
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, passmarks).futureValue
       this
     }
 
     def applicationEvaluation(applicationId: String, t1Score: Double, t2Score: Double,
-                              t3Score: Double, selectedSchemes: SchemeId*)
+                              selectedSchemes: SchemeId*)
                              (implicit applicationRoute: ApplicationRoute = ApplicationRoute.Faststream): TestFixture = {
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, applicationId, t1Score, t2Score, t3Score, selectedSchemes:_*)
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, applicationId, t1Score, t2Score, selectedSchemes:_*)
     }
 
     def mustResultIn(expApplicationStatus: ApplicationStatus, expProgressStatus: Option[ProgressStatus],
@@ -151,30 +151,28 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
     }
 
     def getPassMarkSettingWithNewSettings(
-                                           phase1PassMarkSettingsTable: TableFor7[SchemeId,
-                                             Double, Double, Double, Double, Double, Double],
-                                           newSchemeSettings: (SchemeId, Double, Double, Double, Double, Double, Double)*) = {
+                                           phase1PassMarkSettingsTable: TableFor5[SchemeId,
+                                             Double, Double, Double, Double],
+                                           newSchemeSettings: (SchemeId, Double, Double, Double, Double)*) = {
       phase1PassMarkSettingsTable.filter(schemeSetting =>
         !newSchemeSettings.map(_._1).contains(schemeSetting._1)) ++ newSchemeSettings
     }
 
-    def applicationReEvaluationWithOverridingPassmarks(newSchemeSettings: (SchemeId, Double, Double, Double, Double,
-      Double, Double)*): TestFixture = {
+    def applicationReEvaluationWithOverridingPassmarks(newSchemeSettings: (SchemeId, Double, Double, Double, Double)*): TestFixture = {
       val schemePassMarkSettings = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable, newSchemeSettings:_*)
       phase1PassMarkSettings = createPhase1PassMarkSettings(schemePassMarkSettings).futureValue
       phase1TestEvaluationService.evaluate(applicationReadyForEvaluation, phase1PassMarkSettings).futureValue
       this
     }
 
-    def createPhase1PassMarkSettings(phase1PassMarkSettingsTable: TableFor7[SchemeId, Double, Double, Double, Double,
-      Double, Double]): Future[Phase1PassMarkSettingsPersistence] = {
+    def createPhase1PassMarkSettings(phase1PassMarkSettingsTable: TableFor5[SchemeId, Double, Double, Double, Double]
+                                    ): Future[Phase1PassMarkSettingsPersistence] = {
       val schemeThresholds = phase1PassMarkSettingsTable.map {
-        case (schemeName, t1Fail, t1Pass, t2Fail, t2Pass, t3Fail, t3Pass) =>
+        case (schemeName, t1Fail, t1Pass, t2Fail, t2Pass) =>
           Phase1PassMark(schemeName,
             Phase1PassMarkThresholds(
               PassMarkThreshold(t1Fail, t1Pass),
-              PassMarkThreshold(t2Fail, t2Pass),
-              PassMarkThreshold(t3Fail, t3Pass)
+              PassMarkThreshold(t2Fail, t2Pass)
             ))
       }.toList
 

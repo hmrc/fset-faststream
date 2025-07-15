@@ -26,11 +26,11 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "give pass for SdipFaststream candidate when sdip scheme is green" in new TestFixture {
       val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable,
-        (Sdip, 30.00, 70.00, 30.00, 70.00, 30.00, 70.00)
+        (Sdip, 30.00, 70.00, 30.00, 70.00)
       )
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 80, 80, 80, Commercial,
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 80, 80, Commercial,
         Digital, Sdip)(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         Commercial -> Green, Digital -> Green, Sdip -> Green)
@@ -38,12 +38,12 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "give amber for SdipFaststream when sdip and faststream schemes are amber" in new TestFixture {
       val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable,
-        (Sdip, 30.00, 70.00, 30.00, 70.00, 30.00, 70.00),
-        (Digital, 30.00, 70.00, 30.00, 70.00, 30.00, 70.00)
+        (Sdip, 30.00, 70.00, 30.00, 70.00),
+        (Digital, 30.00, 70.00, 30.00, 70.00)
       )
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 40, 40, 40, Commercial,
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 40, 40, Commercial,
         Digital, Sdip)(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
         Commercial -> Amber, Digital -> Amber, Sdip -> Amber)
@@ -51,11 +51,11 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "give fail for SdipFaststream when sdip and faststream schemes are red" in new TestFixture {
       val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable,
-        (Sdip, 30.00, 70.00, 30.00, 70.00, 30.00, 70.00)
+        (Sdip, 30.00, 70.00, 30.00, 70.00)
       )
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 20, 20, 20, Commercial,
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 20, 20, Commercial,
         Digital, Sdip)(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_FAILED, Some(ProgressStatuses.PHASE1_TESTS_FAILED),
         Commercial -> Red, Digital -> Red, Sdip -> Red)
@@ -63,11 +63,11 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "not fail SdipFastStream with failed faststream when sdip scheme is green and faststream schemes are red" in new TestFixture {
       val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable,
-        (Sdip, 10.00, 10.00, 10.00, 10.00, 10.00, 10.00)
+        (Sdip, 10.00, 10.00, 10.00, 10.00)
       )
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 20, 20, 20, Commercial,
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 20, 20, Commercial,
         Digital, Sdip)(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN),
         Commercial -> Red, Digital -> Red, Sdip -> Green)
@@ -75,43 +75,43 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
 
     "give pass for SdipFaststream when sdip failed and faststream schemes passed" in new TestFixture {
       val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable,
-        (Commercial, 70.00, 70.00, 70.00, 70.00, 70.00, 70.00),
-        (Sdip, 80.00, 80.00, 80.00, 80.00, 80.00, 80.00))
+        (Commercial, 70.00, 70.00, 70.00, 70.00),
+        (Sdip, 80.00, 80.00, 80.00, 80.00))
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 70, 70, 70, Commercial,
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 70, 70, Commercial,
         Digital, Sdip)(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         Commercial -> Green, Digital -> Green, Sdip -> Red)
     }
 
     "re-evaluate sdip scheme to Red for SdipFaststream candidate after changing passmarks" in new TestFixture {
-      applicationEvaluation("application-1", 80, 80, 80, Commercial, Digital, Sdip)
+      applicationEvaluation("application-1", 80, 80, Commercial, Digital, Sdip)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         Commercial -> Green, Digital -> Green)
 
       applicationReEvaluationWithOverridingPassmarks(
-        (Sdip, 90.00, 90.00, 90.00, 90.00, 90.00, 90.00)
+        (Sdip, 90.00, 90.00, 90.00, 90.00)
       ) mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         Commercial -> Green, Digital -> Green, Sdip -> Red)
     }
 
     "re-evaluate sdip scheme to Green for SdipFaststream candidate after changing passmarks" in new TestFixture {
-      applicationEvaluation("application-1", 80, 80, 80, Commercial, Digital, Sdip)
+      applicationEvaluation("application-1", 80, 80, Commercial, Digital, Sdip)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         Commercial -> Green, Digital -> Green)
 
-      applicationReEvaluationWithOverridingPassmarks( (Sdip, 80.00, 80.00, 80.00, 80.00, 80.00, 80.00) )
+      applicationReEvaluationWithOverridingPassmarks( (Sdip, 80.00, 80.00, 80.00, 80.00) )
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         Commercial -> Green, Digital -> Green, Sdip -> Green)
     }
 
     "do not evaluate sdip scheme for SdipFaststream candidate until there are sdip passmarks" in new TestFixture {
-      applicationEvaluation("application-1", 80, 80, 80, Commercial, Digital, Sdip)
+      applicationEvaluation("application-1", 80, 80, Commercial, Digital, Sdip)
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         Commercial -> Green, Digital -> Green)
 
-      applicationReEvaluationWithOverridingPassmarks( (Sdip, 40.00, 40.00, 40.00, 40.00, 40.00, 40.00) )
+      applicationReEvaluationWithOverridingPassmarks( (Sdip, 40.00, 40.00, 40.00, 40.00) )
       mustResultIn (PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
         Commercial -> Green, Digital -> Green, Sdip -> Green)
     }
@@ -119,12 +119,12 @@ class SdipFaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
     "progress candidate to PHASE1_TESTS_FAILED_SDIP_GREEN with faststream schemes in RED and sdip in GREEN " +
       "when candidate is in sdipFaststream route and only sdip scheme score is passing the passmarks" in new TestFixture {
       val passmarksTable = getPassMarkSettingWithNewSettings(phase1PassMarkSettingsTable,
-        (Sdip, 30.00, 50.00, 30.00, 50.00, 30.00, 50.00),
-        (Commercial, 75.00, 75.00, 75.00, 75.00, 75.00, 75.00),
-        (Digital, 75.00, 75.00, 75.00, 75.00, 75.00, 75.00))
+        (Sdip, 30.00, 50.00, 30.00, 50.00),
+        (Commercial, 75.00, 75.00, 75.00, 75.00),
+        (Digital, 75.00, 75.00, 75.00, 75.00))
       phase1PassMarkSettings = createPhase1PassMarkSettings(passmarksTable).futureValue
 
-      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 60, 60, 60,
+      applicationEvaluationWithPassMarks(phase1PassMarkSettings, "application-1", 60, 60,
         Commercial, Digital, Sdip)(ApplicationRoute.SdipFaststream)
       mustResultIn (PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_FAILED_SDIP_GREEN),
         Commercial -> Red, Digital -> Red, Sdip -> Green)
