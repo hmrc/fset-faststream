@@ -120,6 +120,7 @@ trait GeneralApplicationRepository {
   // Implemented in ReactiveRepositoryHelpers
   def countLong(implicit ec: scala.concurrent.ExecutionContext) : Future[Long]
   def updateCurrentSchemeStatus(applicationId: String, results: Seq[SchemeEvaluationResult]): Future[Unit]
+  def saveSocioEconomicScore(applicationId: String, score: String): Future[Unit]
   def removeCurrentSchemeStatus(applicationId: String): Future[Unit]
   def removeWithdrawReason(applicationId: String): Future[Unit]
   def findEligibleForJobOfferCandidatesWithFsbStatus: Future[Seq[String]]
@@ -444,7 +445,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     val updateBSON = Document("$set" -> applicationStatusBSON(SUBMITTED))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "submitting",
-      new IllegalStateException(s"Already submitted $applicationId"))
+      new IllegalStateException(s"Candidate is already submitted - $applicationId"))
 
     collection.updateOne(query, updateBSON).toFuture() map validator
   }
@@ -1232,6 +1233,14 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     val updateBSON = Document("$set" -> currentSchemeStatusBSON(results))
 
     val validator = singleUpdateValidator(applicationId, actionDesc = s"Saving currentSchemeStatus for $applicationId")
+    collection.updateOne(query, updateBSON).toFuture() map validator
+  }
+
+  override def saveSocioEconomicScore(applicationId: String, score: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val updateBSON = Document("$set" -> Document("socioEconomicScore" -> score))
+
+    val validator = singleUpdateValidator(applicationId, actionDesc = s"Saving socio economic score for $applicationId")
     collection.updateOne(query, updateBSON).toFuture() map validator
   }
 

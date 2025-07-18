@@ -35,7 +35,26 @@ case class QuestionnaireReportItem(
                                     postgradUniversity: Option[String],
                                     postgradCategoryOfDegree: Option[String],
                                     postgradDegreeType: Option[String]
-                                  )
+                                  ) {
+  override def toString =
+    "(" +
+      s"gender=$gender," +
+      s"sexualOrientation=$sexualOrientation," +
+      s"ethnicity=$ethnicity," +
+      s"isEnglishYourFirstLanguage=$isEnglishYourFirstLanguage," +
+      s"parentEmploymentStatus=$parentEmploymentStatus," +
+      s"parentOccupation=$parentOccupation," +
+      s"parentEmployedOrSelf=$parentEmployedOrSelf," +
+      s"parentCompanySize=$parentCompanySize," +
+      s"lowerSocioEconomicBackground=$lowerSocioEconomicBackground," +
+      s"socioEconomicScore=$socioEconomicScore," +
+      s"university=$university," +
+      s"categoryOfDegree=$categoryOfDegree," +
+      s"postgradUniversity=$postgradUniversity," +
+      s"postgradCategoryOfDegree=$postgradCategoryOfDegree," +
+      s"postgradDegreeType=$postgradDegreeType" +
+      s")"
+}
 
 object QuestionnaireReportItem {
   implicit val questionnaireReportItemFormat: OFormat[QuestionnaireReportItem] = Json.format[QuestionnaireReportItem]

@@ -41,6 +41,7 @@ trait QuestionnaireRepository extends DiversityQuestionsText {
   def findAllForDiversityReport: Future[Map[String, QuestionnaireReportItem]]
   def findQuestionsByIds(applicationIds: Seq[String]): Future[Map[String, QuestionnaireReportItem]]
   def removeQuestions(applicationId: String): Future[Unit]
+  def calculateSocioEconomicScore(applicationId: String): Future[String]
 
   val GenderQuestionText = genderIdentity
   val SexualOrientationQuestionText = sexualOrientation
@@ -129,6 +130,44 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     collection.deleteOne(query).toFuture().map(_ => ())
   }
 
+  override def calculateSocioEconomicScore(applicationId: String): Future[String] = {
+    val query = Document("applicationId" -> applicationId)
+    collection.find[BsonDocument](query).headOption().map {
+      _.map ( doc => calculate(doc) ).getOrElse("")
+    }
+  }
+
+  private def calculate(document: Document): String = {
+    implicit val questionsDocOpt: Option[BsonDocument] = document.get("questions").map(_.asDocument())
+    val qAndA = getAllQuestionsAndAnswers(questionsDocOpt)
+
+    val employmentStatus = getAnswer(EmploymentStatusQuestionText)
+    val socioEconomicScore = employmentStatus.map(_ => socioEconomicCalculator.calculate(qAndA)).getOrElse("")
+    socioEconomicScore
+  }
+
+  private def getAnswer(question: String)(implicit questionsDocOpt: Option[BsonDocument]): Option[String] = {
+    val questionDocOpt = Try(questionsDocOpt.map(_.get(question).asDocument())).toOption.flatten
+    Try(questionDocOpt.map(_.get("answer").asString().getValue)).toOption.flatten
+      .orElse {
+        Try(questionDocOpt.map(_.get("unknown").asBoolean().getValue)).toOption.flatten
+          .map(unknown => if (unknown) {
+            DontKnowAnswerText
+          } else {
+            ""
+          })
+      }
+  }
+
+  private def getAllQuestionsAndAnswers(implicit questionsDocOpt: Option[BsonDocument]) = {
+    import scala.jdk.CollectionConverters.*
+    val qAndA = questionsDocOpt.map( _.keySet().asScala.toList).map{ _.map { question =>
+      val answer = getAnswer(question).getOrElse(UnknownAnswerText)
+      question -> answer
+    }.toMap}.getOrElse(Map.empty[String, String])
+    qAndA
+  }
+
   private[repositories] def find(applicationId: String): Future[List[QuestionnaireQuestion]] = {
     val query = Document("applicationId" -> applicationId)
     val projection = Projections.include("questions")
@@ -149,19 +188,9 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     }
   }
 
-  //scalastyle:off method.length
   private def docToReport(document: Document): (String, QuestionnaireReportItem) = {
 
-    val questionsDocOpt = document.get("questions").map(_.asDocument())
-
-    def getAnswer(question: String): Option[String] = {
-      val questionDocOpt = Try(questionsDocOpt.map(_.get(question).asDocument())).toOption.flatten
-      Try(questionDocOpt.map(_.get("answer").asString().getValue)).toOption.flatten
-      .orElse {
-        Try(questionDocOpt.map(_.get("unknown").asBoolean().getValue)).toOption.flatten
-          .map(unknown => if (unknown) { DontKnowAnswerText } else { "" })
-      }
-    }
+    implicit val questionsDocOpt: Option[BsonDocument] = document.get("questions").map(_.asDocument())
 
     val applicationId = document.get("applicationId").get.asString().getValue
     val gender = getAnswer(GenderQuestionText)
@@ -188,11 +217,7 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     val parentEmployedOrSelf = getAnswer(ParentEmployedOrSelfEmployedQuestionText)
     val parentCompanySize = getAnswer(ParentCompanySizeQuestionText)
 
-    import scala.jdk.CollectionConverters.*
-    val qAndA = questionsDocOpt.map( _.keySet().asScala.toList).map{ _.map { question =>
-      val answer = getAnswer(question).getOrElse(UnknownAnswerText)
-      question -> answer
-    }.toMap}.getOrElse(Map.empty[String, String])
+    val qAndA = getAllQuestionsAndAnswers(questionsDocOpt)
 
     val socioEconomicScore = employmentStatus.map(_ => socioEconomicCalculator.calculate(qAndA)).getOrElse("")
 

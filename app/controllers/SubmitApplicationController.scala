@@ -22,9 +22,9 @@ import model.persisted.SchemeEvaluationResult
 import javax.inject.{Inject, Singleton}
 import model.{ApplicationValidator, SelectedSchemes}
 import model.stc.{AuditEvents, DataStoreEvents, EmailEvents}
-import play.api.mvc.{Action, ControllerComponents, RequestHeader}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, RequestHeader}
 import repositories.FrameworkRepository.CandidateHighestQualification
-import repositories._
+import repositories.*
 import repositories.application.GeneralApplicationRepository
 import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -45,12 +45,13 @@ class SubmitApplicationController @Inject() (cc: ControllerComponents,
                                              frameworkPrefRepository: FrameworkPreferenceRepository,
                                              frameworkRegionsRepository: FrameworkRepository,
                                              appRepository: GeneralApplicationRepository,
+                                             qRepository: QuestionnaireRepository,
                                              override val eventService: StcEventService
                                             ) extends BackendController(cc) with EventSink {
 
   implicit val ec: ExecutionContext = cc.executionContext
 
-  def submitApplication(userId: String, applicationId: String) = Action.async { implicit request =>
+  def submitApplication(userId: String, applicationId: String): Action[AnyContent] = Action.async { implicit request =>
     val personalDetailsFuture = pdRepository.find(applicationId)
     val assistanceDetailsFuture = adRepository.find(applicationId)
     val contactDetailsFuture = cdRepository.find(userId)
@@ -66,8 +67,11 @@ class SubmitApplicationController @Inject() (cc: ControllerComponents,
       availableRegions <- frameworkRegionsRepository.getFrameworksByRegionFilteredByQualification(CandidateHighestQualification.from(pd))
     } yield {
       if (ApplicationValidator(pd, ad, sl, availableRegions).validate) {
-        submit(applicationId, cd.email, pd.preferredName).flatMap(_ =>
-          createCurrentSchemeStatus(applicationId, sp).map(_ => Ok))
+        for {
+          _ <- submit(applicationId, cd.email, pd.preferredName)
+          _ <- createCurrentSchemeStatus(applicationId, sp)
+          _ <- saveSocioEconomicScore(applicationId)
+        } yield Ok
       } else {
         Future.successful(BadRequest)
       }
@@ -95,4 +99,11 @@ class SubmitApplicationController @Inject() (cc: ControllerComponents,
         selectedSchemes.schemes.map(scheme => SchemeEvaluationResult(scheme.schemeId, Green.toString))
       )
     } yield ()
+
+  private def saveSocioEconomicScore(applicationId: String) = {
+    for {
+      score <- qRepository.calculateSocioEconomicScore(applicationId)
+      _ <- appRepository.saveSocioEconomicScore(applicationId, score)
+    } yield ()
+  }
 }
