@@ -27,7 +27,7 @@ object ApplicationStatus extends Enumeration with ApplicationStatusOnlyForTest {
   type ApplicationStatus = Value
   // Please note the enum order is important and must reflect the actual application flow.
   // OnlineTestEvaluationRepository.validEvaluationPhaseStatuses depends on this
-  val WITHDRAWN, CREATED, IN_PROGRESS, SUBMITTED = Value
+  val WITHDRAWN, CREATED, IN_PROGRESS, SUBMITTED, SUBMITTED_CHECK_PASSED, SUBMITTED_CHECK_FAILED = Value
   val PHASE1_TESTS, PHASE1_TESTS_PASSED, PHASE1_TESTS_FAILED = Value
   val PHASE2_TESTS, PHASE2_TESTS_PASSED, PHASE2_TESTS_FAILED = Value
   val PHASE3_TESTS, PHASE3_TESTS_PASSED_WITH_AMBER, PHASE3_TESTS_PASSED, PHASE3_TESTS_FAILED = Value

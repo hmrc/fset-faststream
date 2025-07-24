@@ -27,7 +27,12 @@ sealed trait EmailEvent extends StcEventType {
 }
 
 object EmailEvents {
+  // Used for Faststream candidates when they submit the application
   case class ApplicationSubmitted(to: String, name: String) extends EmailEvent
+  // Used for Sdip candidates when they submit the application and fail the seb (socio-economic behaviour) score check
+  case class ApplicationPostSubmittedCheckFailed(to: String, name: String) extends EmailEvent
+  // Used for Sdip candidates when they submit the application and pass the seb (socio-economic behaviour) score check
+  case class ApplicationPostSubmittedCheckPassed(to: String, name: String) extends EmailEvent
   case class ApplicationWithdrawn(to: String, name: String) extends EmailEvent
   case class AdjustmentsConfirmed(to: String, name: String, etrayAdjustments: String, videoAdjustments: String) extends EmailEvent
   case class AdjustmentsChanged(to: String, name: String, etrayAdjustments: String, videoAdjustments: String) extends EmailEvent

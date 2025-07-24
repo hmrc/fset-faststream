@@ -37,11 +37,14 @@ class EmailEventHandlerImpl @Inject() (@Named("CSREmailClient") val emailClient:
 trait EmailEventHandler extends StcEventHandler[EmailEvent] with Logging {
   val emailClient: EmailClient
 
+  //scalastyle:off cyclomatic.complexity
   def handle(event: EmailEvent)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     logger.info(s"Email event ${event.name}")
     event match {
       case _: EmailEvents.ApplicationWithdrawn => emailClient.sendWithdrawnConfirmation(event.to, event.name)
       case _: EmailEvents.ApplicationSubmitted => emailClient.sendApplicationSubmittedConfirmation(event.to, event.name)
+      case _: EmailEvents.ApplicationPostSubmittedCheckFailed => emailClient.sendApplicationPostSubmittedCheckFailed(event.to, event.name)
+      case _: EmailEvents.ApplicationPostSubmittedCheckPassed => emailClient.sendApplicationPostSubmittedCheckPassed(event.to, event.name)
       case adjEvent: EmailEvents.AdjustmentsConfirmed =>
         emailClient.sendAdjustmentsConfirmation(adjEvent.to, adjEvent.name, adjEvent.etrayAdjustments, adjEvent.videoAdjustments)
       case adjEvent: EmailEvents.AdjustmentsChanged =>
@@ -54,5 +57,5 @@ trait EmailEventHandler extends StcEventHandler[EmailEvent] with Logging {
       case e: EmailEvents.CandidateAllocationConfirmationRequest => emailClient.sendCandidateConfirmationRequestToEvent(e)
       case e: EmailEvents.CandidateAllocationConfirmationReminder => emailClient.sendCandidateConfirmationRequestReminderToEvent(e)
     }
-  }
+  } //scalastyle:on
 }
