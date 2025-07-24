@@ -29,7 +29,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class FastPassAcceptedStatusGenerator @Inject() (val previousStatusGenerator: SubmittedStatusGenerator,
+class FastPassAcceptedStatusGenerator @Inject() (val previousStatusGenerator: SubmittedCheckPassedStatusGenerator,
                                                  appRepository: GeneralApplicationRepository,
                                                  fastPassService: FastPassService,
                                                  schemePreferencesService: SchemePreferencesService,
