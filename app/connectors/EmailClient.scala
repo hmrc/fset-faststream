@@ -210,6 +210,12 @@ trait EmailClient extends Logging {
   def sendApplicationSubmittedConfirmation(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(to, "fset_faststream_app_submit_confirmation", Map("name" -> name))
 
+  def sendApplicationPostSubmittedCheckFailed(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
+    sendEmail(to, "fset_faststream_app_submit_check_failed", Map("name" -> name))
+
+  def sendApplicationPostSubmittedCheckPassed(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
+    sendEmail(to, "fset_faststream_app_submit_check_passed", Map("name" -> name))
+
   def sendWithdrawnConfirmation(to: String, name: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Unit] =
     sendEmail(to, "fset_faststream_app_withdrawn", Map("name" -> name))
 

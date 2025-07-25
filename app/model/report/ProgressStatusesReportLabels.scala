@@ -35,8 +35,11 @@ trait ProgressStatusesReportLabels {
     (progress.questionnaire.contains("education_questionnaire"), 60, EducationQuestionsCompletedProgress),
     (progress.questionnaire.contains("occupation_questionnaire"), 70, OccupationQuestionsCompletedProgress),
     (progress.preview, 80, PreviewCompletedProgress),
-    (progress.submitted, 90, SubmittedProgress),
-    (progress.fastPassAccepted, 91, FastPassAccepted),
+    (progress.submitted, 90, Submitted),
+    (progress.submittedCheckPassed, 91, SubmittedCheckPassed),
+    (progress.submittedCheckFailed, 92, SubmittedCheckFailed),
+    (progress.submittedCheckFailedNotified, 93, SubmittedCheckFailedNotified),
+    (progress.fastPassAccepted, 99, FastPassAccepted),
     (progress.phase1ProgressResponse.phase1TestsInvited, 100, Phase1TestsInvited),
     (progress.phase1ProgressResponse.phase1TestsFirstReminder, 110, Phase1TestsFirstReminder),
     (progress.phase1ProgressResponse.phase1TestsSecondReminder, 120, Phase1TestsSecondReminder),
@@ -169,7 +172,10 @@ object ProgressStatusesReportLabels extends ProgressStatusesReportLabels {
   val DiversityQuestionsCompletedProgress = "diversity_questions_completed"
   val EducationQuestionsCompletedProgress = "education_questions_completed"
   val OccupationQuestionsCompletedProgress = "occupation_questions_completed"
-  val SubmittedProgress = "submitted"
+  val Submitted = "submitted"
+  val SubmittedCheckPassed = "submitted_check_passed"
+  val SubmittedCheckFailed = "submitted_check_failed"
+  val SubmittedCheckFailedNotified = "submitted_check_failed_notified"
   val WithdrawnProgress = "withdrawn"
 
   val SdipFaststreamPassed = "phase1_tests_sdip_faststream_passed"

@@ -106,7 +106,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return no application if there is one fast pass rejected candidate" in {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "SUBMITTED",
+      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.SUBMITTED_CHECK_PASSED.toString,
         fastPassApplicable = true, fastPassReceived = true, fastPassAccepted = Some(false)
       ).futureValue
 
@@ -118,7 +118,9 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "return one application if there is only one and it is not a fast pass candidate" in {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "SUBMITTED").futureValue
+      createApplicationWithAllFields(
+        "userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.SUBMITTED_CHECK_PASSED.toString
+      ).futureValue
 
       val results = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
@@ -191,7 +193,9 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "The OnlineTestApplication case model" should {
     "be correctly read from mongo" in {
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "SUBMITTED", isGis = true).futureValue
+      createApplicationWithAllFields(
+        "userId", "appId", "testAccountId", "frameworkId", ApplicationStatus.SUBMITTED_CHECK_PASSED.toString, isGis = true
+      ).futureValue
 
       val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue
 
@@ -202,7 +206,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       videoInterviewAdjustments) =>
 
         applicationId mustBe "appId"
-        applicationStatus mustBe ApplicationStatus.SUBMITTED.toString
+        applicationStatus mustBe ApplicationStatus.SUBMITTED_CHECK_PASSED.toString
         userId mustBe "userId"
         testAccountId mustBe "testAccountId"
         guaranteedInterview mustBe true
@@ -214,7 +218,8 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       }
     }
 
-    "be correctly read from mongo with lower case submitted status" in {
+    // The service is now dependent on SUBMITTED_CHECK_PASSED instead of SUBMITTED 2025/26 campaign
+    "be correctly read from mongo with lower case submitted status" ignore {
       createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "submitted", isGis = true).futureValue
 
       val onlineTestApplications = phase1TestRepo.nextApplicationsReadyForOnlineTesting(1).futureValue

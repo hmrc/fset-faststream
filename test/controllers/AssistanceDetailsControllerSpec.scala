@@ -26,6 +26,7 @@ import play.api.mvc._
 import play.api.test.Helpers._
 import services.assistancedetails.AssistanceDetailsService
 import testkit.UnitWithAppSpec
+import testkit.MockitoImplicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -36,7 +37,7 @@ class AssistanceDetailsControllerSpec extends UnitWithAppSpec {
     "return CREATED and update the details and audit AssistanceDetailsSaved event" in new TestFixture {
       val Request = fakeRequest(AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments)
       when(mockAssistanceDetailsService.update(AppId, UserId, AssistanceDetailsExchangeExamples.DisabilityGisAndAdjustments)
-      ).thenReturn(Future.successful(()))
+      ).thenReturnAsync()
       val result = controller.update(UserId, AppId)(Request)
       status(result) mustBe CREATED
       verify(mockAuditService).logEvent(eqTo("AssistanceDetailsSaved"))(any[HeaderCarrier], any[RequestHeader], any[ExecutionContext])
