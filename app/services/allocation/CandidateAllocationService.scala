@@ -336,12 +336,21 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
     candidateAllocationRepo.findAllAllocations(appIds).flatMap { allocs =>
       Future.sequence(allocs.map { ca =>
         eventsService.getEvent(ca.eventId).map { event =>
+
+          val schemeIdOpt = if (event.eventType == EventType.FSB) {
+            Some(schemeRepository.getSchemeForFsb(event.description).id)
+          } else {
+            None
+          }
+
           CandidateAllocationSummary(
             event.eventType,
+            event.description,
             event.date,
             event.sessions.find(_.id == ca.sessionId).map(_.description).getOrElse(""),
             ca.status,
-            CandidateRemoveReason.find(ca.removeReason.getOrElse(""))
+            CandidateRemoveReason.find(ca.removeReason.getOrElse("")),
+            schemeIdOpt
           )
         }
       })

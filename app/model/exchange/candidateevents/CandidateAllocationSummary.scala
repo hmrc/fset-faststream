@@ -16,7 +16,7 @@
 
 package model.exchange.candidateevents
 
-import model.AllocationStatuses
+import model.{AllocationStatuses, SchemeId}
 import model.persisted.eventschedules.EventType.EventType
 import play.api.libs.json.{Json, OFormat}
 
@@ -24,10 +24,14 @@ import java.time.LocalDate
 
 case class CandidateAllocationSummary(
   eventType: EventType,
+  eventDescription: String,
   eventDate: LocalDate,
   sessionDescription: String,
   allocationStatus: AllocationStatuses.AllocationStatus,
-  removeReason: Option[CandidateRemoveReason])
+  removeReason: Option[CandidateRemoveReason],
+  // Only FSB events will have an associated scheme
+  eventScheme: Option[SchemeId]
+)
 
 object CandidateAllocationSummary {
   implicit val allocationEventSummaryFormat: OFormat[CandidateAllocationSummary] = Json.format[CandidateAllocationSummary]
