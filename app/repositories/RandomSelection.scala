@@ -18,7 +18,7 @@ package repositories
 
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Aggregates.{`match`, sample}
-import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
+import org.mongodb.scala.{MongoCollection, ObservableFuture}
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -43,7 +43,8 @@ trait RandomSelection {
   // Use this selectRandom when you are using a MongoCollection[T] and the codec that is automatically registered to read data back from Mongo.
   // This can either be the default one that is created when you set up your MongoRepository or alternate one setup to work with a specific
   // domain format
-  protected def selectRandom[T: ClassTag](collection: MongoCollection[T], query: Document, batchSize: Int): Future[Seq[T]] = {
+  protected def selectRandom[T: ClassTag](collection: MongoCollection[T], query: Document, batchSize: Int)(
+    implicit ec: ExecutionContext): Future[Seq[T]] = {
     collection.aggregate(Seq(
       `match`(query),
       sample(batchSize) // This is the number of random documents returned
