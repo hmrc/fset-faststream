@@ -125,6 +125,6 @@ class AssessorAllocationMongoRepository @Inject() (mongoComponent: MongoComponen
     val update = Document("$set" -> Document("status" -> newStatus.toBson))
     val validator = singleUpdateValidator(id, s"updating allocation status to $newStatus")
 
-    collection.updateOne(query, update).toFuture map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 }
