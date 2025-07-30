@@ -19,28 +19,26 @@ package services.testdata.candidate
 import model.EvaluationResults.Green
 import model.ProgressStatuses
 import model.persisted.SchemeEvaluationResult
-
-import javax.inject.{Inject, Singleton}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class SubmittedStatusGenerator @Inject() (val previousStatusGenerator: InProgressPreviewStatusGenerator,
-                                          appRepository: GeneralApplicationRepository
+class SubmittedCheckPassedStatusGenerator @Inject()(val previousStatusGenerator: SubmittedStatusGenerator,
+                                                    appRepository: GeneralApplicationRepository
                                          )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
-      _ <- appRepository.submit(candidateInPreviousStatus.applicationId.get)
-      _ = candidateInPreviousStatus.schemePreferences.map { selectedSchemes =>
-        val css = selectedSchemes.schemes.map (scheme => SchemeEvaluationResult(scheme.schemeId, Green.toString))
-        appRepository.updateCurrentSchemeStatus(candidateInPreviousStatus.applicationId.get, css)
-      }
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(
+        candidateInPreviousStatus.applicationId.get, ProgressStatuses.SUBMITTED_CHECK_PASSED
+      )
+      _ <- appRepository.saveSocioEconomicScore(candidateInPreviousStatus.applicationId.get, "SE-5")
     } yield {
       candidateInPreviousStatus
     }

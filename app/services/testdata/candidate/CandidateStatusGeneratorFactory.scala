@@ -56,6 +56,7 @@ class CandidateStatusGeneratorFactory @Inject() (registeredStatusGenerator: Regi
                                                  inProgressQuestionnaireStatusGenerator: InProgressQuestionnaireStatusGenerator,
                                                  inProgressPreviewStatusGenerator: InProgressPreviewStatusGenerator,
                                                  submittedStatusGenerator: SubmittedStatusGenerator,
+                                                 submittedCheckPassedStatusGenerator: SubmittedCheckPassedStatusGenerator,
                                                  withdrawnStatusGenerator: WithdrawnStatusGenerator,
                                                  fastPassAcceptedStatusGenerator: FastPassAcceptedStatusGenerator,
                                                  // Phase 1
@@ -130,8 +131,8 @@ class CandidateStatusGeneratorFactory @Inject() (registeredStatusGenerator: Regi
         // IN_PROGRESS_PREVIEW should be deprecated, look below
         case IN_PROGRESS_PREVIEW => inProgressPreviewStatusGenerator
         case SUBMITTED => submittedStatusGenerator
-        case WITHDRAWN =>
-          withdrawnStatusGenerator
+        case SUBMITTED_CHECK_PASSED => submittedCheckPassedStatusGenerator
+        case WITHDRAWN => withdrawnStatusGenerator
         case FAST_PASS_ACCEPTED => fastPassAcceptedStatusGenerator
         case PHASE1_TESTS_PASSED => phase1TestsPassedStatusGenerator
         case PHASE1_TESTS_FAILED => phase1TestsFailedStatusGenerator

@@ -22,7 +22,7 @@ import model.persisted.{Phase1TestProfile, PsiTest}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.onlinetesting.Phase1TestRepository
-import services.testdata.candidate.{ConstructiveGenerator, SubmittedStatusGenerator}
+import services.testdata.candidate.{ConstructiveGenerator, SubmittedCheckPassedStatusGenerator}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.OffsetDateTime
@@ -30,7 +30,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class Phase1TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: SubmittedStatusGenerator,
+class Phase1TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: SubmittedCheckPassedStatusGenerator,
                                                    otRepository: Phase1TestRepository,
                                                    appConfig: MicroserviceAppConfig
                                                   )(implicit ec: ExecutionContext) extends ConstructiveGenerator {

@@ -128,6 +128,7 @@ trait GeneralApplicationRepository {
   def removeCollection(name: String): Future[Either[Exception, Unit]]
   def removeCandidate(applicationId: String): Future[Unit]
   def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]]
+  def findPostSubmissionCheckData(applicationId: String): Future[PostSubmissionCheckData]
 }
 
 // scalastyle:off number.of.methods
@@ -176,6 +177,25 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
           applicationId -> applicationStatus
         }
       }
+  }
+
+  override def findPostSubmissionCheckData(applicationId: String): Future[PostSubmissionCheckData] = {
+    val query = Document(
+      "applicationId" -> applicationId,
+      "applicationStatus" -> ApplicationStatus.SUBMITTED.toBson
+    )
+    val projection = Projections.include(
+      "applicationRoute",
+      "socioEconomicScore"
+    )
+
+    collection.find[Document](query).projection(projection).headOption() map {
+      case Some(doc) =>
+        val applicationRoute = Codecs.fromBson[ApplicationRoute](doc.get("applicationRoute").get)
+        val score = doc.get("socioEconomicScore").get.asString().getValue
+        PostSubmissionCheckData(applicationRoute, score)
+      case None => throw ApplicationNotFound(s"No application found for $applicationId")
+    }
   }
 
   override def create(userId: String, frameworkId: String, route: ApplicationRoute): Future[ApplicationResponse] = {

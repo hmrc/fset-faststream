@@ -59,6 +59,11 @@ object ProgressStatuses {
     override def key = "preview"}
 
   case object SUBMITTED extends ProgressStatus(ApplicationStatus.SUBMITTED)
+  case object SUBMITTED_CHECK_PASSED extends ProgressStatus(ApplicationStatus.SUBMITTED_CHECK_PASSED)
+  // All faststream candidates or Sdip candidates who are lower seb (SE-4 or SE-5)
+  case object SUBMITTED_CHECK_FAILED extends ProgressStatus(ApplicationStatus.SUBMITTED_CHECK_FAILED)
+  // Only affects Sdip candidates whose socio economic score is not lower seb (SE-1, SE-2, SE-3 or not calculated)
+  case object SUBMITTED_CHECK_FAILED_NOTIFIED extends ProgressStatus(ApplicationStatus.SUBMITTED_CHECK_FAILED)
 
   case object WITHDRAWN extends ProgressStatus(ApplicationStatus.WITHDRAWN)
 
@@ -136,7 +141,7 @@ object ProgressStatuses {
     val relativeOrder = List(
       CREATED,
       PERSONAL_DETAILS, SCHEME_PREFERENCES, ASSISTANCE_DETAILS, QUESTIONNAIRE_OCCUPATION, PREVIEW,
-      SUBMITTED, FAST_PASS_ACCEPTED,
+      SUBMITTED, SUBMITTED_CHECK_PASSED, SUBMITTED_CHECK_FAILED, SUBMITTED_CHECK_FAILED_NOTIFIED, FAST_PASS_ACCEPTED,
 
       PHASE1_TESTS_INVITED, PHASE1_TESTS_EXPIRED,
       PHASE1_TESTS_STARTED, PHASE1_TESTS_EXPIRED,
@@ -290,6 +295,9 @@ object ProgressStatuses {
       ProgressStatuses.QUESTIONNAIRE_OCCUPATION,
       ProgressStatuses.PREVIEW,
       ProgressStatuses.SUBMITTED,
+      ProgressStatuses.SUBMITTED_CHECK_PASSED,
+      ProgressStatuses.SUBMITTED_CHECK_FAILED,
+      ProgressStatuses.SUBMITTED_CHECK_FAILED_NOTIFIED,
       ProgressStatuses.WITHDRAWN,
 
       ProgressStatuses.PHASE1_TESTS_INVITED,

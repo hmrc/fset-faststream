@@ -80,10 +80,9 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
   // Needed to satisfy OnlineTestRepository trait
   override def nextApplicationsReadyForOnlineTesting(batchSize: Int): Future[Seq[OnlineTestApplication]] = {
     logger.warn(s"Looking for candidates to invite to $phaseName with a batch size of $batchSize...")
-    val submittedStatuses = List[String](ApplicationStatus.SUBMITTED, ApplicationStatus.SUBMITTED.toLowerCase)
 
     val query = Document("$and" -> BsonArray(
-      Document("applicationStatus" -> Document("$in" -> submittedStatuses)),
+      Document("applicationStatus" -> ApplicationStatus.SUBMITTED_CHECK_PASSED.toBson),
       Document("$or" -> BsonArray(
         Document("civil-service-experience-details.fastPassReceived" -> Document("$ne" -> true)),
         Document("civil-service-experience-details.fastPassAccepted" -> false)
