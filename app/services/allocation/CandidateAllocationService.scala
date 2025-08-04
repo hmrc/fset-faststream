@@ -333,10 +333,12 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
   }
 
   def getCandidateAllocationsSummary(appIds: Seq[String]): Future[Seq[CandidateAllocationSummary]] = {
-    candidateAllocationRepo.findAllAllocations(appIds).flatMap { allocs =>
-      Future.sequence(allocs.map { ca =>
-        eventsService.getEvent(ca.eventId).map { event =>
-
+    for {
+      allocs <- candidateAllocationRepo.findAllAllocations(appIds)
+      allocationSummaryList <- Future.sequence(allocs.map { ca =>
+        for {
+          event <- eventsService.getEvent(ca.eventId)
+        } yield {
           val schemeIdOpt = if (event.eventType == EventType.FSB) {
             Some(schemeRepository.getSchemeForFsb(event.description).id)
           } else {
@@ -354,7 +356,7 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
           )
         }
       })
-    }
+    } yield allocationSummaryList.sortBy(_.eventDate)
   }
 
   def getCandidateAllocation(appId: String, schemeId: SchemeId): Future[Option[persisted.CandidateAllocation]] = {

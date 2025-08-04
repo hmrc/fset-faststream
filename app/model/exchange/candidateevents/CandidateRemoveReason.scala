@@ -33,5 +33,20 @@ object CandidateRemoveReason {
     CandidateRemoveReason("Other", "Other", failApp = false)
   )
 
-  def find(key: String): Option[CandidateRemoveReason] = Values.find(_.key == key)
+  def find(key: String): Option[CandidateRemoveReason] = {
+    val resultFromStandardRemoveReasonsOpt = Values.find(_.key == key)
+
+    resultFromStandardRemoveReasonsOpt match {
+      case Some(_) => resultFromStandardRemoveReasonsOpt
+      case None =>
+        if (key != "") {
+          // This handles the removeReason in the CandidateAllocation containing a system generated
+          // remove reason such as "Candidate withdrew scheme (Commercial)".
+          // By handling it like this, we can display it on the candidate information screen in the Events summary
+          Some(CandidateRemoveReason(key, key, failApp = false))
+        } else {
+          None
+        }
+    }
+  }
 }
