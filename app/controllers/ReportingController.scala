@@ -1028,6 +1028,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
         name,
         Some(candidateEmail),
         Some(candidateAllocation.status.toString),
+        candidateAllocation.removeReason,
         Some(candidateAllocation.version),
         Some(candidateAllocation.createdAt.toString),
         Some(session.description),
@@ -1041,7 +1042,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
       makeRow(data: _*)
     }
 
-    val headers = List("EventId,SessionId,Date,Type,Description,EventName,Description,ApplicationId,CandidateName,Email,Status," +
+    val headers = List("EventId,SessionId,Date,Type,Description,EventName,Description,ApplicationId,CandidateName,Email,Status,RemoveReason," +
       "Version,CreatedAt,SessionName,Start,End,Capacity,MinAttendees,SafetyMargin")
     reportRows.flatten.map { rows =>
       Ok(Json.toJson(headers ++ rows))
