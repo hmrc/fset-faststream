@@ -20,18 +20,20 @@ import connectors.ExchangeObjects.Candidate
 import connectors.{AuthProviderClient, OnlineTestEmailClient}
 import model.Exceptions.OptimisticLockException
 import model.exchange.AssessorSkill
-import model.persisted.eventschedules._
+import model.persisted.eventschedules.*
+import model.persisted.eventschedules.SkillType.ASSESSOR
 import model.{AllocationStatuses, command, persisted}
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito.{when, _}
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.Mockito.{when, *}
 import org.mockito.stubbing.OngoingStubbing
 import repositories.AssessorAllocationRepository
 import repositories.application.GeneralApplicationRepository
 import services.BaseServiceSpec
+import services.assessor.AssessorService
 import services.events.EventsService
 import services.stc.StcEventService
 import testkit.ExtendedTimeout
-import testkit.MockitoImplicits._
+import testkit.MockitoImplicits.*
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{LocalDate, LocalTime, OffsetDateTime}
@@ -56,19 +58,20 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
       val result = service.allocate(allocations).futureValue
       result mustBe unit
       verify(mockAllocationRepository).save(any[Seq[persisted.AssessorAllocation]])
-      verify(mockAllocationRepository, times(0)).delete(any[Seq[persisted.AssessorAllocation]])
+      verify(mockAllocationRepository, never()).delete(any[Seq[persisted.AssessorAllocation]])
       verify(mockEmailClient).sendAssessorAllocatedToEvent(
         any[String], any[String](), any[String], any[String], any[String], any[String], any[String], any[String]
       )(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "delete existing allocations and save new ones" in new TestFixture {
-      when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturn(Future.successful(
+      when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturnAsync(
         persisted.AssessorAllocation("userId1", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version1") :: Nil
-      ))
-      when(mockAllocationRepository.save(any[Seq[persisted.AssessorAllocation]])).thenReturn(Future.successful(unit))
-      when(mockAllocationRepository.delete(any[Seq[persisted.AssessorAllocation]])).thenReturn(Future.successful(unit))
+      )
+      when(mockAllocationRepository.save(any[Seq[persisted.AssessorAllocation]])).thenReturnAsync()
+      when(mockAllocationRepository.delete(any[Seq[persisted.AssessorAllocation]])).thenReturnAsync()
       mockGetEvent
+      when(mockAssessorService.removeAvailabilities(any[Seq[String]], any[LocalDate])).thenReturnAsync()
       mockAuthProviderFindByUserIds("userId1", "userId2")
 
       val allocations = command.AssessorAllocations(
@@ -78,7 +81,6 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
           allocatedAs = AssessorSkill(SkillType.ASSESSOR, "Assessor")) :: Nil
       )
       val result = service.allocate(allocations).futureValue
-
       result mustBe unit
 
       verify(mockAllocationRepository).delete(any[Seq[persisted.AssessorAllocation]])
@@ -91,15 +93,16 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
     }
 
     "delete existing allocations and save none" in new TestFixture {
-      when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturn(Future.successful(
+      when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturnAsync(
         persisted.AssessorAllocation("userId1", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version1") :: Nil
-      ))
+      )
       // This is what it will do if we want to save with an empty parameter in save(...). If we get the exception
       // it means we have reached this method and that's wrong
       when(mockAllocationRepository.save(any[Seq[persisted.AssessorAllocation]])).thenThrow(
         new java.lang.IllegalArgumentException("writes is not an empty list"))
-      when(mockAllocationRepository.delete(any[Seq[persisted.AssessorAllocation]])).thenReturn(Future.successful(unit))
+      when(mockAllocationRepository.delete(any[Seq[persisted.AssessorAllocation]])).thenReturnAsync()
       mockGetEvent
+      when(mockAssessorService.removeAvailabilities(any[Seq[String]], any[LocalDate])).thenReturnAsync()
       mockAuthProviderFindByUserIds("userId1", "userId2")
 
       val allocations = command.AssessorAllocations(
@@ -108,25 +111,59 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
         allocations = Nil
       )
       val result = service.allocate(allocations).futureValue
-
       result mustBe unit
 
       verify(mockAllocationRepository).delete(any[Seq[persisted.AssessorAllocation]])
-      verify(mockAllocationRepository, times(0)).save(any[Seq[persisted.AssessorAllocation]])
+      verify(mockAllocationRepository, never()).save(any[Seq[persisted.AssessorAllocation]])
       verify(mockEmailClient).sendAssessorUnAllocatedFromEvent(
         any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
-      verify(mockEmailClient, times(0)).sendAssessorAllocatedToEvent(
+      verify(mockEmailClient, never()).sendAssessorAllocatedToEvent(
+        any[String], any[String], any[String], any[String], any[String], any[String], any[String], any[String]
+      )(any[HeaderCarrier], any[ExecutionContext])
+    }
+
+    // We have an event with an assessor and a qac assigned and we remove the qac. This results in the qac availabilities
+    // being removed. The availabilities for the assessor should not be deleted.
+    "process an event with an assessor and a reviewer and the reviewer is removed" in new TestFixture {
+      // These are the existing allocations that contain the assessor and the qac
+      when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturnAsync(
+        persisted.AssessorAllocation("userId1", "eventId1", AllocationStatuses.CONFIRMED, SkillType.ASSESSOR, "version1") ::
+        persisted.AssessorAllocation("userId2", "eventId1", AllocationStatuses.CONFIRMED, SkillType.QUALITY_ASSURANCE_COORDINATOR, "version1") :: Nil
+      )
+      mockGetEvent
+      // We expect availabilities only for user2 (the qac) to be removed
+      when(mockAssessorService.removeAvailabilities(eqTo(Seq("userId2")), any[LocalDate])).thenReturnAsync()
+      when(mockAllocationRepository.delete(any[Seq[persisted.AssessorAllocation]])).thenReturnAsync()
+      when(mockAllocationRepository.save(any[Seq[persisted.AssessorAllocation]])).thenReturnAsync()
+      mockAuthProviderFindByUserIds("userId1", "userId2")
+
+      // The new allocations do not include the reviewer who has been removed
+      val newAllocations = command.AssessorAllocations(
+        version = "version1",
+        eventId = "eventId1",
+        allocations = Seq(command.AssessorAllocation("userId1", AllocationStatuses.CONFIRMED, AssessorSkill(ASSESSOR, "FSAC Assessor")))
+      )
+      val result = service.allocate(newAllocations).futureValue
+      result mustBe unit
+
+      verify(mockAssessorService).removeAvailabilities(any[Seq[String]], any[LocalDate])
+      verify(mockAllocationRepository).delete(any[Seq[persisted.AssessorAllocation]])
+      verify(mockAllocationRepository).save(any[Seq[persisted.AssessorAllocation]])
+      verify(mockEmailClient).sendAssessorUnAllocatedFromEvent(
+        any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
+      verify(mockEmailClient, never()).sendAssessorAllocatedToEvent(
         any[String], any[String], any[String], any[String], any[String], any[String], any[String], any[String]
       )(any[HeaderCarrier], any[ExecutionContext])
     }
 
     "change an assessor's role in a new allocation" in new TestFixture {
-      when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturn(Future.successful(
+      when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturnAsync(
         persisted.AssessorAllocation("userId1", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version1") :: Nil
-      ))
-      when(mockAllocationRepository.save(any[Seq[persisted.AssessorAllocation]])).thenReturn(Future.successful(unit))
-      when(mockAllocationRepository.delete(any[Seq[persisted.AssessorAllocation]])).thenReturn(Future.successful(unit))
+      )
+      when(mockAllocationRepository.save(any[Seq[persisted.AssessorAllocation]])).thenReturnAsync()
+      when(mockAllocationRepository.delete(any[Seq[persisted.AssessorAllocation]])).thenReturnAsync()
       mockGetEvent
+      when(mockAssessorService.removeAvailabilities(any[Seq[String]], any[LocalDate])).thenReturnAsync()
       mockAuthProviderFindByUserIds("userId1")
 
       val allocations = command.AssessorAllocations(
@@ -147,9 +184,9 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
     }
 
     "throw an optimistic lock exception if data has changed before saving" in new TestFixture {
-       when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturn(Future.successful(
+       when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturnAsync(
         persisted.AssessorAllocation("id", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version5") :: Nil
-      ))
+      )
       val allocations = command.AssessorAllocations(
         version = "version1",
         eventId = "eventId1",
@@ -166,6 +203,7 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockEventsService = mock[EventsService]
     val mockAllocationServiceCommon = mock[AllocationServiceCommon]
+    val mockAssessorService = mock[AssessorService]
     val mockStcEventService = mock[StcEventService]
     val mockAuthProviderClient = mock[AuthProviderClient]
     val mockEmailClient = mock[OnlineTestEmailClient] //TODO:fix change type
@@ -175,6 +213,7 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
       mockAppRepo,
       mockEventsService,
       mockAllocationServiceCommon,
+      mockAssessorService,
       mockStcEventService,
       mockAuthProviderClient,
       mockEmailClient
@@ -188,7 +227,7 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
     protected def mockAuthProviderFindByUserIds(userId: String*): Unit = userId.foreach { uid =>
       when(mockAuthProviderClient.findByUserIds(eqTo(Seq(uid)))(any[HeaderCarrier]())).thenReturnAsync(
         Seq(
-          Candidate("Bob " + uid, "Smith", None, "bob@mailinator.com", None, uid, List("candidate"))
+          Candidate("Bob " + uid, "Smith", preferredName = None, "bob@mailinator.com", phone = None, userId = uid, List("candidate"))
         )
       )
     }

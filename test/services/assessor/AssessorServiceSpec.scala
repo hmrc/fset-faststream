@@ -46,10 +46,35 @@ import scala.language.postfixOps
 
 class AssessorServiceSpec extends BaseServiceSpec {
 
-  "save assessor" must {
-    "save NEW assessor " +
-      "when assessor is new" in new TestFixture {
+  "remove availabilities" must {
+    "remove the availabilities for the assessor on the date of the event from which the assessor was removed" in new TestFixture {
+      // This assessor is fetched
+      when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(Some(AssessorExisting))
+      // The assessor's availabilities are updated to remove availability for the specified date and the updated assessor is then saved
+      val availabilityDate = LocalDate.of(2017, 10, 10)
+      val updatedAvailabilities = persistedAvailabilities.filterNot(_.date == availabilityDate)
+      val updatedAssessor = AssessorExisting.copy(availability = updatedAvailabilities)
+      when(mockAssessorRepository.save(eqTo(updatedAssessor))).thenReturnAsync()
 
+      val response = service.removeAvailabilities(Seq(AssessorUserId), LocalDate.of(2017, 10, 10)).futureValue
+      response mustBe unit
+      verify(mockAssessorRepository).find(eqTo(AssessorUserId))
+      verify(mockAssessorRepository).save(any[Assessor])
+    }
+
+    "throw an exception if no assessor is found for the given userId" in new TestFixture {
+      when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(None)
+
+      val response = service.removeAvailabilities(Seq(AssessorUserId), LocalDate.of(2017, 10, 10)).failed.futureValue
+      response mustBe an[AssessorNotFoundException]
+
+      verify(mockAssessorRepository).find(eqTo(AssessorUserId))
+      verify(mockAssessorRepository, never()).save(any[Assessor])
+    }
+  }
+
+  "save assessor" must {
+    "save NEW assessor when assessor is new" in new TestFixture {
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(None)
       val response = service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorNew)).futureValue
       response mustBe unit
@@ -59,7 +84,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
     "update skills and do not update existing availability " +
       "when assessor previously EXISTED but did not have future allocations to events" in new TestFixture {
-
       when(mockAssessorRepository.find(eqTo(AssessorUserId))).thenReturnAsync(Some(AssessorExisting))
       when(mockAllocationRepo.find(eqTo(AssessorUserId), any[Option[AllocationStatus]]())).thenReturnAsync(Nil)
 
@@ -78,7 +102,6 @@ class AssessorServiceSpec extends BaseServiceSpec {
 
       val exchangeAvailability = AssessorWithAvailability.availability.map(model.exchange.AssessorAvailability.apply)
       val availabilities = AssessorAvailabilities(AssessorUserId, None, exchangeAvailability)
-
 
       intercept[AssessorNotFoundException] {
         Await.result(service.saveAvailability(availabilities), 10 seconds)
@@ -267,7 +290,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
         Await.result(service.saveAssessor(AssessorUserId, model.exchange.Assessor(AssessorToSave)), 10 seconds)
       }
 
-      verify(mockAssessorRepository, times(0)).save(any[Assessor])
+      verify(mockAssessorRepository, never()).save(any[Assessor])
     }
   }
 
@@ -278,7 +301,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       intercept[AssessorNotFoundException] {
         Await.result(service.remove(UniqueIdentifier(AssessorUserId)), 10 seconds)
       }
-      verify(mockAssessorRepository, times(0)).remove(eqTo(UniqueIdentifier(AssessorUserId)))
+      verify(mockAssessorRepository, never()).remove(eqTo(UniqueIdentifier(AssessorUserId)))
     }
 
     "throw CannotRemoveAssessorWhenFutureAllocationExistsException " +
@@ -286,7 +309,7 @@ class AssessorServiceSpec extends BaseServiceSpec {
       intercept[CannotRemoveAssessorWhenFutureAllocationExistsException] {
         Await.result(service.remove(UniqueIdentifier(AssessorUserId)), 10 seconds)
       }
-      verify(mockAssessorRepository, times(0)).remove(eqTo(UniqueIdentifier(AssessorUserId)))
+      verify(mockAssessorRepository, never()).remove(eqTo(UniqueIdentifier(AssessorUserId)))
     }
 
     "remove assessor " +

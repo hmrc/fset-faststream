@@ -19,40 +19,26 @@ package services.application
 import model.*
 import model.Commands.PhoneNumber
 import model.EvaluationResults.{Amber, Green, Red}
-import model.Exceptions.{LastSchemeWithdrawException, PassMarkEvaluationNotFound, SiftExpiredException}
+import model.Exceptions.{LastSchemeWithdrawException, SiftExpiredException}
 import model.ProgressStatuses.ProgressStatus
 import model.command.*
 import model.exchange.sift.SiftAnswersStatus
-import model.persisted.{ContactDetails, FsbTestGroup, PassmarkEvaluation, SchemeEvaluationResult}
-import model.stc.AuditEvents
+import model.persisted.{ContactDetails, SchemeEvaluationResult}
 import org.mockito.ArgumentMatchers.{any, eq as eqTo, *}
 import org.mockito.Mockito.*
 import play.api.mvc.RequestHeader
+import repositories.TestSchemeRepository
 import repositories.application.GeneralApplicationRepository
-import repositories.assessmentcentre.AssessmentCentreRepository
-import repositories.assistancedetails.AssistanceDetailsRepository
-import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.fsb.FsbRepository
-import repositories.onlinetesting.*
-import repositories.personaldetails.PersonalDetailsRepository
-import repositories.schemepreferences.SchemePreferencesRepository
 import repositories.sift.ApplicationSiftRepository
-import repositories.{AssessorAssessmentScoresMongoRepository, MediaRepository, ReviewerAssessmentScoresMongoRepository, TestSchemeRepository}
-import scheduler.fixer.FixBatch
-import scheduler.fixer.RequiredFixes.{PassToPhase2, ResetPhase1TestInvitedSubmitted}
 import services.allocation.CandidateAllocationService
 import services.events.EventsService
-import services.onlinetesting.phase1.EvaluatePhase1ResultService
-import services.onlinetesting.phase2.EvaluatePhase2ResultService
-import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.sift.{ApplicationSiftService, SiftAnswersService}
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits.*
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{OffsetDateTime, ZoneOffset}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
