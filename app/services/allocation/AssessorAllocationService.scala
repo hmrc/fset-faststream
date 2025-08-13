@@ -17,16 +17,17 @@
 package services.allocation
 
 import com.google.inject.name.Named
-import connectors.{AuthProviderClient, OnlineTestEmailClient, ExchangeObjects}
+import connectors.{AuthProviderClient, ExchangeObjects, OnlineTestEmailClient}
 
 import javax.inject.{Inject, Singleton}
 import model.Exceptions.OptimisticLockException
 import model.command.{AssessorAllocation, AssessorAllocations}
 import model.persisted.eventschedules.Event
-import model.{command, exchange, persisted, _}
+import model.{command, exchange, persisted, *}
 import repositories.AssessorAllocationRepository
 import repositories.application.GeneralApplicationRepository
 import services.allocation.AssessorAllocationService.CouldNotFindAssessorContactDetails
+import services.assessor.AssessorService
 import services.events.EventsService
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -43,6 +44,7 @@ class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAlloc
                                            applicationRepo: GeneralApplicationRepository,
                                            eventsService: EventsService,
                                            allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
+                                           assessorService: AssessorService,
                                            val eventService: StcEventService,
                                            authProviderClient: AuthProviderClient,
                                            @Named("CSREmailClient") emailClient: OnlineTestEmailClient //TODO:fix changed type
@@ -167,6 +169,7 @@ class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAlloc
 
   private def updateExistingAllocations(existingAllocations: Seq[persisted.AssessorAllocation],
                                         newAllocations: command.AssessorAllocations)(implicit hc: HeaderCarrier): Future[Unit] = {
+    require(existingAllocations.nonEmpty, "updateExistingAllocations can only be called when there are existing allocations")
 
     // If versions match there has been no update from another user while this user was editing, do update
     if (existingAllocations.forall(_.version == newAllocations.version)) {
@@ -174,7 +177,15 @@ class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAlloc
 
       val (changedUsers, removedUsers, newUsers) = getAllocationDifferences(existingAllocations, toPersist)
 
+      val eventId = existingAllocations.head.eventId
+      val removedUserIds = removedUsers.map(_.id)
+
       for {
+        // Only for the removed users, remove the existing assessor availabilities for the date of the event so the
+        // assessor cannot be re-assigned to any events on the day for which they have been removed from the event
+        eventDetails <- eventsService.getEvent(eventId)
+        _ <- assessorService.removeAvailabilities(removedUserIds, eventDetails.date)
+
         // Persist the changes
         _ <- assessorAllocationRepo.delete(existingAllocations)
         _ <-

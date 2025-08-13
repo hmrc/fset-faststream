@@ -50,6 +50,17 @@ class AssessorService @Inject() (assessorRepository: AssessorRepository,
 
   private[assessor] def newVersion = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
 
+  def removeAvailabilities(userIds: Seq[String], availabilityDate: LocalDate): Future[Unit] = {
+    Future.sequence(userIds.map { userId =>
+      assessorRepository.find(userId).flatMap {
+        case Some(existing) =>
+          val updatedAvailabilities = existing.availability.filterNot(_.date == availabilityDate)
+          assessorRepository.save(existing.copy(availability = updatedAvailabilities)).map(_ => ())
+        case None => throw AssessorNotFoundException(userId)
+      }
+    }).map(_ => ())
+  }
+
   def updateVersion(userId: String): Future[Unit] = {
     assessorRepository.find(userId).flatMap {
       case Some(existing) =>

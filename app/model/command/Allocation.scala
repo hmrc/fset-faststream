@@ -32,9 +32,9 @@ case class AssessorAllocation(
   allocatedAs: AssessorSkill
 ) extends Allocation {
   override def toString =
-    s"id=$id," +
+    s"(id=$id," +
       s"status=$status," +
-      s"allocatedAs=$allocatedAs"
+      s"allocatedAs=$allocatedAs)"
 }
 
 object AssessorAllocation {
