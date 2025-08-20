@@ -1142,7 +1142,10 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
 
     val updateQuery = Document(
       "$unset" -> Document(statusesToRemove),
-      "$set" -> Document(s"progress-status.${newStatus.key}" -> true)
+      "$set" -> Document(
+        s"progress-status.${newStatus.key}" -> true,
+        s"progress-status-timestamp.${newStatus.key}" -> offsetDateTimeToBson(dateTimeFactory.nowLocalTimeZone)
+      )
     )
     collection.updateOne(query, updateQuery).toFuture().map(_ => ())
   }

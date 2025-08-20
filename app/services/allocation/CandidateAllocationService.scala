@@ -24,6 +24,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.Exceptions.{CandidateAlreadyAssignedToOtherEventException, OptimisticLockException}
 import model.ProgressStatuses.EventProgressStatuses
 import model.*
+import model.EvaluationResults.{Green, Red}
 import model.command.CandidateAllocation
 import model.exchange.CandidatesEligibleForEventResponse
 import model.exchange.candidateevents.{CandidateAllocationSummary, CandidateAllocationWithEvent, CandidateRemoveReason}
@@ -116,16 +117,31 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
           } else {
             eligibleForReallocation
           }
-          _ <- processCandidateAllocation (allocation, shouldReallocate, event.eventType)
+          _ <- processCandidateAllocation(allocation, shouldReallocate, event.eventType)
         } yield ()
       })
     }.map(_ => ())
   }
 
+  private def failAllGreenSchemes(applicationId: String) =
+    for {
+      css <- applicationRepo.getCurrentSchemeStatus(applicationId: String)
+      updatedSchemes = css.collect {
+        case schemeEvaluationResult if schemeEvaluationResult.result == Green.toString =>
+          schemeEvaluationResult.copy(schemeId = schemeEvaluationResult.schemeId, result = Red.toString)
+        case schemeEvaluationResult => schemeEvaluationResult
+      }
+      _ <- applicationRepo.updateCurrentSchemeStatus(applicationId, updatedSchemes)
+    } yield ()
+
   private def processCandidateAllocation(allocation: model.persisted.CandidateAllocation,
                                          eligibleForReallocation: Boolean, eventType: EventType)(implicit hc: HeaderCarrier) = {
     (allocation.removeReason.flatMap { rr => CandidateRemoveReason.find(rr).map(_.failApp) } match {
-      case Some(true) => applicationRepo.setFailedToAttendAssessmentStatus(allocation.id, eventType)
+      case Some(true) =>
+        for {
+          _ <- applicationRepo.setFailedToAttendAssessmentStatus(allocation.id, eventType)
+          _ <- failAllGreenSchemes(allocation.id)
+        } yield ()
       case _ if eligibleForReallocation => applicationRepo.resetApplicationAllocationStatus(allocation.id, eventType)
       // Do nothing in this scenario
       case _ => Future.successful(())
