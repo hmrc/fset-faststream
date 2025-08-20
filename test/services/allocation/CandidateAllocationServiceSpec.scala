@@ -20,17 +20,17 @@ import config.{EventsConfig, MicroserviceAppConfig}
 import connectors.ExchangeObjects.Candidate
 import connectors.{AuthProviderClient, OnlineTestEmailClient}
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{Amber, Green, Withdrawn}
+import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
 import model.Exceptions.CandidateAlreadyAssignedToOtherEventException
-import model._
-import model.command.{CandidateAllocation, CandidateAllocations, JobOfferProgressResponse, ProgressResponse, Fsb}
+import model.*
+import model.command.{CandidateAllocation, CandidateAllocations, Fsb, JobOfferProgressResponse, ProgressResponse}
 import model.exchange.candidateevents.CandidateAllocationWithEvent
 import model.exchange.{CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
-import model.persisted._
+import model.persisted.*
 import model.persisted.eventschedules.EventType.EventType
 import model.persisted.eventschedules.{Event, EventType, Location, Venue}
-import org.mockito.ArgumentMatchers.{any, eq => eqTo}
-import org.mockito.Mockito.{when, _}
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.{when, *}
 import org.mockito.stubbing.OngoingStubbing
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -41,7 +41,7 @@ import services.BaseServiceSpec
 import services.events.EventsService
 import services.stc.{StcEventService, StcEventServiceFixture}
 import testkit.ExtendedTimeout
-import testkit.MockitoImplicits._
+import testkit.MockitoImplicits.*
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{LocalDate, LocalTime, OffsetDateTime}
@@ -323,6 +323,105 @@ class CandidateAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeou
 
       verify(mockCandidateAllocationRepository).removeCandidateAllocation(any[model.persisted.CandidateAllocation])
       verify(mockAppRepo, never()).resetApplicationAllocationStatus(any[String], any[EventType])
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
+    }
+
+    "verify candidate is removed from event when a terminal remove reason (No-show) is selected " +
+      "and all the Green schemes are automatically set to Red" in new TestFixture {
+      val eventId = "E1"
+      val sessionId = "S1"
+      val appId = "app1"
+
+      when(mockCandidateAllocationRepository.isAllocationExists(any[String], any[String], any[String], any[Option[String]]))
+        .thenReturnAsync(true)
+
+      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e2)
+
+      when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation])).thenReturnAsync()
+
+      when(mockAppRepo.findProgress(any[String])).thenReturnAsync(ProgressResponse(applicationId = ""))
+
+      when(mockAppRepo.resetApplicationAllocationStatus(any[String], any[EventType])).thenReturnAsync()
+
+      when(mockAppRepo.setFailedToAttendAssessmentStatus(any[String], any[EventType])).thenReturnAsync()
+
+      when(mockAppRepo.getCurrentSchemeStatus(any[String])).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult(SchemeId("Commercial"), result = Green.toString),
+          SchemeEvaluationResult(SchemeId("CyberSecurity"), result = Red.toString),
+          SchemeEvaluationResult(SchemeId("Finance"), result = Withdrawn.toString)
+        )
+      )
+
+      when(mockAppRepo.updateCurrentSchemeStatus(any[String],
+        eqTo(Seq(
+          SchemeEvaluationResult(SchemeId("Commercial"), result = Red.toString),
+          SchemeEvaluationResult(SchemeId("CyberSecurity"), result = Red.toString),
+          SchemeEvaluationResult(SchemeId("Finance"), result = Withdrawn.toString)
+        )
+        ))).thenReturnAsync()
+
+      when(mockAppRepo.find(List(appId))).thenReturnAsync(CandidateExamples.NewCandidates)
+      when(mockPersonalDetailsRepo.find(any[String])).thenReturnAsync(PersonalDetailsExamples.JohnDoe)
+      when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(ContactDetailsExamples.ContactDetailsUK)
+
+      when(mockEmailClient.sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturnAsync()
+
+      val persistedAllocations = List(
+        model.persisted.CandidateAllocation(
+          appId, eventId, sessionId, AllocationStatuses.REMOVED, version = "v1",
+          removeReason = Some("No-show"), createdAt = LocalDate.now(), reminderSent = false
+        )
+      )
+
+      service.unAllocateCandidates(persistedAllocations, eligibleForReallocation = true).futureValue
+      verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
+    }
+
+    "verify candidate is removed from event when a non-terminal remove reason (Candidate_contacted) is selected " +
+      "and the schemes are not updated" in new TestFixture {
+      val eventId = "E1"
+      val sessionId = "S1"
+      val appId = "app1"
+
+      when(mockCandidateAllocationRepository.isAllocationExists(any[String], any[String], any[String], any[Option[String]]))
+        .thenReturnAsync(true)
+
+      when(mockEventsService.getEvent(eventId)).thenReturnAsync(EventExamples.e2)
+
+      when(mockCandidateAllocationRepository.removeCandidateAllocation(any[persisted.CandidateAllocation])).thenReturnAsync()
+
+      when(mockAppRepo.findProgress(any[String])).thenReturnAsync(ProgressResponse(applicationId = ""))
+
+      when(mockAppRepo.resetApplicationAllocationStatus(any[String], any[EventType])).thenReturnAsync()
+
+      when(mockAppRepo.setFailedToAttendAssessmentStatus(any[String], any[EventType])).thenReturnAsync()
+
+      when(mockAppRepo.getCurrentSchemeStatus(any[String])).thenReturnAsync(
+        Seq(
+          SchemeEvaluationResult(SchemeId("Commercial"), result = Green.toString),
+          SchemeEvaluationResult(SchemeId("CyberSecurity"), result = Red.toString),
+          SchemeEvaluationResult(SchemeId("Finance"), result = Withdrawn.toString)
+        )
+      )
+
+      when(mockAppRepo.find(List(appId))).thenReturnAsync(CandidateExamples.NewCandidates)
+      when(mockPersonalDetailsRepo.find(any[String])).thenReturnAsync(PersonalDetailsExamples.JohnDoe)
+      when(mockContactDetailsRepo.find(any[String])).thenReturnAsync(ContactDetailsExamples.ContactDetailsUK)
+
+      when(mockEmailClient.sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext]))
+        .thenReturnAsync()
+
+      val persistedAllocations = List(
+        model.persisted.CandidateAllocation(
+          appId, eventId, sessionId, AllocationStatuses.REMOVED, version = "v1",
+          removeReason = Some("Candidate_contacted"), createdAt = LocalDate.now(), reminderSent = false
+        )
+      )
+
+      service.unAllocateCandidates(persistedAllocations, eligibleForReallocation = true).futureValue
+      verify(mockAppRepo, never()).updateCurrentSchemeStatus(any[String], any[Seq[SchemeEvaluationResult]])
       verify(mockEmailClient).sendCandidateUnAllocatedFromEvent(any[String], any[String], any[String])(any[HeaderCarrier], any[ExecutionContext])
     }
   }
