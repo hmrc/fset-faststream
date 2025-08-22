@@ -1128,7 +1128,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         }.getOrElse(Map.empty[String, String])
 
         val csvRecord = makeRow(
-          getAnswer(genderIdentity, questionsDocOpt),
+          getAnswer(sex, questionsDocOpt),
           getAnswer(sexualOrientation, questionsDocOpt),
           getAnswer(ethnicGroup, questionsDocOpt),
           getAnswer(englishLanguage, questionsDocOpt),

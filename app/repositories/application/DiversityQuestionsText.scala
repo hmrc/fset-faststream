@@ -18,7 +18,7 @@ package repositories.application
 
 //scalastyle:off line.size.limit
 trait DiversityQuestionsText {
-  val genderIdentity = "What is your gender identity?"
+  val sex = "What is your sex?"
   val sexualOrientation = "What is your sexual orientation?"
   val ethnicGroup = "What is your ethnic group?"
   val englishLanguage = "Is English your first language?"
