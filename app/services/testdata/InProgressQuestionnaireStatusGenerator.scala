@@ -159,8 +159,8 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
   private def getAllQuestionnaireQuestions(parentsOccupation: String, generatorConfig: CreateCandidateData.CreateCandidateData) = List(
     Some(QuestionnaireQuestion("I understand this won't affect my application",
       QuestionnaireAnswer(answer = Some(dataFaker.yesNo), otherDetails = None, unknown = None))),
-    Some(QuestionnaireQuestion(genderIdentity,
-      QuestionnaireAnswer(answer = Some(dataFaker.gender), otherDetails = None, unknown = None))),
+    Some(QuestionnaireQuestion(sex,
+      QuestionnaireAnswer(answer = Some(dataFaker.sex), otherDetails = None, unknown = None))),
     Some(QuestionnaireQuestion(sexualOrientation,
       QuestionnaireAnswer(answer = Some(dataFaker.sexualOrientation), otherDetails = None, unknown = None))),
     Some(QuestionnaireQuestion(ethnicGroup,

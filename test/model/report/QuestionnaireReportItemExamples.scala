@@ -19,12 +19,12 @@ package model.report
 import scala.util.Random
 
 object QuestionnaireReportItemExamples {
-  val NoParentOccupation1 = QuestionnaireReportItem(gender = Some("Male"), sexualOrientation = Some("Heterosexual/straight"),
+  val NoParentOccupation1 = QuestionnaireReportItem(sex = Some("Male"), sexualOrientation = Some("Heterosexual/straight"),
     ethnicity = Some("Irish"), isEnglishYourFirstLanguage = Some("Yes"), parentEmploymentStatus = None, parentOccupation = None,
     parentEmployedOrSelf = None, parentCompanySize = None, lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SE-1",
     university = Some("W76-WIN"), categoryOfDegree = Some("Biosciences"), degreeType = Some("BSc/MSc/Eng"), postgradUniversity = None,
     postgradCategoryOfDegree = None, postgradDegreeType = None)
-  val NoParentOccupation2 = QuestionnaireReportItem(gender = Some("Female"), sexualOrientation = Some("Bisexual"),
+  val NoParentOccupation2 = QuestionnaireReportItem(sex = Some("Female"), sexualOrientation = Some("Bisexual"),
     ethnicity = Some("Other White background"), isEnglishYourFirstLanguage = Some("Yes"), parentEmploymentStatus = None, parentOccupation = None,
     parentEmployedOrSelf = None, parentCompanySize = None, lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SE-2",
     university = Some("O33-OXF"), categoryOfDegree = Some("Biosciences"), degreeType = Some("BSc/MSc/Eng"), postgradUniversity = None,
@@ -34,7 +34,7 @@ object QuestionnaireReportItemExamples {
   val questionnaire2 = newQuestionnaire
 
   def newQuestionnaire =
-    QuestionnaireReportItem(someRnd("Gender"), someRnd("Orientation"), someRnd("Ethnicity"),
+    QuestionnaireReportItem(someRnd("Sex"), someRnd("Orientation"), someRnd("Ethnicity"),
       isEnglishYourFirstLanguage = Some("Yes"),
       someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"),
       someRnd("SocioEconomicBackground"), rnd("SES"),
