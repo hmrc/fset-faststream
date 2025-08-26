@@ -43,6 +43,7 @@ object AssessorSkill {
     AssessorSkill(FIN_ASSESSOR, "FIN Assessor"),
     AssessorSkill(GCFS_ASSESSOR, "GCFS Assessor"),
     AssessorSkill(HOP_ASSESSOR, "HOP Assessor"),
+    AssessorSkill(HR_ASSESSOR, "HR Assessor"),
     AssessorSkill(ORAC_ASSESSOR, "ORAC Assessor"),
     AssessorSkill(ORAC_EM_ASSESSOR, "ORAC_EM Assessor"),
     AssessorSkill(ORAC_QAC, "ORAC QAC"),
