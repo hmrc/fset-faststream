@@ -133,11 +133,9 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
 
   def locationPreferences = Random.randList(locationRepo.locations.toList, randNumberOfLocations)
 
-  def gender = Random.randOne(List(
+  def sex = Random.randOne(List(
     "Male",
-    "Female",
-    "Other",
-    "I don't know/prefer not to say"))
+    "Female"))
 
   def sexualOrientation = Random.randOne(List(
     "Heterosexual/straight",

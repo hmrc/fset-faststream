@@ -58,11 +58,9 @@ trait DataFakerRandom {
 
     def monthNumber: Int = scalaRandom.nextInt(12) + 1
 
-    def gender = randOne(List(
+    def sex = randOne(List(
       "Male",
-      "Female",
-      "Other",
-      "I don't know/prefer not to say"))
+      "Female"))
 
     def sexualOrientation = randOne(List(
       "Heterosexual/straight",

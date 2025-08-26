@@ -39,13 +39,13 @@ object CreateCandidateRequest {
   }
 
   case class DiversityDetailsRequest(
-    genderIdentity: Option[String] = None,
-    sexualOrientation: Option[String] = None,
-    ethnicity: Option[String] = None,
-    universityAttended: Option[String] = None,
-    parentalEmployment: Option[String] = None,
-    parentalEmployedOrSelfEmployed: Option[String] = None,
-    parentalCompanySize: Option[String] = None
+                                      sex: Option[String] = None,
+                                      sexualOrientation: Option[String] = None,
+                                      ethnicity: Option[String] = None,
+                                      universityAttended: Option[String] = None,
+                                      parentalEmployment: Option[String] = None,
+                                      parentalEmployedOrSelfEmployed: Option[String] = None,
+                                      parentalCompanySize: Option[String] = None
   )
 
   object DiversityDetailsRequest {

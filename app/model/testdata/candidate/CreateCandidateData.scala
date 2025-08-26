@@ -62,20 +62,20 @@ object CreateCandidateData extends DataFakerRandom {
   }
 
   case class DiversityDetails(
-    genderIdentity: String = Random.gender,
-    sexualOrientation: String = Random.sexualOrientation,
-    ethnicity: String = Random.ethnicGroup,
-    universityAttended: String = Random.university._2,
-    parentalEmployedOrSelfEmployed: String = Random.parentsOccupation,
-    parentalEmployment: Option[String] = Some(Random.parentsOccupationDetails),
-    parentalCompanySize: Option[String] = Some(Random.sizeParentsEmployer)
+                               sex: String = Random.sex,
+                               sexualOrientation: String = Random.sexualOrientation,
+                               ethnicity: String = Random.ethnicGroup,
+                               universityAttended: String = Random.university._2,
+                               parentalEmployedOrSelfEmployed: String = Random.parentsOccupation,
+                               parentalEmployment: Option[String] = Some(Random.parentsOccupationDetails),
+                               parentalCompanySize: Option[String] = Some(Random.sizeParentsEmployer)
   )
 
   object DiversityDetails {
     def apply(o: DiversityDetailsRequest): DiversityDetails = {
       val default = DiversityDetails()
       DiversityDetails(
-        genderIdentity = o.genderIdentity.getOrElse(default.genderIdentity),
+        sex = o.sex.getOrElse(default.sex),
         sexualOrientation = o.sexualOrientation.getOrElse(default.sexualOrientation),
         ethnicity = o.ethnicity.getOrElse(default.ethnicity),
         universityAttended = o.universityAttended.getOrElse(default.universityAttended),

@@ -105,7 +105,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
         country = Some("America")
       )),
       diversityDetails = Some(DiversityDetailsRequest(
-        genderIdentity = Some("Female"),
+        sex = Some("Female"),
         sexualOrientation = Some("Straight"),
         ethnicity = Some("White"),
         universityAttended = Some("W01-USW"),

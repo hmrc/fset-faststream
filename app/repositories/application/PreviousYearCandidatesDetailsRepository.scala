@@ -161,7 +161,7 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
 
   val dataAnalystContactDetailsHeader = "Email,Postcode"
 
-  val questionnaireDetailsHeader: String = "Gender Identity,Sexual Orientation,Ethnic Group,Is English your 1st language?,Live in UK between 14-18?," +
+  val questionnaireDetailsHeader: String = "Sex,Sexual Orientation,Ethnic Group,Is English your 1st language?,Live in UK between 14-18?," +
     "Home postcode at 14,Name of school 14-16,Which type of school was this?,Name of school 16-18,Eligible for free school meals?,University name," +
     "Category of degree,Degree type,Postgrad university name,Postgrad category of degree,Postgrad degree type,Lower socio-economic background?," +
     "Parent guardian completed Uni?,Parents job at 14,Employee?,Size,Supervise employees,SE 1-5,Oxbridge,Russell Group"
@@ -1128,7 +1128,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
         }.getOrElse(Map.empty[String, String])
 
         val csvRecord = makeRow(
-          getAnswer(genderIdentity, questionsDocOpt),
+          getAnswer(sex, questionsDocOpt),
           getAnswer(sexualOrientation, questionsDocOpt),
           getAnswer(ethnicGroup, questionsDocOpt),
           getAnswer(englishLanguage, questionsDocOpt),

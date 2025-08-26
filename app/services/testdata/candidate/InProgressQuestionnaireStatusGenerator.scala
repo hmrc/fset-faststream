@@ -154,7 +154,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
     def getAllQuestionnaireQuestions(dd: DiversityDetails) = List(
       Some(QuestionnaireQuestion("I understand this won't affect my application",
         QuestionnaireAnswer(Some(dataFaker.yesNo), None, unknown = None))),
-      Some(QuestionnaireQuestion(genderIdentity, QuestionnaireAnswer(Some(dd.genderIdentity), otherDetails = None, unknown = None))),
+      Some(QuestionnaireQuestion(sex, QuestionnaireAnswer(Some(dd.sex), otherDetails = None, unknown = None))),
       Some(QuestionnaireQuestion(sexualOrientation, QuestionnaireAnswer(Some(dd.sexualOrientation), otherDetails = None, unknown = None))),
       Some(QuestionnaireQuestion(ethnicGroup, QuestionnaireAnswer(Some(dd.ethnicity), otherDetails = None, unknown = None))),
       Some(QuestionnaireQuestion(liveInUkAged14to18, QuestionnaireAnswer(

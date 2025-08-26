@@ -43,7 +43,7 @@ trait QuestionnaireRepository extends DiversityQuestionsText {
   def removeQuestions(applicationId: String): Future[Unit]
   def calculateSocioEconomicScore(applicationId: String): Future[String]
 
-  val GenderQuestionText = genderIdentity
+  val SexQuestionText = sex
   val SexualOrientationQuestionText = sexualOrientation
   val EthnicityQuestionText = ethnicGroup
   val EnglishLanguageQuestionText = englishLanguage
@@ -193,7 +193,7 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     implicit val questionsDocOpt: Option[BsonDocument] = document.get("questions").map(_.asDocument())
 
     val applicationId = document.get("applicationId").get.asString().getValue
-    val gender = getAnswer(GenderQuestionText)
+    val sex = getAnswer(SexQuestionText)
     val sexualOrientation = getAnswer(SexualOrientationQuestionText)
     val ethnicity = getAnswer(EthnicityQuestionText)
     val englishLanguage = getAnswer(EnglishLanguageQuestionText)
@@ -222,7 +222,7 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     val socioEconomicScore = employmentStatus.map(_ => socioEconomicCalculator.calculate(qAndA)).getOrElse("")
 
     applicationId -> QuestionnaireReportItem(
-      gender,
+      sex,
       sexualOrientation,
       ethnicity,
       englishLanguage,

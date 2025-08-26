@@ -306,21 +306,13 @@
                     "answer"
                   ]
                 },
-                "What is your gender identity?": {
+                "What is your sex?": {
                   "type": "object",
                   "properties": {
                     "answer": {
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 256
-                    },
-                    "otherDetails": {
-                      "type": "string",
-                      "minLength": 0,
-                      "maxLength": 256
-                    },
-                    "unknown": {
-                      "type": "boolean"
                     }
                   }
                 },
@@ -612,7 +604,7 @@
               },
               "required": [
                 "I understand this won't affect my application",
-                "What is your gender identity?",
+                "What is your sex?",
                 "What is your sexual orientation?",
                 "What is your ethnic group?",
                 "Did you live in the UK between the ages of 14 and 18?"

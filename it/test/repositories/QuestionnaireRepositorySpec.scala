@@ -83,14 +83,14 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
-          gender = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
+          sex = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None,
           parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score",
           university = Some("W01-USW"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId2 -> QuestionnaireReportItem(
-          gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
+          sex = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
           parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
           lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score",
@@ -110,7 +110,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
-          gender = Some(dontKnowText), sexualOrientation = Some(dontKnowText), ethnicity = Some(dontKnowText),
+          sex = Some(dontKnowText), sexualOrientation = Some(dontKnowText), ethnicity = Some(dontKnowText),
           isEnglishYourFirstLanguage = Some(dontKnowText), parentEmploymentStatus = Some("Employed"), parentOccupation = Some(dontKnowText),
           parentEmployedOrSelf = Some(dontKnowText), parentCompanySize = Some(dontKnowText),
           lowerSocioEconomicBackground = Some(dontKnowText), socioEconomicScore = "SES Score",
@@ -127,7 +127,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       questionnaireRepo.findForOnlineTestPassMarkReport(List(applicationId1)).futureValue
 
       verify(socioEconomicCalculator).calculate(Map(
-        genderIdentity -> "Male",
+        sex -> "Male",
         sexualOrientation -> "Straight",
         ethnicGroup -> "Black",
         englishLanguage -> "Yes",
@@ -147,14 +147,14 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
-          gender = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
+          sex = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None,
           parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score",
           university = Some("W01-USW"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId2 -> QuestionnaireReportItem(
-          gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
+          sex = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
           parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
           lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score",
@@ -162,7 +162,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId3 -> QuestionnaireReportItem(
-          gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
+          sex = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = None, parentOccupation = None,
           parentEmployedOrSelf = None, parentCompanySize = None,
           lowerSocioEconomicBackground = None, socioEconomicScore = "",
@@ -179,14 +179,14 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       val report = questionnaireRepo.findAllForDiversityReport.futureValue
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
-          gender = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
+          sex = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None, parentCompanySize = None,
           lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score",
           university = Some("W01-USW"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId2 -> QuestionnaireReportItem(
-          gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
+          sex = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
           parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
           lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score",
@@ -194,7 +194,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId3 -> QuestionnaireReportItem(
-          gender = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
+          sex = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = None, parentOccupation = None, parentEmployedOrSelf = None, parentCompanySize = None,
           lowerSocioEconomicBackground = None, socioEconomicScore = "",
           university = None, categoryOfDegree = None, degreeType = None,
@@ -221,7 +221,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     val applicationId2 = "123"
     val applicationId3 = "partiallyCompleteId"
     val submittedQuestionnaire1 = List(
-      QuestionnaireQuestion(genderIdentity, QuestionnaireAnswer(Some("Male"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(sex, QuestionnaireAnswer(Some("Male"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(sexualOrientation, QuestionnaireAnswer(Some("Straight"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(ethnicGroup, QuestionnaireAnswer(Some("Black"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(englishLanguage, QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
@@ -233,7 +233,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       QuestionnaireQuestion(lowerSocioEconomicBackground, QuestionnaireAnswer(answer = None, otherDetails = None, unknown = None))
     )
     val submittedQuestionnaire2 = List(
-      QuestionnaireQuestion(genderIdentity, QuestionnaireAnswer(Some("Female"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(sex, QuestionnaireAnswer(Some("Female"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(sexualOrientation, QuestionnaireAnswer(Some("Lesbian"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(ethnicGroup, QuestionnaireAnswer(Some("White"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(englishLanguage, QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None)),
@@ -248,7 +248,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     )
     val unknown = QuestionnaireAnswer(answer = None, otherDetails = None, unknown = Some(true))
     val submittedQuestionnaire3 = List(
-      QuestionnaireQuestion(genderIdentity, unknown),
+      QuestionnaireQuestion(sex, unknown),
       QuestionnaireQuestion(sexualOrientation, unknown),
       QuestionnaireQuestion(ethnicGroup, unknown),
       QuestionnaireQuestion(englishLanguage, unknown),
@@ -262,7 +262,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       QuestionnaireQuestion(sizeOfPlaceOfWork, unknown)
     )
     val partiallyCompleteQuestionnaire = List(
-      QuestionnaireQuestion(genderIdentity, QuestionnaireAnswer(Some("Female"), otherDetails = None, unknown = None)),
+      QuestionnaireQuestion(sex, QuestionnaireAnswer(Some("Female"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(sexualOrientation, QuestionnaireAnswer(Some("Lesbian"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(ethnicGroup, QuestionnaireAnswer(Some("White"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(englishLanguage, QuestionnaireAnswer(Some("Yes"), otherDetails = None, unknown = None))

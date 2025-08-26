@@ -116,6 +116,7 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
             false
           } else {
             eligibleForReallocation
+
           }
           _ <- processCandidateAllocation(allocation, shouldReallocate, event.eventType)
         } yield ()

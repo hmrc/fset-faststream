@@ -19,7 +19,7 @@ package model.report
 import play.api.libs.json.{Json, OFormat}
 
 case class QuestionnaireReportItem(
-                                    gender: Option[String],
+                                    sex: Option[String],
                                     sexualOrientation: Option[String],
                                     ethnicity: Option[String],
                                     isEnglishYourFirstLanguage: Option[String],
@@ -38,7 +38,7 @@ case class QuestionnaireReportItem(
                                   ) {
   override def toString =
     "(" +
-      s"gender=$gender," +
+      s"sex=$sex," +
       s"sexualOrientation=$sexualOrientation," +
       s"ethnicity=$ethnicity," +
       s"isEnglishYourFirstLanguage=$isEnglishYourFirstLanguage," +
