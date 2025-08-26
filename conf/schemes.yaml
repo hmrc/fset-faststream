@@ -162,6 +162,8 @@
     required: Degree_22
     specificRequirement: false
   siftEvaluationRequired: false
+  fsbType: HR FSB
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-hr.odt
 
 # This was previously Generalist
 - id: OperationalDelivery

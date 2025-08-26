@@ -60,7 +60,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         DiplomaticAndDevelopmentEconomics, Finance, GovernmentCommunicationService,
         GovernmentEconomicsService, GovernmentOperationalResearchService,
         GovernmentSocialResearchService, GovernmentStatisticalService,
-        HousesOfParliament, OperationalDelivery, ProjectDelivery,
+        HumanResources, HousesOfParliament, OperationalDelivery, ProjectDelivery,
         Property, RiskManagement, ScienceAndEngineering,
         Edip, Sdip
       )
@@ -140,7 +140,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
         FsbType("FCO"), FsbType("FIN FSB"), FsbType("GES_DS"),
         FsbType("GCFS FSB"), FsbType("EAC"), FsbType("ORAC"),
         FsbType("RMT - Skype interview"),
-        FsbType("SRAC"), FsbType("SAC"), FsbType("HOP FSB"),
+        FsbType("SRAC"), FsbType("SAC"), FsbType("HOP FSB"), FsbType("HR FSB"),
         FsbType("OPD - Skype interview"),
         FsbType("PDFS - Skype interview"), FsbType("PRO - Skype interview"),
         FsbType("SEFS FSB"), FsbType("EDIP - Telephone interview"), FsbType("SDIP - Telephone interview")
