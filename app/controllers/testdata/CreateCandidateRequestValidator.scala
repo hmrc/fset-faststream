@@ -69,8 +69,16 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
   def validateLocations(request: CreateCandidateRequest): LocationValidation = {
     val validLocations = locationRepository.locations.map( _.id ).toSet
     val requestLocations = request.locationPreferences.map( _.toSet ).getOrElse(Set.empty[LocationId])
-    val result = requestLocations diff validLocations
-    LocationValidation(result.isEmpty, result.mkString(","))
+    val invalidRequestLocations = requestLocations diff validLocations
+
+    val maxNumberOfLocations = 3
+
+    if (invalidRequestLocations.isEmpty && requestLocations.size > maxNumberOfLocations) {
+      // The locations are valid but there are too many
+      LocationValidation(isValid = false, s"The maximum number of locations you can select is $maxNumberOfLocations")
+    } else {
+      LocationValidation(invalidRequestLocations.isEmpty, invalidRequestLocations.mkString(","))
+    }
   }
 
   def validateFastPass(request: CreateCandidateRequest): Boolean = {
