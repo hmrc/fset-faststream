@@ -53,17 +53,16 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
 
   def mediaReferrer = Random.randOne(List(
     None,
-    Some("GOV.UK or Civil Service Jobs"),
-    Some("Recruitment website"),
-    Some("Social Media (Facebook, Twitter or Instagram)"),
-    Some("Fast Stream website (including scheme sites)"),
-    Some("News article or online search (Google)"),
-    Some("Friend in the Fast Stream"),
+    Some("Social Media (Facebook, Twitter, LinkedIn or Instagram)"),
+    Some("Online search (Google)"),
     Some("Friend or family in the Civil Service"),
-    Some("Friend or family outside of the Civil Service"),
-    Some("Careers fair (University or graduate)"),
-    Some("University careers service (or jobs flyers)"),
-    Some("University event (Guest lecture or skills session)"),
+    Some("Fast Stream University activity (careers service, careers fair, guest lecture, skills session)"),
+    Some("Previous internship"),
+    Some("Times Top 100"),
+    Some("Bright Network"),
+    Some("Gradcracker"),
+    Some("Zero Gravity"),
+    Some("Inservice activity (intranet, networks)"),
     Some("Other")
   ))
 
