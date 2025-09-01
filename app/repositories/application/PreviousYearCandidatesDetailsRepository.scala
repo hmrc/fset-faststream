@@ -74,7 +74,8 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
     def getAsIntOpt(key: String) = Try(doc.map(_.get(key).asInt32().getValue)).toOption.flatten
   }
 
-  private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,location-preferences,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview,SUBMITTED,FAST_PASS_ACCEPTED," +
+  private val appTestStatuses = "personal-details,IN_PROGRESS,scheme-preferences,location-preferences,assistance-details,start_questionnaire,diversity_questionnaire,education_questionnaire,occupation_questionnaire,preview," +
+    "SUBMITTED,SUBMITTED_CHECK_PASSED,SUBMITTED_CHECK_FAILED,SUBMITTED_CHECK_FAILED_NOTIFIED,FAST_PASS_ACCEPTED," +
     "PHASE1_TESTS_INVITED,PHASE1_TESTS_FIRST_REMINDER,PHASE1_TESTS_SECOND_REMINDER,PHASE1_TESTS_STARTED,PHASE1_TESTS_COMPLETED,PHASE1_TESTS_EXPIRED,PHASE1_TESTS_RESULTS_READY," +
     "PHASE1_TESTS_RESULTS_RECEIVED,PHASE1_TESTS_PASSED,PHASE1_TESTS_PASSED_NOTIFIED,PHASE1_TESTS_FAILED,PHASE1_TESTS_FAILED_NOTIFIED,PHASE1_TESTS_FAILED_SDIP_AMBER,PHASE1_TESTS_FAILED_SDIP_GREEN," +
     "PHASE2_TESTS_INVITED,PHASE2_TESTS_FIRST_REMINDER," +
@@ -148,7 +149,6 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
     "I understand this wont affect application," +
     testTitles("Phase1 test1") +
     testTitles("Phase1 test2") +
-    testTitles("Phase1 test3") +
     "Fsb overall score,Fsb feedback," +
     appTestStatuses +
     "Final Progress Status prior to withdrawal," +
@@ -419,7 +419,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             List(progressResponseReachedYesNo(progressResponse.questionnaire.nonEmpty)) ::: //I understand this wont affect application
             onlineTestResults(Tests.Phase1Test1.toString) :::
             onlineTestResults(Tests.Phase1Test2.toString) :::
-            onlineTestResults(Tests.Phase1Test3.toString) :::
             fsbScoresAndFeedback(doc) :::
             progressStatusTimestamps(doc) :::
             List(lastProgressStatusPriorToWithdrawal(doc)) :::
@@ -467,7 +466,9 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     }
 
     val progressStatusesWithTimestamps = List(
-      ProgressStatuses.SUBMITTED, ProgressStatuses.FAST_PASS_ACCEPTED,
+      ProgressStatuses.SUBMITTED, ProgressStatuses.SUBMITTED_CHECK_PASSED,
+      ProgressStatuses.SUBMITTED_CHECK_FAILED, ProgressStatuses.SUBMITTED_CHECK_FAILED_NOTIFIED,
+      ProgressStatuses.FAST_PASS_ACCEPTED,
       ProgressStatuses.PHASE1_TESTS_INVITED, ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER,
       ProgressStatuses.PHASE1_TESTS_SECOND_REMINDER, ProgressStatuses.PHASE1_TESTS_STARTED,
       ProgressStatuses.PHASE1_TESTS_COMPLETED, ProgressStatuses.PHASE1_TESTS_EXPIRED,
@@ -816,6 +817,10 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       questionnaireStatus("occupation_questionnaire"),
       progressStatusOpt.map ( doc => Try( doc.get("preview").asBoolean().getValue ).toOption.getOrElse(false).toString ),
       timestampFor(ProgressStatuses.SUBMITTED).orElse(progressStatusDatesOpt.map( _.get("submitted").asString().getValue )),
+      timestampFor(ProgressStatuses.SUBMITTED_CHECK_PASSED),
+      timestampFor(ProgressStatuses.SUBMITTED_CHECK_FAILED),
+      timestampFor(ProgressStatuses.SUBMITTED_CHECK_FAILED_NOTIFIED),
+
       timestampFor(ProgressStatuses.FAST_PASS_ACCEPTED).orElse(progressStatusDatesOpt.map( _.get("FAST_PASS_ACCEPTED").asString().getValue )),
       timestampFor(ProgressStatuses.PHASE1_TESTS_INVITED).orElse(progressStatusDatesOpt.map( _.get("PHASE1_TESTS_INVITED").asString().getValue )),
       timestampFor(ProgressStatuses.PHASE1_TESTS_FIRST_REMINDER).orElse(progressStatusDatesOpt.map( _.get("PHASE1_TESTS_FIRST_REMINDER").asString().getValue )),
@@ -1586,7 +1591,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val phase1TestConfig = appConfig.onlineTestsGatewayConfig.phase1Tests.tests
     val test1InventoryId = getInventoryId(phase1TestConfig, "test1", "phase1")
     val test2InventoryId = getInventoryId(phase1TestConfig, "test2", "phase1")
-    val test3InventoryId = getInventoryId(phase1TestConfig, "test3", "phase1")
 
     val testGroupsOpt = subDocRoot("testGroups")(doc)
 
@@ -1604,11 +1608,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     val phase1Test2 = phase1Tests.flatMap( tests =>
       tests.find { test =>
         test.getString("inventoryId").getValue == test2InventoryId && test.getBoolean("usedForResults").getValue
-      }
-    )
-    val phase1Test3 = phase1Tests.flatMap( tests =>
-      tests.find { test =>
-        test.getString("inventoryId").getValue == test3InventoryId && test.getBoolean("usedForResults").getValue
       }
     )
 
@@ -1651,7 +1650,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     Map(
       Tests.Phase1Test1.toString -> extractDataFromTest(phase1Test1),
       Tests.Phase1Test2.toString -> extractDataFromTest(phase1Test2),
-      Tests.Phase1Test3.toString -> extractDataFromTest(phase1Test3),
       Tests.Phase2Test1.toString -> extractDataFromTest(phase2Test1),
       Tests.Phase2Test2.toString -> extractDataFromTest(phase2Test2),
       Tests.SiftTest.toString -> extractDataFromTest(siftTest)
@@ -1669,10 +1667,6 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
     case object Phase1Test2 extends Test {
       override def name = "phase1test2"
-    }
-
-    case object Phase1Test3 extends Test {
-      override def name = "phase1test3"
     }
 
     case object Phase2Test1 extends Test {
