@@ -84,7 +84,7 @@ class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAlloc
           allocationForUser.allocatedAs.name.toString,
           eventDetails.eventType.toString,
           eventDetails.location.name,
-          DateTimeFormatter.ofPattern("h:ma").format(eventDetails.startTime)
+          DateTimeFormatter.ofPattern("h:mm a").format(eventDetails.startTime)
         )
       }
     }.map(_ => ())
