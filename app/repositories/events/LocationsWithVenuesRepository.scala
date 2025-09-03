@@ -79,7 +79,7 @@ class LocationsWithVenuesInMemoryYamlRepository @Inject() (application: Applicat
 
   override def venues: Future[ReferenceData[Venue]] =
     for (venues <- venuesCached) yield {
-      ReferenceData(venues, venues.head, appConfig.AllVenues)
+      ReferenceData(options = venues, default = venues.filter(_.name == "VIRTUAL").head, aggregate = appConfig.AllVenues)
     }
 
   override def venue(name: String): Future[Venue] = {

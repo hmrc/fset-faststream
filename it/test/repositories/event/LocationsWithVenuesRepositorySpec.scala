@@ -75,7 +75,7 @@ class LocationsWithVenuesRepositorySpec extends UnitWithAppSpec {
             Venue("LONDON_FSB", "London (FCO King Charles Street)"),
             Venue("NEWCASTLE_FSAC" ,"Newcastle (Tyne View Park)"),
             Venue("VIRTUAL", "Virtual")),
-          default = Venue("LONDON_FSAC", "London (100 Parliament Street)"),
+          default = Venue("VIRTUAL", "Virtual"),
           aggregate = Venue("ALL_VENUES", "All venues")
         )
     }
