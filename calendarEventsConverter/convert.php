@@ -61,7 +61,7 @@ $processingNewcastle = $argc == 3 && strtolower($argv[2]) == "newcastle";
 
 $city = $processingNewcastle ? "newcastle" : "london";
 
-$csvRoot = "../../fs-calendar-events/spreadsheets/2024-2025v2";
+$csvRoot = "../../fs-calendar-events/spreadsheets/2025-2026v1";
 $csvFilename = "{$csvRoot}/{$city}.csv";
 
 $csv = array_map('str_getcsv', file($csvFilename));
@@ -72,6 +72,7 @@ if ($processingNewcastle) {
     console( "Processing London data in file {$csvFilename}...");
 }
 
+// Campaign 2025-26 we force all event venues to VIRTUAL so this function is not being used currently
 function venueNameToToken($venueName) {
     if ($venueName == 'Tyne View Park Newcastle') {
         return 'NEWCASTLE_FSAC';
@@ -82,6 +83,10 @@ function venueNameToToken($venueName) {
     } else if ($venueName == 'FCO King Charles Street') {
         return 'LONDON_FSB';
     }
+}
+
+function venueNameToTokenCampaign2025($venueName) {
+    return 'VIRTUAL';
 }
 
 function zeroOrValue($val) {
@@ -253,7 +258,10 @@ foreach ($csv as $line) {
                 $eventDesc = 'Fast Stream Assessment Centre';
             }
         }
-        $eventLocation = $line[$i++];
+        // Campaign 2025-26 we force all event locations to Virtual
+//        $eventLocation = $line[$i++];
+        $i ++;
+        $eventLocation = "Virtual";
         $eventVenue = $line[$i++];
         if (venueNameToToken($eventVenue) == "") {
             console("ERROR - line number: $lineCount has an invalid venue specified <<$eventVenue>>");
@@ -313,7 +321,7 @@ foreach ($csv as $line) {
             "- eventType: $eventType
   description: $eventDesc
   location: $eventLocation
-  venue: ".venueNameToToken($eventVenue)."
+  venue: ".venueNameToTokenCampaign2025($eventVenue)."
   date: $eventDate
   capacity: 100
   minViableAttendees: 6
