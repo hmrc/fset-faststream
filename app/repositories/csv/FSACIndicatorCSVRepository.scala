@@ -27,7 +27,7 @@ import scala.util.Using
 @ImplementedBy(classOf[FSACIndicatorCSVRepositoryImpl])
 trait FSACIndicatorCSVRepository extends CsvHelper {
   val FSACIndicatorVersion = "1"
-  val DefaultIndicator = FSACIndicator(area = "London", assessmentCentre = "London")
+  val DefaultIndicator = FSACIndicator(area = "London", assessmentCentre = "Virtual")
 
   private[repositories] val indicators: Map[String, FSACIndicator]
 
@@ -61,7 +61,9 @@ class FSACIndicatorCSVRepositoryImpl @Inject() (application: Application) extend
     (postcode, outsideUk) match {
       case (None, false) => None
       case (None, true) => Some(DefaultIndicator)
-      case (aPostcode, false) => find(aPostcode)
+      // Removed when we made fsac events virtual for 2025/26 campaign
+//      case (aPostcode, false) => find(aPostcode)
+      case (aPostcode, false) => Some(DefaultIndicator)
       case _ => Some(DefaultIndicator)
     }
   }
