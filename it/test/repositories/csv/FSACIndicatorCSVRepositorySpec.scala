@@ -54,19 +54,35 @@ class FSACIndicatorCSVRepositorySpec extends UnitWithAppSpec with ShortTimeout {
       result mustBe Some(repository.DefaultIndicator)
     }
 
-    "return London for Oxford postcode" in new TestFixture {
+    // 3 tests set to ignore because fsac events are now only virtual from 2025-26 campaign
+    "return London for Oxford postcode" ignore new TestFixture {
       val result = repository.find(Some("OX1 4DB"), outsideUk = false)
       result mustBe Some(FSACIndicator("Oxford", "London"))
     }
 
-    "return London for Edinburgh postcode due to covid impact needing virtual FSACs and all postcodes mapped to London" in new TestFixture {
+    "return London for Edinburgh postcode due to covid impact needing virtual FSACs and all postcodes mapped to London" ignore new TestFixture {
       val result = repository.find(Some("EH1 3EG"), outsideUk = false)
       result mustBe Some(FSACIndicator("Edinburgh", "London"))
     }
 
-    "return London even when postcode is lowercase" in new TestFixture {
+    "return London even when postcode is lowercase" ignore new TestFixture {
       val result = repository.find(Some("ec1v 3eg"), outsideUk = false)
       result mustBe Some(FSACIndicator("East Central london", "London"))
+    }
+
+    "return Virtual for Oxford postcode for 2025 campaign which only uses virtual fsac events" in new TestFixture {
+      val result = repository.find(Some("OX1 4DB"), outsideUk = false)
+      result mustBe Some(repository.DefaultIndicator)
+    }
+
+    "return Virtual for Edinburgh postcode for 2025 campaign which only uses virtual fsac events" in new TestFixture {
+      val result = repository.find(Some("EH1 3EG"), outsideUk = false)
+      result mustBe Some(repository.DefaultIndicator)
+    }
+
+    "return Vitrual even when postcode is lowercase" in new TestFixture {
+      val result = repository.find(Some("ec1v 3eg"), outsideUk = false)
+      result mustBe Some(repository.DefaultIndicator)
     }
   }
 
