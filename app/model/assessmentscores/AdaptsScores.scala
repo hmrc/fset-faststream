@@ -24,7 +24,6 @@ case class AdaptsScores(
                          b6openToChange: Option[Double] = None, // exercise 2
                          b7learningAgility: Option[Double] = None, // exercise 2
                          b12consolidatesLearning: Option[Double] = None, // exercise 3
-                         b13learningAtPace: Option[Double] = None, // exercise 3
                          b14respondsFlexibily: Option[Double] = None // exercise 3
                        ) {
   override def toString: String =
@@ -32,7 +31,6 @@ case class AdaptsScores(
       s"b6openToChange=$b6openToChange," +
       s"b7learningAgility=$b7learningAgility," +
       s"b12consolidatesLearning=$b12consolidatesLearning," +
-      s"b13learningAtPace=$b13learningAtPace," +
       s"b14respondsFlexibily=$b14respondsFlexibily"
 }
 
@@ -40,7 +38,7 @@ object AdaptsScores {
   private val prefix = "adapts"
   def exercise2Headers: List[String] = List(s"$prefix-b5novelApproaches", s"$prefix-b6openToChange", s"$prefix-b7learningAgility")
 
-  def exercise3Headers: List[String] = List(s"$prefix-b12consolidatesLearning", s"$prefix-b13learningAtPace", s"$prefix-b14respondsFlexibily")
+  def exercise3Headers: List[String] = List(s"$prefix-b12consolidatesLearning", s"$prefix-b14respondsFlexibily")
 
   implicit val adaptsScoresFormat: OFormat[AdaptsScores] =
     Json.format[AdaptsScores]

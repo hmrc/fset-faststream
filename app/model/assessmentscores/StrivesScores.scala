@@ -25,7 +25,7 @@ case class StrivesScores(
                           b8strivesToSucceed: Option[Double] = None, // exercise 2
                           b9goalOriented: Option[Double] = None, // exercise 2
                           b15motivation: Option[Double] = None, // exercise 3
-                          b16conduct: Option[Double] = None // exercise 3
+                          b16commitment: Option[Double] = None // exercise 3
                         ) {
   override def toString: String =
     s"b21aignsWithGoals=$b21alignsWithGoals," +
@@ -33,7 +33,7 @@ case class StrivesScores(
       s"b8strivesToSucceed=$b8strivesToSucceed," +
       s"b9goalOriented=$b9goalOriented," +
       s"b15motivation=$b15motivation," +
-      s"b16conduct=$b16conduct"
+      s"b16commitment=$b16commitment"
 }
 
 object StrivesScores {
@@ -42,7 +42,7 @@ object StrivesScores {
 
   def exercise2Headers: List[String] = List(s"$prefix-b8strivesToSucceed", s"$prefix-b9goalOriented")
 
-  def exercise3Headers: List[String] = List(s"$prefix-b15motivation", s"$prefix-b16conduct")
+  def exercise3Headers: List[String] = List(s"$prefix-b15motivation", s"$prefix-b16commitment")
 
   implicit val strivesScoresFormat: OFormat[StrivesScores] = Json.format[StrivesScores]
 }
