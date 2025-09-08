@@ -1376,9 +1376,8 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
                 relatesScoresOpt.flatMap(_.b10selfAwareAndManages),
                 relatesScoresOpt.flatMap(_.b11communicatesEffectively),
                 strivesScoresOpt.flatMap(_.b15motivation),
-                strivesScoresOpt.flatMap(_.b16conduct),
+                strivesScoresOpt.flatMap(_.b16commitment),
                 adaptsScoresOpt.flatMap(_.b12consolidatesLearning),
-                adaptsScoresOpt.flatMap(_.b13learningAtPace),
                 adaptsScoresOpt.flatMap(_.b14respondsFlexibily)
               )
           }
