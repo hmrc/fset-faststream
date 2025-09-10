@@ -150,6 +150,7 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
           CivilServantAndInternshipType.SDIP.toBson,
           CivilServantAndInternshipType.OtherInternship.toBson
         ),
+        "civilServantDepartment" -> "Accountant in Bankruptcy",
         "edipYear" -> "2018",
         "sdipYear" -> "2019",
         "otherInternshipName" -> "other",

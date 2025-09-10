@@ -64,6 +64,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
       )
 
     val csedCivilServant = containsCivilServantAndInternshipType(CivilServantAndInternshipType.CivilServant).map(booleanTranslator)
+    val csedCivilServantDepartment = csedDocOpt.flatMap( doc => Try(doc.get("civilServantDepartment").asString().getValue).toOption)
     val csedEdipCompleted = containsCivilServantAndInternshipType(CivilServantAndInternshipType.EDIP).map(booleanTranslator)
     val csedSdip = containsCivilServantAndInternshipType(CivilServantAndInternshipType.SDIP).map(booleanTranslator)
     val csedOtherInternshipCompleted = containsCivilServantAndInternshipType(CivilServantAndInternshipType.OtherInternship)
@@ -100,7 +101,7 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
     val assessmentCentre = fsacIndicatorDocOpt.map(_.get("assessmentCentre").asString().getValue)
 
     CandidateProgressReportItem(userId, applicationId, Some(ProgressStatusesReportLabels.progressStatusNameInReports(progress)),
-      schemes.getOrElse(Nil), disability, assessmentCentreAdjustments, phoneAdjustments, gis, csedCivilServant,
+      schemes.getOrElse(Nil), disability, assessmentCentreAdjustments, phoneAdjustments, gis, csedCivilServant, csedCivilServantDepartment,
       edipReportColumn, csedSdip, otherInternshipColumn, fastPassCertificate, assessmentCentre, applicationRoute)
   } //scalastyle:on
 

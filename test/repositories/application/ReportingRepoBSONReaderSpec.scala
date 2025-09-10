@@ -67,7 +67,8 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec with Schemes {
         disability = Some("Yes"), gis = Some(false), onlineAdjustments = Some("Yes"),
         assessmentCentreAdjustments = Some("Yes"),
         civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
-          isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2019"), isSDIP = Some("No"), sdipYear = None,
+          isCivilServant = Some("Yes"), civilServantDepartment = Some("Accountant in Bankruptcy"),
+          isEDIP = Some("Yes"), edipYear = Some("2019"), isSDIP = Some("No"), sdipYear = None,
           otherInternship = Some("Yes"), otherInternshipName = Some("Other internship name"), otherInternshipYear = Some("2020"),
           fastPassCertificate = Some("No")
         )),
@@ -91,7 +92,8 @@ class ReportingRepoBSONReaderSpec extends UnitWithAppSpec with Schemes {
         disability = Some("Yes"), gis = Some(false), onlineAdjustments = None,
         assessmentCentreAdjustments = Some("Yes"),
         civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
-          isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
+          isCivilServant = Some("Yes"), civilServantDepartment = Some("Accountant in Bankruptcy"),
+          isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
           otherInternship = Some("Yes"), otherInternshipName = Some("Other internship name"), otherInternshipYear = Some("2020"),
           fastPassCertificate = Some("1234567")
         )),

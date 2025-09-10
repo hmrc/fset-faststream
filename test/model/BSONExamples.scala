@@ -58,7 +58,8 @@ object BSONExamples {
       ),
       "civil-service-experience-details" -> BsonDocument(
         "applicable" -> true,
-        "civilServantAndInternshipTypes" -> List("CivilServant")
+        "civilServantAndInternshipTypes" -> List("CivilServant"),
+        "civilServantDepartment" -> "Accountant in Bankruptcy"
       ),
       "scheme-preferences" -> BsonDocument(
         "schemes" -> BsonArray(
@@ -113,6 +114,7 @@ object BSONExamples {
       "civil-service-experience-details" -> BsonDocument(
         "applicable" -> true,
         "civilServantAndInternshipTypes" -> List("CivilServant", "EDIP", "SDIP", "OtherInternship"),
+        "civilServantDepartment" -> "Accountant in Bankruptcy",
         "edipYear" -> "2018",
         "sdipYear" -> "2019",
         "otherInternshipName" -> "Other internship name",

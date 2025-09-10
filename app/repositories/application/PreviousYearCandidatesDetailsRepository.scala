@@ -121,7 +121,7 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
 
   def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
     "ApplicationId,Date of Birth,Application status,Route,All FS schemes failed SDIP not failed," +
-      "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
+      "Civil servant,Civil servant department,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
       "Scheme preferences," +
       sdipLocationsAndInterestsHeaders +
       "Do you have a disability,Disability impact," +
@@ -142,7 +142,7 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
 
   def applicationDetailsHeader(numOfSchemes: Int) = "applicationId,userId,testAccountId,Application Status,Route,First name,Last name," +
     "Preferred Name,Date of Birth,Are you eligible,Terms and Conditions," +
-    "Civil servant,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
+    "Civil servant,Civil servant department,EDIP,EDIP year,SDIP,SDIP year,Other internship,Other internship name,Other internship year,Fast Pass No," +
     "Scheme preferences,Scheme names,Are you happy with order,Are you eligible," +
     sdipLocationsAndInterestsHeaders +
     assistanceDetailsHeaders +

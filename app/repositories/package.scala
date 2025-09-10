@@ -117,6 +117,7 @@ package object repositories {
         .exists(_.contains(internshipType))
 
     val civilServant = booleanTranslator(containsCivilServantAndInternshipType(CivilServantAndInternshipType.CivilServant))
+    val civilServantDepartmentOpt = extract("civilServantDepartment")(csedDocOpt)
     val edipCompleted = booleanTranslator(containsCivilServantAndInternshipType(CivilServantAndInternshipType.EDIP))
     val sdipCompleted = booleanTranslator(containsCivilServantAndInternshipType(CivilServantAndInternshipType.SDIP))
     val otherInternshipCompleted = booleanTranslator(containsCivilServantAndInternshipType(CivilServantAndInternshipType.OtherInternship))
@@ -165,7 +166,7 @@ package object repositories {
     }
 
     CombinedCivilServiceExperienceDetails(
-      Some(civilServant), edipCompletedColumnOpt, edipYearColumnOpt, Some(sdipCompleted), sdipYearOpt,
+      Some(civilServant), civilServantDepartmentOpt, edipCompletedColumnOpt, edipYearColumnOpt, Some(sdipCompleted), sdipYearOpt,
       otherInternshipColumnOpt, otherInternshipNameColumnOpt, otherInternshipYearColumnOpt, Some(fastPassCertificate)
     )
   } //scalastyle:on method.length cyclomatic.complexity

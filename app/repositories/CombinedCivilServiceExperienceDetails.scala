@@ -18,6 +18,7 @@ package repositories
 
 // Combined from personal-details and civil-service-experience-details sections of application collection
 case class CombinedCivilServiceExperienceDetails(isCivilServant: Option[String],
+                                                 civilServantDepartment: Option[String],
                                                  isEDIP: Option[String],
                                                  edipYear: Option[String],
                                                  isSDIP: Option[String],
@@ -28,6 +29,6 @@ case class CombinedCivilServiceExperienceDetails(isCivilServant: Option[String],
                                                  fastPassCertificate: Option[String]
                                                 ) {
   def toList: List[Option[String]] =
-    List(isCivilServant, isEDIP, edipYear, isSDIP, sdipYear,
+    List(isCivilServant, civilServantDepartment, isEDIP, edipYear, isSDIP, sdipYear,
       otherInternship, otherInternshipName, otherInternshipYear, fastPassCertificate)
 }
