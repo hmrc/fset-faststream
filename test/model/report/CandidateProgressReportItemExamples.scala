@@ -23,13 +23,15 @@ object CandidateProgressReportItemExamples extends Schemes {
     applicationId = "a665043b-8317-4d28-bdf6-086859ac17ff",
     Some("submitted"), List(Sdip), disability = Some("Yes"),
     assessmentCentreAdjustments = Some("Yes"), phoneAdjustments = Some("Yes"),
-    gis = Some("No"), civilServant = Some("Yes"), edip = Some("Yes"), sdip = Some("No"),
+    gis = Some("No"), civilServant = Some("Yes"), civilServantDepartment = Some("Accountant in Bankruptcy"),
+    edip = Some("Yes"), sdip = Some("No"),
     otherInternship = Some("Yes"), fastPassCertificate = Some("No"), assessmentCentre = None, ApplicationRoute.Sdip)
 
   lazy val FaststreamCandidate = CandidateProgressReportItem(userId = "459b5e72-e004-48ff-9f00-adbddf59d9c4",
     applicationId = "a665043b-8317-4d28-bdf6-086859ac17ff",
     Some("submitted"), List(Commercial), disability = Some("Yes"),
     assessmentCentreAdjustments = Some("Yes"), phoneAdjustments = Some("Yes"),
-    gis = Some("No"), civilServant = Some("Yes"), edip = Some("Yes"), sdip = Some("Yes"),
+    gis = Some("No"), civilServant = Some("Yes"), civilServantDepartment = Some("Accountant in Bankruptcy"),
+    edip = Some("Yes"), sdip = Some("Yes"),
     otherInternship = Some("Yes"), fastPassCertificate = Some("1234567"), assessmentCentre = None, ApplicationRoute.Faststream)
 }

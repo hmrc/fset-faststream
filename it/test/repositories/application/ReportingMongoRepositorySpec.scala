@@ -73,7 +73,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result.head mustBe CandidateProgressReportItem(userId = userId, applicationId = appId, progress = Some("submitted"),
         schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
         assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
-        civilServant = Some("Yes"), edip = Some("Yes"), sdip = Some("Yes"), otherInternship = Some("Yes"),
+        civilServant = Some("Yes"), civilServantDepartment = Some("Accountant in Bankruptcy"),
+        edip = Some("Yes"), sdip = Some("Yes"), otherInternship = Some("Yes"),
         fastPassCertificate = Some("1234567"), assessmentCentre = None, applicationRoute = ApplicationRoute.Faststream)
     }
 
@@ -87,7 +88,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result must not be empty
       result.head mustBe CandidateProgressReportItem(userId = userId, applicationId = appId, progress = Some("registered"),
         schemes = List.empty[SchemeId], disability = None, assessmentCentreAdjustments = None,
-        phoneAdjustments = None, gis = None, civilServant = None, edip = None, sdip = None, otherInternship = None,
+        phoneAdjustments = None, gis = None, civilServant = None, civilServantDepartment = None,
+        edip = None, sdip = None, otherInternship = None,
         fastPassCertificate = None, assessmentCentre = None, applicationRoute = ApplicationRoute.Faststream)
     }
   }
@@ -104,7 +106,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
       result.head mustBe ApplicationForDiversityReport(appId, userId, ApplicationRoute.Faststream, Some("registered"),
         schemes = List.empty, disability = None, gis = None, onlineAdjustments = None, assessmentCentreAdjustments = None,
         civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
-          isCivilServant = Some("No"), isEDIP = Some("No"), edipYear = None, isSDIP = Some("No"),
+          isCivilServant = Some("No"), civilServantDepartment = None,
+          isEDIP = Some("No"), edipYear = None, isSDIP = Some("No"),
           sdipYear = None, otherInternship = Some("No"), otherInternshipName = None, otherInternshipYear = None,
           fastPassCertificate = Some("No")
         )),
@@ -134,7 +137,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService),
           disability = Some("Yes"), gis = Some(true), onlineAdjustments = None, assessmentCentreAdjustments = Some("No"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
-            isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
+            isCivilServant = Some("Yes"), civilServantDepartment = Some("Accountant in Bankruptcy"),
+            isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
             otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
             fastPassCertificate = Some("1234567"))
           ),
@@ -146,7 +150,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService),
           disability = Some("Yes"), gis = Some(false), onlineAdjustments = None, assessmentCentreAdjustments = Some("No"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
-            isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
+            isCivilServant = Some("Yes"), civilServantDepartment = Some("Accountant in Bankruptcy"),
+            isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
             otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
             fastPassCertificate = Some("1234567"))
           ),
@@ -158,7 +163,8 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
           schemes = List(DiplomaticAndDevelopment, GovernmentOperationalResearchService),
           disability = Some("Yes"), gis = Some(false), onlineAdjustments = None, assessmentCentreAdjustments = Some("Yes"),
           civilServiceExperiencesDetails = Some(CivilServiceExperienceDetailsForDiversityReport(
-            isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
+            isCivilServant = Some("Yes"), civilServantDepartment = Some("Accountant in Bankruptcy"),
+            isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
             otherInternship = Some("Yes"), otherInternshipName = Some("other"), otherInternshipYear = Some("2020"),
             fastPassCertificate = Some("1234567"))
           ),

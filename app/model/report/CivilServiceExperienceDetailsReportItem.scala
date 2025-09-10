@@ -21,6 +21,7 @@ import play.api.libs.json.{Json, OFormat}
 
 case class CivilServiceExperienceDetailsReportItem(
                                                     isCivilServant: Option[String],
+                                                    civilServantDepartment: Option[String],
                                                     isEDIP: Option[String],
                                                     edipYear: Option[String],
                                                     isSDIP: Option[String],
@@ -38,6 +39,7 @@ object CivilServiceExperienceDetailsReportItem {
   def apply(civilServiceExperience: CivilServiceExperienceDetailsForDiversityReport): CivilServiceExperienceDetailsReportItem = {
     CivilServiceExperienceDetailsReportItem(
       isCivilServant = civilServiceExperience.isCivilServant,
+      civilServantDepartment = civilServiceExperience.civilServantDepartment,
       isEDIP = civilServiceExperience.isEDIP,
       edipYear = civilServiceExperience.edipYear,
       isSDIP = civilServiceExperience.isSDIP,

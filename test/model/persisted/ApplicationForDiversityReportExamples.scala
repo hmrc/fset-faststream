@@ -25,7 +25,8 @@ object ApplicationForDiversityReportExamples extends Schemes {
       List(DiplomaticAndDevelopment, Commercial), disability = Some("No"), gis = Some(false),
       onlineAdjustments = Some("No"), assessmentCentreAdjustments = Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(
-        isCivilServant = Some("Yes"), isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
+        isCivilServant = Some("Yes"), civilServantDepartment = Some("Accountant in Bankruptcy"),
+        isEDIP = Some("Yes"), edipYear = Some("2018"), isSDIP = Some("Yes"), sdipYear = Some("2019"),
         otherInternship = Some("Yes"), otherInternshipName = Some("Name"), otherInternshipYear = Some("2020"),
         fastPassCertificate = Some("1234567")
       )),
@@ -39,7 +40,8 @@ object ApplicationForDiversityReportExamples extends Schemes {
       disability = Some("Yes"), gis = Some(true), onlineAdjustments = Some("Yes"),
       assessmentCentreAdjustments = Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(
-        isCivilServant = Some("Yes"), isEDIP = Some("No"), edipYear = None, isSDIP = Some("No"), sdipYear = None,
+        isCivilServant = Some("Yes"), civilServantDepartment = Some("Accountant in Bankruptcy"),
+        isEDIP = Some("No"), edipYear = None, isSDIP = Some("No"), sdipYear = None,
         otherInternship = Some("No"), otherInternshipName = None, otherInternshipYear = None,
         fastPassCertificate = Some("fastPass-101")
       )),

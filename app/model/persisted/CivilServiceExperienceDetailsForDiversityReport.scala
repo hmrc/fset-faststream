@@ -21,6 +21,7 @@ import repositories.CombinedCivilServiceExperienceDetails
 
 case class CivilServiceExperienceDetailsForDiversityReport(
                                                             isCivilServant: Option[String],
+                                                            civilServantDepartment: Option[String],
                                                             isEDIP: Option[String],
                                                             edipYear: Option[String],
                                                             isSDIP: Option[String],
@@ -36,7 +37,8 @@ object CivilServiceExperienceDetailsForDiversityReport {
 
   def apply(csed: CombinedCivilServiceExperienceDetails) :CivilServiceExperienceDetailsForDiversityReport = {
     CivilServiceExperienceDetailsForDiversityReport(
-      isCivilServant = csed.isCivilServant, isEDIP = csed.isEDIP, edipYear = csed.edipYear, isSDIP = csed.isSDIP,
+      isCivilServant = csed.isCivilServant, civilServantDepartment = csed.civilServantDepartment, isEDIP = csed.isEDIP,
+      edipYear = csed.edipYear, isSDIP = csed.isSDIP,
       sdipYear = csed.sdipYear, otherInternship = csed.otherInternship, otherInternshipName = csed.otherInternshipName,
       otherInternshipYear = csed.otherInternshipYear, fastPassCertificate = csed.fastPassCertificate
     )

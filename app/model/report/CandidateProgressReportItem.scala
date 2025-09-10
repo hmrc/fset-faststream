@@ -25,6 +25,7 @@ case class CandidateProgressReportItem(userId: String, applicationId: String, pr
                                        assessmentCentreAdjustments: Option[String], phoneAdjustments: Option[String],
                                        gis: Option[String],
                                        civilServant: Option[String],
+                                       civilServantDepartment: Option[String],
                                        edip: Option[String],
                                        sdip: Option[String],
                                        otherInternship: Option[String],
@@ -40,6 +41,7 @@ case class CandidateProgressReportItem(userId: String, applicationId: String, pr
       s"phoneAdjustments=$phoneAdjustments," +
       s"gis=$gis," +
       s"civilServant=$civilServant," +
+      s"civilServantDepartment=$civilServantDepartment," +
       s"edip=$edip," +
       s"sdip=$sdip," +
       s"otherInternship=$otherInternship," +

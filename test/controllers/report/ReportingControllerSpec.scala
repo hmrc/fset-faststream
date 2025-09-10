@@ -467,23 +467,23 @@ class ReportingControllerSpec extends UnitWithAppSpec {
         CandidateProgressReportItem("user1", "app1", Some("submitted"),
           List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
           assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
-          civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
+          civilServant = Some("No"), civilServantDepartment = None, edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
           fastPassCertificate = Some("1234567"), assessmentCentre = Some("London"), ApplicationRoute.Faststream),
         CandidateProgressReportItem("user2", "app2", Some("registered"),
           List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
           assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
-          civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
+          civilServant = Some("No"), civilServantDepartment = None, edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
           fastPassCertificate = Some("1234567"), assessmentCentre = None, ApplicationRoute.Faststream),
         CandidateProgressReportItem("user3", "app3", Some("submitted"),
           List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
           assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
-          civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"), fastPassCertificate = Some("1234567"),
-          assessmentCentre = None, ApplicationRoute.Edip),
+          civilServant = Some("No"), civilServantDepartment = None, edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
+          fastPassCertificate = Some("1234567"), assessmentCentre = None, ApplicationRoute.Edip),
         CandidateProgressReportItem("user4", "app4", Some("submitted"),
           List(DiplomaticAndDevelopment, GovernmentOperationalResearchService), disability = Some("Yes"),
           assessmentCentreAdjustments = Some("No"), phoneAdjustments = None, gis = Some("No"),
-          civilServant = Some("No"), edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"), fastPassCertificate = Some("1234567"),
-          assessmentCentre = Some("Newcastle"), ApplicationRoute.Faststream)
+          civilServant = Some("No"), civilServantDepartment = None, edip = Some("No"), sdip = Some("No"), otherInternship = Some("No"),
+          fastPassCertificate = Some("1234567"), assessmentCentre = Some("Newcastle"), ApplicationRoute.Faststream)
       )
     )
 
