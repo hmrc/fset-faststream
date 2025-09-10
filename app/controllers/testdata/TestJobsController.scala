@@ -54,6 +54,7 @@ class TestJobsController @Inject() (cc:ControllerComponents,
                                     progressToAssessmentCentreJob: ProgressToAssessmentCentreJobImpl,
                                     progressToFsbOrOfferJob: ProgressToFsbOrOfferJobImpl,
                                     evaluateAssessmentCentreJob: EvaluateAssessmentCentreJobImpl,
+                                    reminderEventAllocationJob: ReminderEventAllocationJobImpl,
                                     notifyAssessorsOfNewEventsJob: NotifyAssessorsOfNewEventsJobImpl,
                                     fsbOverallFailureJob: FsbOverallFailureJob,
                                     evaluateFsbJob: EvaluateFsbJobImpl,
@@ -213,9 +214,15 @@ class TestJobsController @Inject() (cc:ControllerComponents,
     }
   }
 
+  def processUnconfirmedCandidates: Action[AnyContent] = Action.async { implicit _ =>
+    reminderEventAllocationJob.tryExecute().map { _ =>
+      Ok("Remind candidates to accept event invitations job started")
+    }
+  }
+
   def notifyAssessorsOfNewEvents: Action[AnyContent] = Action.async { implicit _ =>
     notifyAssessorsOfNewEventsJob.tryExecute().map { _ =>
-      Ok("Notify assessors of newly created events started")
+      Ok("Notify assessors of newly created events job started")
     }
   }
 

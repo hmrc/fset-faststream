@@ -409,7 +409,12 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
   }
 
   def processUnconfirmedCandidates()(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+    val date = LocalDate.now.minusDays(eventsConfig.daysBeforeInvitationReminder)
+    logger.debug(s"[processUnconfirmedCandidates] Looking for candidates with unconfirmed events and no reminder sent created before $date " +
+      s"(${eventsConfig.daysBeforeInvitationReminder} days ago)...")
     candidateAllocationRepo.findAllUnconfirmedAllocated(eventsConfig.daysBeforeInvitationReminder).flatMap { allocations =>
+      logger.debug(s"[processUnconfirmedCandidates] Found ${allocations.size} candidate allocation records that need reminder emails - " +
+        s"appIds = ${allocations.map(_.id).mkString(",")}")
       Future.sequence(allocations.map { alloc =>
         eventsService.getEvent(alloc.eventId).flatMap { event =>
           sendCandidateEmail(CandidateAllocation.fromPersisted(alloc), event, UniqueIdentifier(alloc.sessionId), isAwaitingReminder = true)

@@ -55,6 +55,7 @@ GET     /candidate-application/test-only/process-failed-at-sift                 
 GET     /candidate-application/test-only/progress-candidates-to-ac                            @controllers.testdata.TestJobsController.progressCandidatesToAssessmentCentre
 GET     /candidate-application/test-only/evaluate-assessment-centre-candidate                 @controllers.testdata.TestJobsController.evaluateAssessmentCentreCandidate
 GET     /candidate-application/test-only/progress-candidates-to-fsb-or-offer-job              @controllers.testdata.TestJobsController.progressCandidatesToFsbOrOfferJob
+GET     /candidate-application/test-only/process-unconfirmed-candidates                       @controllers.testdata.TestJobsController.processUnconfirmedCandidates
 GET     /candidate-application/test-only/notify-assessors-of-new-events                       @controllers.testdata.TestJobsController.notifyAssessorsOfNewEvents
 GET     /candidate-application/test-only/process-failed-at-fsb                                @controllers.testdata.TestJobsController.allFailedAtFsb
 GET     /candidate-application/test-only/evaluate-fsb-results                                 @controllers.testdata.TestJobsController.evaluateFsbResults
