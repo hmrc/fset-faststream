@@ -16,17 +16,16 @@
 
 package services.application
 
+import model.*
 import model.Commands.PhoneNumber
-import model.EvaluationResults.{Amber, Green, Red}
-import model.Exceptions.{LastSchemeWithdrawException, PassMarkEvaluationNotFound, SiftExpiredException}
+import model.EvaluationResults.{Green, Red}
+import model.Exceptions.PassMarkEvaluationNotFound
 import model.ProgressStatuses.ProgressStatus
-import model._
-import model.command._
-import model.exchange.sift.SiftAnswersStatus
+import model.command.*
 import model.persisted.{ContactDetails, FsbTestGroup, PassmarkEvaluation, SchemeEvaluationResult}
 import model.stc.AuditEvents
-import org.mockito.ArgumentMatchers.{any, eq => eqTo, _}
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.{any, eq as eqTo}
+import org.mockito.Mockito.*
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.assessmentcentre.AssessmentCentreRepository
@@ -34,7 +33,7 @@ import repositories.assistancedetails.AssistanceDetailsRepository
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
-import repositories.onlinetesting._
+import repositories.onlinetesting.*
 import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import repositories.sift.ApplicationSiftRepository
@@ -48,7 +47,7 @@ import services.onlinetesting.phase2.EvaluatePhase2ResultService
 import services.onlinetesting.phase3.EvaluatePhase3ResultService
 import services.sift.{ApplicationSiftService, SiftAnswersService}
 import services.stc.StcEventServiceFixture
-import testkit.MockitoImplicits._
+import testkit.MockitoImplicits.*
 import testkit.{ExtendedTimeout, UnitSpec}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -207,6 +206,40 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
       underTest.overrideSubmissionDeadline(applicationId, newDeadline)
 
       verify(appRepositoryMock, times(1)).updateSubmissionDeadline(eqTo(applicationId), eqTo(newDeadline))
+    }
+  }
+
+  "Reinstate submit check failed" must {
+    "throw an exception when the candidate is not in the correct state" in new TestFixture {
+      when(appRepositoryMock.findStatus(applicationId)).thenReturnAsync(
+        ApplicationStatusDetails(
+          ApplicationStatus.SUBMITTED,
+          ApplicationRoute.Sdip,
+          latestProgressStatus = Some(ProgressStatuses.SUBMITTED),
+          overrideSubmissionDeadline = None
+        )
+      )
+
+      val result = underTest.reinstateSubmitCheckFailed(applicationId)
+      result.failed.futureValue mustBe an[Exception]
+      verify(appRepositoryMock, never).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])
+    }
+
+    "work as expected when the candidate is in the correct state" in new TestFixture {
+      when(appRepositoryMock.findStatus(applicationId)).thenReturnAsync(
+        ApplicationStatusDetails(
+          ApplicationStatus.SUBMITTED_CHECK_FAILED,
+          ApplicationRoute.Sdip,
+          latestProgressStatus = Some(ProgressStatuses.SUBMITTED_CHECK_FAILED_NOTIFIED),
+          overrideSubmissionDeadline = None
+        )
+      )
+
+      when(appRepositoryMock.addProgressStatusAndUpdateAppStatus(eqTo(applicationId), eqTo(ProgressStatuses.SUBMITTED_CHECK_PASSED)))
+        .thenReturnAsync()
+
+      underTest.reinstateSubmitCheckFailed(applicationId).futureValue
+      verify(appRepositoryMock, times(1)).addProgressStatusAndUpdateAppStatus(any[String], any[ProgressStatus])
     }
   }
 

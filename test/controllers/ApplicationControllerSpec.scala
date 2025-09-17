@@ -144,6 +144,38 @@ class ApplicationControllerSpec extends UnitWithAppSpec {
     }
   }
 
+  "Reinstate submit check failed" must {
+    "successfully reinstate a candidate" in new TestFixture {
+      when(mockApplicationService.reinstateSubmitCheckFailed(any())).thenReturnAsync()
+      val request = FakeRequest(
+        Helpers.PUT, controllers.routes.ApplicationController.reinstateSubmitCheckFailed(ApplicationId).url,
+        FakeHeaders(), body = ""
+      )
+      val result = testApplicationController.reinstateSubmitCheckFailed(ApplicationId)(request).run()
+      status(result) mustBe OK
+    }
+
+    "handle not finding a candidate" in new TestFixture {
+      when(mockApplicationService.reinstateSubmitCheckFailed(any())).thenReturn(Future.failed(ApplicationNotFound(ApplicationId)))
+      val request = FakeRequest(
+        Helpers.PUT, controllers.routes.ApplicationController.reinstateSubmitCheckFailed(ApplicationId).url,
+        FakeHeaders(), body = ""
+      )
+      val result = testApplicationController.reinstateSubmitCheckFailed(ApplicationId)(request).run()
+      status(result) mustBe NOT_FOUND
+    }
+
+    "handle the candidate not being in the correct state" in new TestFixture {
+      when(mockApplicationService.reinstateSubmitCheckFailed(any())).thenReturn(Future.failed(new Exception("BOOM")))
+      val request = FakeRequest(
+        Helpers.PUT, controllers.routes.ApplicationController.reinstateSubmitCheckFailed(ApplicationId).url,
+        FakeHeaders(), body = ""
+      )
+      val result = testApplicationController.reinstateSubmitCheckFailed(ApplicationId)(request).run()
+      status(result) mustBe BAD_REQUEST
+    }
+  }
+
   "Preview application" must {
     "mark the application as previewed" in new TestFixture {
       when(mockApplicationRepository.preview(any())).thenReturnAsync()
