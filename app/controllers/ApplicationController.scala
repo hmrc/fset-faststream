@@ -156,6 +156,16 @@ class ApplicationController @Inject() (cc: ControllerComponents,
     }
   }
 
+  def reinstateSubmitCheckFailed(applicationId: String): Action[AnyContent] = Action.async {
+    (for {
+      _ <- applicationService.reinstateSubmitCheckFailed(applicationId)
+    } yield Ok(s"Successfully reinstated submit check failed candidate $applicationId"))
+      .recover {
+        case _: ApplicationNotFound => NotFound(s"Unable to reinstate submit check failed candidate $applicationId because candidate not found")
+        case e: Exception => BadRequest(s"Unable to reinstate submit check failed candidate $applicationId because ${e.getMessage}")
+      }
+  }
+
   def uploadAnalysisExercise(applicationId: String, contentType: String) = Action.async(parse.temporaryFile) {
     implicit request =>
       (for {

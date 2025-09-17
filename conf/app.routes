@@ -31,6 +31,7 @@ PUT         /application/:applicationId/scheme/withdraw                  @contro
 PUT         /application/consider-for-sdip/:applicationId                @controllers.ApplicationController.considerForSdip(applicationId: String)
 PUT         /application/continue-as-sdip/:userId/:userIdToArchiveWith   @controllers.ApplicationController.continueAsSdip(userId: String, userIdToArchiveWith: String)
 PUT         /application/overrideSubmissionDeadline/:applicationId       @controllers.ApplicationController.overrideSubmissionDeadline(applicationId: String)
+PUT         /application/reinstateSubmitCheckFailed/:applicationId       @controllers.ApplicationController.reinstateSubmitCheckFailed(applicationId: String)
 POST        /application/status                                          @controllers.ApplicationController.updateStatus()
 POST        /application/uploadAnalysisExercise                          @controllers.ApplicationController.uploadAnalysisExercise(applicationId: String, contentType: String)
 GET         /application/downloadAnalysisExercise                        @controllers.ApplicationController.downloadAnalysisExercise(applicationId: String)

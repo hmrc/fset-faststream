@@ -398,6 +398,16 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     } yield ()
   }
 
+  def reinstateSubmitCheckFailed(applicationId: String): Future[Unit] = {
+    for {
+      applicationStatusDetails <- appRepository.findStatus(applicationId)
+      _ = if (applicationStatusDetails.status != ApplicationStatus.SUBMITTED_CHECK_FAILED) {
+        throw new Exception(s"Application status for $applicationId must be $ApplicationStatus.SUBMITTED_CHECK_FAILED")
+      }
+      _ <- appRepository.addProgressStatusAndUpdateAppStatus(applicationId, ProgressStatuses.SUBMITTED_CHECK_PASSED)
+    } yield ()
+  }
+
   def addSdipSchemePreference(applicationId: String): Future[Unit] = {
     for {
       // Look for the ApplicationRoute. We do this because if a document cannot be found this will throw an ApplicationNotFound exception
