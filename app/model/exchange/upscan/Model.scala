@@ -96,8 +96,3 @@ case class UploadDetails(
 case class UploadId(value: String) extends AnyVal {
   override def toString: String = s"UploadId(value=$value)"
 }
-
-object UploadId:
-  def generate(): UploadId =
-    //    UploadId(UUID.randomUUID().toString)
-    UploadId("5c750c3a-d933-4db4-837a-793abc098cc0")

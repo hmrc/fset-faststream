@@ -52,7 +52,7 @@ class UpscanService @Inject()(repository: UpscanRepository)(using ExecutionConte
           UploadStatuses.UploadedSuccessfully(
             name        = s.uploadDetails.fileName,
             mimeType    = s.uploadDetails.fileMimeType,
-            downloadUrl = s.downloadUrl.getFile,
+            downloadUrl = s.downloadUrl.toString,
             size        = Some(s.uploadDetails.size)
           )
         case _: FailedCallbackBody =>
