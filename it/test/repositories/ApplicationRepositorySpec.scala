@@ -112,11 +112,11 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
   }
 
   "Finding applications by user id" should {
-    "return an empty list when no records for an applicationid exist" in {
+    "return an empty list when no records exist for an application id" in {
       applicationRepo.find(List("appid-1")).futureValue.size mustBe 0
     }
 
-    "return a list of Candidates when records for an applicationid exist" in {
+    "return a list of Candidates when records for an application id exist" in {
       val appResponse = applicationRepo.create("userId1", "framework", ApplicationRoute.Faststream).futureValue
 
       val result = applicationRepo.find(List(appResponse.applicationId)).futureValue

@@ -98,11 +98,11 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId).futureValue
 
-      val applicationResponse = repository.findByUserId(userId, frameworkId).futureValue
+      val response = repository.findByUserId(userId, frameworkId).futureValue
 
-      applicationResponse.userId mustBe userId
-      applicationResponse.applicationId mustBe appId
-      applicationResponse.civilServiceExperienceDetails.get mustBe
+      response.userId mustBe userId
+      response.applicationId mustBe appId
+      response.civilServiceExperienceDetails.get mustBe
         CivilServiceExperienceDetails(
           applicable = true,
           civilServantAndInternshipTypes = Some(List(
@@ -129,11 +129,11 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId).futureValue
 
-      val applicationResponse = repository.findCandidateByUserId(userId).futureValue
+      val response = repository.findCandidateByUserId(userId).futureValue
 
-      applicationResponse mustBe defined
-      applicationResponse.get.applicationId mustBe Some(appId)
-      applicationResponse.get.lastName mustBe Some("Jetson")
+      response mustBe defined
+      response.get.applicationId mustBe Some(appId)
+      response.get.lastName mustBe Some("Jetson")
     }
 
     "find application by appId" in {
@@ -144,14 +144,33 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
 
       testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId).futureValue
 
-      val applicationResponse = repository.find(appId).futureValue
-      applicationResponse mustBe defined
-      applicationResponse.get.applicationId mustBe Some(appId)
+      val response = repository.find(appId).futureValue
+      response mustBe defined
+      response.get.applicationId mustBe Some(appId)
+      response.get.firstName mustBe Some("George")
+      response.get.lastName mustBe Some("Jetson")
+      response.get.preferredName mustBe Some("Georgy")
+    }
+
+    "find application by sequence of appIds" in {
+      val userId = "fastPassUser"
+      val appId = "fastPassApp"
+      val testAccountId = "testAccountId"
+      val frameworkId = "FastStream-2016"
+
+      testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId).futureValue
+
+      val response = repository.find(Seq(appId)).futureValue
+      response.size mustBe 1
+      response.head.applicationId mustBe Some(appId)
+      response.head.firstName mustBe Some("George")
+      response.head.lastName mustBe Some("Jetson")
+      response.head.preferredName mustBe Some("Georgy")
     }
 
     "return None when finding application by appId and the application does not exist" in {
-      val applicationResponse = repository.find(AppId).futureValue
-      applicationResponse mustBe None
+      val response = repository.find(AppId).futureValue
+      response mustBe None
     }
 
     "find application status" in {
