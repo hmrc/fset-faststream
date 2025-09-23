@@ -968,7 +968,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
       )
 
       // Converts a List[Candidate] to a Map[String, Candidate] (applicationId -> Candidate)
-      appIdToCandidateMapFut = applicationRepository.findForReport(candidateApplicationIds)
+      appIdToCandidateMapFut = applicationRepository.find(candidateApplicationIds)
         .map(
           _.map(x => x.applicationId.get -> x).toMap
         )
