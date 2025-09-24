@@ -60,7 +60,8 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoCompone
     mongoComponent = mongoComponent,
     domainFormat = CandidateAllocation.candidateAllocationFormat,
     indexes = Seq(
-      IndexModel(ascending("id", "eventId", "sessionId"), IndexOptions().unique(false))
+      IndexModel(ascending("id", "eventId", "sessionId"), IndexOptions().unique(false)),
+      IndexModel(ascending("createdAt"), IndexOptions().unique(false))
     )
   ) with CandidateAllocationRepository with ReactiveRepositoryHelpers {
 
