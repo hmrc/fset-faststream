@@ -50,7 +50,8 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
         Seq(
           IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
           IndexDetails(name = "id_1_eventId_1_sessionId_1",
-            keys = Seq(("id", "Ascending"), ("eventId", "Ascending"), ("sessionId", "Ascending")), unique = false)
+            keys = Seq(("id", "Ascending"), ("eventId", "Ascending"), ("sessionId", "Ascending")), unique = false),
+          IndexDetails(name = "createdAt_1", keys = Seq(("createdAt", "Ascending")), unique = false)
         )
     }
 
