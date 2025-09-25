@@ -483,8 +483,8 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         applicationId, "1",
         AssessmentEvaluationResult(fsacResults,
           schemesEvaluation = List(
-            SchemeEvaluationResult(Digital, Green.toString),
-            SchemeEvaluationResult(Commercial, Green.toString)
+            SchemeEvaluationResult(Commercial, Green.toString),
+            SchemeEvaluationResult(Digital, Green.toString)
           )
         )
       )
@@ -557,8 +557,8 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         applicationId, "1",
         AssessmentEvaluationResult(fsacResults,
           schemesEvaluation = List(
-            SchemeEvaluationResult(Property, Green.toString),
-            SchemeEvaluationResult(Commercial, Green.toString)
+            SchemeEvaluationResult(Commercial, Green.toString),
+            SchemeEvaluationResult(Property, Green.toString)
           )
         )
       )
@@ -629,8 +629,8 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
         applicationId, "1",
         AssessmentEvaluationResult(fsacResults,
           schemesEvaluation = List(
-            SchemeEvaluationResult(Digital, Red.toString),
-            SchemeEvaluationResult(Commercial, Green.toString)
+            SchemeEvaluationResult(Commercial, Green.toString),
+            SchemeEvaluationResult(Digital, Red.toString)
           )
         )
       )
