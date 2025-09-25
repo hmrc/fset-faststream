@@ -263,19 +263,25 @@ class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepo
 
   private def mergeSchemes(evaluation: Seq[SchemeEvaluationResult], evaluatedSchemesFromDb: Option[Seq[SchemeEvaluationResult]],
                            assessmentPassmarkEvaluation: AssessmentPassMarkEvaluation): AssessmentPassMarkEvaluation = {
-    // find any schemes which have been previously evaluated and stored in db and are not in the current evaluated schemes collection
-    // these will only be schemes that have been evaluated to red
+    // Find any schemes which have been previously evaluated and stored in db and are not in the current evaluated schemes collection
+    // these will only be schemes that have been evaluated to red or are withdrawn
     val failedSchemes = evaluatedSchemesFromDb.map { evaluatedSchemesSeq =>
       val schemesEvaluatedNow: Seq[SchemeId] = evaluation.groupBy(_.schemeId).keys.toList
 
-      // Any schemes read from db, which have not been evaluated this time will be failed schemes so identify those here
+      // Any schemes read from db, which have not been evaluated this time will be failed or withdrawn schemes so identify those here
       evaluatedSchemesSeq.filterNot( es => schemesEvaluatedNow.contains(es.schemeId) )
     }.getOrElse(Nil)
     val allSchemes = evaluation ++ failedSchemes
+
+    // We want to keep the scheme evaluations in the same order as the schemes read back from the db if there are any
+    val schemeEvaluationsInOrder = evaluatedSchemesFromDb.map { schemesFromDb =>
+      schemesFromDb.map(schemeFromDb => allSchemes.find(scheme => scheme.schemeId == schemeFromDb.schemeId).head )
+    }.getOrElse(allSchemes)
+
     assessmentPassmarkEvaluation.copy(evaluationResult =
       AssessmentEvaluationResult(
         fsacResults = assessmentPassmarkEvaluation.evaluationResult.fsacResults,
-        schemesEvaluation = allSchemes))
+        schemesEvaluation = schemeEvaluationsInOrder))
   }
 
   private def maybeMoveCandidateToPassedOrFailed(applicationId: UniqueIdentifier,
