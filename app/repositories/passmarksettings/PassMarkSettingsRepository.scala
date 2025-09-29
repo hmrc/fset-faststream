@@ -20,7 +20,7 @@ import model.PassMarkSettingsCreateResponse
 import model.exchange.passmarksettings.*
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.Sorts.descending
-import org.mongodb.scala.model.{IndexModel, IndexOptions}
+import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections}
 import org.mongodb.scala.{Document, ObservableFuture, SingleObservableFuture}
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent
@@ -41,7 +41,14 @@ class Phase1PassMarkSettingsMongoRepository @Inject() (mongo: MongoComponent)(im
   ) with PassMarkSettingsRepository[Phase1PassMarkSettingsPersistence] {
 
   override def getLatestVersion: Future[Option[Phase1PassMarkSettingsPersistence]] = {
-    collection.find(Document.empty).sort(descending("createDate")).headOption()
+    // Add a projection in addition to the sort so mongo will perform an IXSCAN instead of a COLLSCAN
+    val projection = Projections.include(
+      "schemes",
+      "version",
+      "createDate",
+      "createdBy"
+    )
+    collection.find(Document.empty).projection(projection).sort(descending("createDate")).headOption()
   }
 }
 
