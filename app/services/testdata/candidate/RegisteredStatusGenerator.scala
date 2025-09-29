@@ -47,7 +47,10 @@ class RegisteredStatusGenerator @Inject()(authProviderClient: AuthProviderClient
     val firstName = generatorConfig.personalData.firstName
     val lastName = generatorConfig.personalData.lastName
     val preferredName = generatorConfig.personalData.preferredName
-    val email = s"${generatorConfig.personalData.emailPrefix}@mailinator.com"
+    val email = generatorConfig.personalData.email match {
+      case Some(email) => email
+      case _ => s"${generatorConfig.personalData.emailPrefix}@mailinator.com"
+    }
     val mediaReferrer = dataFaker.mediaReferrer
 
     val roles = List(connectors.AuthProviderClient.CandidateRole)

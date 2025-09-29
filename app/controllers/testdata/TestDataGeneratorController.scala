@@ -283,7 +283,7 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
         }
       } catch {
         case _: EmailTakenException => Future.successful(Conflict(JsObject(List(("message",
-          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
+          JsString("Email has been already taken. Try with another one or change the emailPrefix parameter"))))))
       }
     }
 
@@ -362,10 +362,10 @@ class TestDataGeneratorController @Inject() (cc: ControllerComponents,
       }
     } catch {
       case etex: EmailTakenException =>
-        logger.error("TDG: Email has been already taken. Try with another one by changing the emailPrefix parameter.")
+        logger.error("TDG: Email has been already taken. Try with another one or change the emailPrefix parameter.")
         logger.error(etex.getStackTrace.toString())
         Future.successful(Conflict(JsObject(List(("message",
-          JsString("Email has been already taken. Try with another one by changing the emailPrefix parameter"))))))
+          JsString("Email has been already taken. Try with another one or change the emailPrefix parameter"))))))
       case ex: Throwable =>
         logger.error(s"TDG: There was an exception creating the candidate. Message=[$ex].")
         logger.error(s"TDG: ${ex.getCause}", ex)

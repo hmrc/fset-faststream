@@ -87,7 +87,8 @@ object CreateCandidateData extends DataFakerRandom {
   }
 
   case class PersonalData(
-    emailPrefix: String = s"tesf${Random.number() - 1}",
+    emailPrefix: String = s"test${Random.number() - 1}",
+    email: Option[String] = None,
     firstName: String = Random.firstname(1),
     lastName: String = Random.lastname(1),
     preferredName: Option[String] = None,
@@ -102,24 +103,25 @@ object CreateCandidateData extends DataFakerRandom {
   }
 
   object PersonalData {
-    def apply(o: PersonalDataRequest, dataFaker: DataFaker, generatorId: Int): PersonalData = {
+    def apply(pdr: PersonalDataRequest, dataFaker: DataFaker, generatorId: Int): PersonalData = {
       val default = PersonalData()
-      val fname = o.firstName.getOrElse(dataFaker.Random.firstname(generatorId))
-      val emailPrefix = o.emailPrefix.map(e => if (generatorId > 1) {
+      val fname = pdr.firstName.getOrElse(dataFaker.Random.firstname(generatorId))
+      val emailPrefix = pdr.emailPrefix.map(e => if (generatorId > 1) {
         s"$e-$generatorId"
       } else {
         e
       })
 
       PersonalData(
-        emailPrefix = emailPrefix.getOrElse(s"tesf${dataFaker.Random.number()}-$generatorId"),
+        emailPrefix = emailPrefix.getOrElse(s"test${dataFaker.Random.number()}-$generatorId"),
+        email = pdr.email,
         firstName = fname,
-        lastName = o.lastName.getOrElse(dataFaker.Random.lastname(generatorId)),
-        preferredName = o.preferredName,
-        dob = o.dateOfBirth.map(d => LocalDate.parse(d, DateTimeFormatter.ofPattern("yyyy-MM-dd"))).getOrElse(default.dob),
-        postCode = o.postCode,
-        country = o.country,
-        edipCompleted = o.edipCompleted
+        lastName = pdr.lastName.getOrElse(dataFaker.Random.lastname(generatorId)),
+        preferredName = pdr.preferredName,
+        dob = pdr.dateOfBirth.map(d => LocalDate.parse(d, DateTimeFormatter.ofPattern("yyyy-MM-dd"))).getOrElse(default.dob),
+        postCode = pdr.postCode,
+        country = pdr.country,
+        edipCompleted = pdr.edipCompleted
       )
     }
   }

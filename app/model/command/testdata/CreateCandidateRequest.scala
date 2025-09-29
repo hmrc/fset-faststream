@@ -118,6 +118,7 @@ object CreateCandidateRequest {
 
   case class PersonalDataRequest(
     emailPrefix: Option[String] = None,
+    email: Option[String] = None,
     firstName: Option[String] = None,
     lastName: Option[String] = None,
     preferredName: Option[String] = None,
