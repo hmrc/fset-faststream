@@ -20,14 +20,14 @@ import sbt.*
 //scalastyle:off line.size.limit
 object AppDependencies {
 
-  val bootstrapVersion = "10.1.0"
+  val bootstrapVersion = "10.2.0"
 
   val circe = Seq(
     "io.circe" %% "circe-yaml"  % "1.15.0"
   )
 
   val compile = Seq(
-    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % "2.7.0",
+    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % "2.9.0",
     "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"  % bootstrapVersion,
     "org.scala-lang.modules"        %% "scala-parallel-collections" % "1.2.0",
     filters,
