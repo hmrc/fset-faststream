@@ -125,7 +125,7 @@
   siftRequirement: FORM
   siftEvaluationRequired: true
   fsbType: SRAC
-  schemeQuestion: /fset-fast-stream/media/1262/GSR-FS-scheme-questions-gsr.odt
+  schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-gsr.odt
   schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-gsr.odt
 
 - id: GovernmentStatisticalService
