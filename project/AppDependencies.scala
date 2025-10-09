@@ -27,7 +27,7 @@ object AppDependencies {
   )
 
   val compile = Seq(
-    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % "2.9.0",
+    "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % "2.10.0",
     "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"  % bootstrapVersion,
     "org.scala-lang.modules"        %% "scala-parallel-collections" % "1.2.0",
     filters,
