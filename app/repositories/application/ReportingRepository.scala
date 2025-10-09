@@ -309,7 +309,7 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService,
 
   override def fastPassAwaitingAcceptanceReport: Future[Seq[(String, String)]] = {
     val query = BsonDocument("$and" -> BsonArray(
-      Document("applicationStatus" -> Document("$eq" -> ApplicationStatus.SUBMITTED.toBson)),
+      Document("applicationStatus" -> Document("$eq" -> ApplicationStatus.SUBMITTED_CHECK_PASSED.toBson)),
       Document("civil-service-experience-details.fastPassReceived" -> Document("$eq" -> true)),
       Document("civil-service-experience-details.fastPassAccepted" -> Document("$exists" -> false))
     ))
