@@ -90,6 +90,30 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       }
     }
 
+    "find progress status timestamp" should {
+      val userId = "userId"
+      val appId = "appId"
+      val testAccountId = "testAccountId"
+      val frameworkId = "FastStream-2016"
+
+      "handle finding a timestamp for the progress status" in {
+        testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId).futureValue
+
+        val response = repository.findProgressStatusTimestamp(Seq(appId), ProgressStatuses.SUBMITTED).futureValue
+        val todayAsAString = LocalDate.now().toString
+        val timestamp = response.get(appId).flatten
+        timestamp.head.startsWith(todayAsAString) mustBe true
+      }
+
+      "return an empty option when not finding a timestamp for the progress status" in {
+        testDataRepo.createApplicationWithAllFields(userId, appId, testAccountId, frameworkId).futureValue
+
+        val response = repository.findProgressStatusTimestamp(Seq(appId), ProgressStatuses.WITHDRAWN).futureValue
+        val timestamp = response.get(appId).flatten
+        timestamp mustBe None
+      }
+    }
+
     "find application by userId and frameworkId" in {
       val userId = "fastPassUser"
       val appId = "fastPassApp"

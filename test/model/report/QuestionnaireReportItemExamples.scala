@@ -20,13 +20,15 @@ import scala.util.Random
 
 object QuestionnaireReportItemExamples {
   val NoParentOccupation1 = QuestionnaireReportItem(sex = Some("Male"), sexualOrientation = Some("Heterosexual/straight"),
-    ethnicity = Some("Irish"), isEnglishYourFirstLanguage = Some("Yes"), parentEmploymentStatus = None, parentOccupation = None,
-    parentEmployedOrSelf = None, parentCompanySize = None, lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SE-1",
+    ethnicity = Some("Irish"), isEnglishYourFirstLanguage = Some("Yes"),
+    parentEmploymentStatus = None, parentOccupation = None, parentTypeOfWorkAtAge14 = None, parentEmployedOrSelf = None,
+    parentCompanySize = None, parentSuperviseEmployees = None, lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SE-1",
     university = Some("W76-WIN"), categoryOfDegree = Some("Biosciences"), degreeType = Some("BSc/MSc/Eng"), postgradUniversity = None,
     postgradCategoryOfDegree = None, postgradDegreeType = None)
   val NoParentOccupation2 = QuestionnaireReportItem(sex = Some("Female"), sexualOrientation = Some("Bisexual"),
-    ethnicity = Some("Other White background"), isEnglishYourFirstLanguage = Some("Yes"), parentEmploymentStatus = None, parentOccupation = None,
-    parentEmployedOrSelf = None, parentCompanySize = None, lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SE-2",
+    ethnicity = Some("Other White background"), isEnglishYourFirstLanguage = Some("Yes"),
+    parentEmploymentStatus = None, parentOccupation = None, parentTypeOfWorkAtAge14 = None, parentEmployedOrSelf = None,
+    parentCompanySize = None, parentSuperviseEmployees = None, lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SE-2",
     university = Some("O33-OXF"), categoryOfDegree = Some("Biosciences"), degreeType = Some("BSc/MSc/Eng"), postgradUniversity = None,
     postgradCategoryOfDegree = None, postgradDegreeType = None)
 
@@ -36,7 +38,8 @@ object QuestionnaireReportItemExamples {
   def newQuestionnaire =
     QuestionnaireReportItem(someRnd("Sex"), someRnd("Orientation"), someRnd("Ethnicity"),
       isEnglishYourFirstLanguage = Some("Yes"),
-      someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("(Self)Employed"), someRnd("CompanySize"),
+      someRnd("EmploymentStatus"), someRnd("Occupation"), someRnd("TypeOfWork"), someRnd("(Self)Employed"),
+      someRnd("CompanySize"), Some("Yes"),
       someRnd("SocioEconomicBackground"), rnd("SES"),
       someRnd("university"), someRnd("categoryOfDegree"), someRnd("degreeType"),
       postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None

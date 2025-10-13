@@ -55,8 +55,10 @@ trait QuestionnaireRepository extends DiversityQuestionsText {
   val PostgradDegreeTypeText = postgradDegreeType
   val SocioEconomicQuestionText = lowerSocioEconomicBackground
   val EmploymentStatusQuestionText = highestEarningParentOrGuardianTypeOfWorkAtAge14
+  val ParentTypeOfWorkAtAge14Text = highestEarningParentOrGuardianTypeOfWorkAtAge14
   val ParentEmployedOrSelfEmployedQuestionText = employeeOrSelfEmployed
   val ParentCompanySizeQuestionText = sizeOfPlaceOfWork
+  val ParentSuperviseEmployeesText = superviseEmployees
 
   val DontKnowAnswerText = "I don't know/prefer not to say"
   val EmployedAnswerText = "Employed"
@@ -188,6 +190,7 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     }
   }
 
+  //scalastyle:off method.length
   private def docToReport(document: Document): (String, QuestionnaireReportItem) = {
 
     implicit val questionsDocOpt: Option[BsonDocument] = document.get("questions").map(_.asDocument())
@@ -214,8 +217,10 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
     val parentEmploymentStatus = if (isEmployed) Some(EmployedAnswerText) else employmentStatus
     val parentOccupation = if (isEmployed) employmentStatus else None
 
+    val parentTypeOfWorkAtAge14 = getAnswer(ParentTypeOfWorkAtAge14Text)
     val parentEmployedOrSelf = getAnswer(ParentEmployedOrSelfEmployedQuestionText)
     val parentCompanySize = getAnswer(ParentCompanySizeQuestionText)
+    val parentSuperviseEmployees = getAnswer(ParentSuperviseEmployeesText)
 
     val qAndA = getAllQuestionsAndAnswers(questionsDocOpt)
 
@@ -228,8 +233,10 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
       englishLanguage,
       parentEmploymentStatus,
       parentOccupation,
+      parentTypeOfWorkAtAge14,
       parentEmployedOrSelf,
       parentCompanySize,
+      parentSuperviseEmployees,
       socioEconomic,
       socioEconomicScore,
       university,

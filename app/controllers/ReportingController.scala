@@ -1330,5 +1330,40 @@ class ReportingController @Inject() (cc: ControllerComponents,
       Ok(Json.toJson(stuckCandidates))
     }
   }
+
+  def sdipEligibilityReport(): Action[AnyContent] = Action.async {
+    for {
+      candidateIds <- prevYearCandidatesDetailsRepository.findApplicationsFor(Seq(Sdip))
+      candidateList <- applicationRepository.find(candidateIds.map(_.applicationId))
+      contactDetailsList <- contactDetailsRepository.findByUserIds(candidateIds.map(_.userId))
+      questionsMap <- questionnaireRepository.findQuestionsByIds(candidateIds.map(_.applicationId))
+      timestampMap <- applicationRepository
+        .findProgressStatusTimestamp(candidateIds.map(_.applicationId), ProgressStatuses.SUBMITTED_CHECK_FAILED_NOTIFIED)
+    } yield {
+
+      val headers = Seq("First name,Last name,Preferred name,Email,Submitted Check Failed Notified," +
+        "Parents job at 14,Employee,Size,Supervise Employees,SEB")
+      val report = headers ++ candidateIds.map { ids =>
+        val candidate = candidateList.find(_.applicationId.contains(ids.applicationId))
+        val contactDetails = contactDetailsList.find(_.userId == ids.userId)
+        val questions = questionsMap.get(ids.applicationId)
+        val timestamp = timestampMap.get(ids.applicationId).flatten
+
+        makeRow(
+          candidate.flatMap(_.firstName),
+          candidate.flatMap(_.lastName),
+          candidate.flatMap(_.preferredName),
+          contactDetails.map(_.email),
+          timestamp,
+          questions.flatMap(_.parentTypeOfWorkAtAge14),
+          questions.flatMap(_.parentEmployedOrSelf),
+          questions.flatMap(_.parentCompanySize),
+          questions.flatMap(_.parentSuperviseEmployees),
+          questions.map(_.socioEconomicScore)
+        )
+      }
+      Ok(Json.toJson(report))
+    }
+  }
 }
 //scalastyle:on

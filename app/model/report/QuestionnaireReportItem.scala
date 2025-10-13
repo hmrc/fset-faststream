@@ -25,8 +25,10 @@ case class QuestionnaireReportItem(
                                     isEnglishYourFirstLanguage: Option[String],
                                     parentEmploymentStatus: Option[String],
                                     parentOccupation: Option[String],
+                                    parentTypeOfWorkAtAge14: Option[String],
                                     parentEmployedOrSelf: Option[String],
                                     parentCompanySize: Option[String],
+                                    parentSuperviseEmployees: Option[String],
                                     lowerSocioEconomicBackground: Option[String],
                                     socioEconomicScore: String,
                                     university: Option[String],
@@ -44,8 +46,10 @@ case class QuestionnaireReportItem(
       s"isEnglishYourFirstLanguage=$isEnglishYourFirstLanguage," +
       s"parentEmploymentStatus=$parentEmploymentStatus," +
       s"parentOccupation=$parentOccupation," +
+      s"parentTypeOfWorkAtAge14=$parentTypeOfWorkAtAge14," +
       s"parentEmployedOrSelf=$parentEmployedOrSelf," +
       s"parentCompanySize=$parentCompanySize," +
+      s"parentSuperviseEmployees=$parentSuperviseEmployees," +
       s"lowerSocioEconomicBackground=$lowerSocioEconomicBackground," +
       s"socioEconomicScore=$socioEconomicScore," +
       s"university=$university," +
