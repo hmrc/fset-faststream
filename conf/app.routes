@@ -166,6 +166,7 @@ GET         /report/allocated-assessors                                     @con
 GET         /report/allocated-candidates                                    @controllers.ReportingController.allocatedCandidatesReport()
 
 GET         /report/candidates-stuck-in-fsac                                @controllers.ReportingController.candidateStuckAfterFsacEvaluationReport()
+GET         /report/sdip-eligibility                                        @controllers.ReportingController.sdipEligibilityReport()
 # Reports end
 
 GET         /campaign-management/afterDeadlineSignupCodeUnusedAndValid   @controllers.CampaignManagementController.afterDeadlineSignupCodeUnusedAndValid(code: String)

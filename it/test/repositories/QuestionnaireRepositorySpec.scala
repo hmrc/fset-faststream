@@ -84,15 +84,17 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
           sex = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
-          parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None,
-          parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score",
+          parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentTypeOfWorkAtAge14 = Some("Unemployed"),
+          parentEmployedOrSelf = None, parentCompanySize = None, parentSuperviseEmployees = None, lowerSocioEconomicBackground = None,
+          socioEconomicScore = "SES Score",
           university = Some("W01-USW"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId2 -> QuestionnaireReportItem(
           sex = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
-          parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
+          parentTypeOfWorkAtAge14 = Some("Modern professional"),
+          parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"), parentSuperviseEmployees = None,
           lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score",
           university = Some("W17-WARR"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
@@ -111,8 +113,10 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
           sex = Some(dontKnowText), sexualOrientation = Some(dontKnowText), ethnicity = Some(dontKnowText),
-          isEnglishYourFirstLanguage = Some(dontKnowText), parentEmploymentStatus = Some("Employed"), parentOccupation = Some(dontKnowText),
+          isEnglishYourFirstLanguage = Some(dontKnowText), parentEmploymentStatus = Some("Employed"),
+          parentOccupation = Some(dontKnowText), parentTypeOfWorkAtAge14 = Some(dontKnowText),
           parentEmployedOrSelf = Some(dontKnowText), parentCompanySize = Some(dontKnowText),
+          parentSuperviseEmployees = Some(dontKnowText),
           lowerSocioEconomicBackground = Some(dontKnowText), socioEconomicScore = "SES Score",
           university = Some(dontKnowText), categoryOfDegree = None, degreeType = None,
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
@@ -148,23 +152,25 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
           sex = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
-          parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None,
-          parentCompanySize = None, lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score",
+          parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentTypeOfWorkAtAge14 = Some("Unemployed"),
+          parentEmployedOrSelf = None, parentCompanySize = None, parentSuperviseEmployees = None,
+          lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score",
           university = Some("W01-USW"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId2 -> QuestionnaireReportItem(
           sex = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
-          parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
+          parentTypeOfWorkAtAge14=Some("Modern professional"), parentEmployedOrSelf = Some("Part-time employed"),
+          parentCompanySize = Some("Large (26-500)"), parentSuperviseEmployees = None,
           lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score",
           university = Some("W17-WARR"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId3 -> QuestionnaireReportItem(
           sex = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
-          parentEmploymentStatus = None, parentOccupation = None,
-          parentEmployedOrSelf = None, parentCompanySize = None,
+          parentEmploymentStatus = None, parentOccupation = None, parentTypeOfWorkAtAge14 = None,
+          parentEmployedOrSelf = None, parentCompanySize = None, parentSuperviseEmployees = None,
           lowerSocioEconomicBackground = None, socioEconomicScore = "",
           university = None, categoryOfDegree = None, degreeType = None,
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
@@ -180,7 +186,8 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       report mustBe Map(
         applicationId1 -> QuestionnaireReportItem(
           sex = Some("Male"), sexualOrientation = Some("Straight"), ethnicity = Some("Black"), isEnglishYourFirstLanguage = Some("Yes"),
-          parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentEmployedOrSelf = None, parentCompanySize = None,
+          parentEmploymentStatus = Some("Unemployed"), parentOccupation = None, parentTypeOfWorkAtAge14 = Some("Unemployed"),
+          parentEmployedOrSelf = None, parentCompanySize = None, parentSuperviseEmployees = None,
           lowerSocioEconomicBackground = None, socioEconomicScore = "SES Score",
           university = Some("W01-USW"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
@@ -188,15 +195,16 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
         applicationId2 -> QuestionnaireReportItem(
           sex = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
           parentEmploymentStatus = Some("Employed"), parentOccupation = Some("Modern professional"),
-          parentEmployedOrSelf = Some("Part-time employed"), parentCompanySize = Some("Large (26-500)"),
+          parentTypeOfWorkAtAge14=Some("Modern professional"), parentEmployedOrSelf = Some("Part-time employed"),
+          parentCompanySize = Some("Large (26-500)"), parentSuperviseEmployees = None,
           lowerSocioEconomicBackground = Some("No"), socioEconomicScore = "SES Score",
           university = Some("W17-WARR"), categoryOfDegree = Some("Computing"), degreeType = Some("BSc/MSc/Eng"),
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         ),
         applicationId3 -> QuestionnaireReportItem(
           sex = Some("Female"), sexualOrientation = Some("Lesbian"), ethnicity = Some("White"), isEnglishYourFirstLanguage = Some("Yes"),
-          parentEmploymentStatus = None, parentOccupation = None, parentEmployedOrSelf = None, parentCompanySize = None,
-          lowerSocioEconomicBackground = None, socioEconomicScore = "",
+          parentEmploymentStatus = None, parentOccupation = None, parentTypeOfWorkAtAge14 = None, parentEmployedOrSelf = None,
+          parentCompanySize = None, parentSuperviseEmployees = None, lowerSocioEconomicBackground = None, socioEconomicScore = "",
           university = None, categoryOfDegree = None, degreeType = None,
           postgradUniversity = None, postgradCategoryOfDegree = None, postgradDegreeType = None
         )
@@ -229,7 +237,8 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       QuestionnaireQuestion(categoryOfDegree, QuestionnaireAnswer(Some("Computing"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(degreeType, QuestionnaireAnswer(Some("BSc/MSc/Eng"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(highestEarningParentOrGuardianTypeOfWorkAtAge14,
-        QuestionnaireAnswer(Some("Unemployed"), otherDetails = None, unknown = None)),
+        QuestionnaireAnswer(Some("Unemployed"), otherDetails = None, unknown = None)
+      ),
       QuestionnaireQuestion(lowerSocioEconomicBackground, QuestionnaireAnswer(answer = None, otherDetails = None, unknown = None))
     )
     val submittedQuestionnaire2 = List(
@@ -241,7 +250,8 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       QuestionnaireQuestion(categoryOfDegree, QuestionnaireAnswer(Some("Computing"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(degreeType, QuestionnaireAnswer(Some("BSc/MSc/Eng"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(highestEarningParentOrGuardianTypeOfWorkAtAge14,
-        QuestionnaireAnswer(Some("Modern professional"), otherDetails = None, unknown = None)),
+        QuestionnaireAnswer(Some("Modern professional"), otherDetails = None, unknown = None)
+      ),
       QuestionnaireQuestion(employeeOrSelfEmployed, QuestionnaireAnswer(Some("Part-time employed"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(sizeOfPlaceOfWork, QuestionnaireAnswer(Some("Large (26-500)"), otherDetails = None, unknown = None)),
       QuestionnaireQuestion(lowerSocioEconomicBackground, QuestionnaireAnswer(Some("No"), otherDetails = None, unknown = None))
@@ -256,6 +266,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       QuestionnaireQuestion(postcodeAtAge14, unknown),
       QuestionnaireQuestion(schoolNameAged14to16, unknown),
       QuestionnaireQuestion(universityName, unknown),
+      QuestionnaireQuestion(superviseEmployees, unknown),
       QuestionnaireQuestion(lowerSocioEconomicBackground, unknown),
       QuestionnaireQuestion(highestEarningParentOrGuardianTypeOfWorkAtAge14, unknown),
       QuestionnaireQuestion(employeeOrSelfEmployed, unknown),

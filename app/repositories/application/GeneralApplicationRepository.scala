@@ -22,7 +22,7 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.*
 import model.Exceptions.*
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.{EventProgressStatuses, PREVIEW}
+import model.ProgressStatuses.{EventProgressStatuses, PREVIEW, ProgressStatus}
 import model.command.*
 import model.exchange.{CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
 import model.persisted.*
@@ -59,6 +59,7 @@ trait GeneralApplicationRepository {
   def find(applicationId: String): Future[Option[Candidate]]
   def findAllFileInfo: Future[Seq[CandidateFileInfo]]
   def find(applicationIds: Seq[String]): Future[List[Candidate]]
+  def findProgressStatusTimestamp(applicationIds: Seq[String], progressStatus: ProgressStatus): Future[Map[String, Option[String]]]
   def findProgress(applicationId: String): Future[ProgressResponse]
   def findStatus(applicationId: String, excludeFsacAllocationStatuses: Boolean = false): Future[ApplicationStatusDetails]
   def findByUserId(userId: String, frameworkId: String): Future[ApplicationResponse]
@@ -249,6 +250,26 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     collection.find[BsonDocument](query).toFuture().map { _.map { doc =>
       Candidate.fromBson(doc)
     }.toList }
+  }
+
+  override def findProgressStatusTimestamp(applicationIds: Seq[String], progressStatus: ProgressStatus): Future[Map[String, Option[String]]] = {
+    import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
+
+    val query = Document(
+      "applicationId" -> Document("$in" -> applicationIds),
+      s"progress-status-timestamp" -> Document("$exists" -> true)
+    )
+
+    val projection = Projections.include("applicationId", "progress-status-timestamp")
+    collection.find[BsonDocument](query).projection(projection).toFuture().map { _.map { doc =>
+      val applicationId = doc.get("applicationId").asString().getValue
+      val progressStatusTimeStampDoc = doc.get("progress-status-timestamp").asDocument()
+      val timestampOpt = Try(Codecs.fromBson[OffsetDateTime](
+        progressStatusTimeStampDoc.get(progressStatus.toString).asDateTime())
+      ).toOption.map( _.toString )// Handle NPE
+
+      applicationId -> timestampOpt
+    }.toMap }
   }
 
   override def findProgress(applicationId: String): Future[ProgressResponse] = {
