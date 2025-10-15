@@ -58,17 +58,27 @@ class CampaignManagementController @Inject() (cc: ControllerComponents,
     }
   }
 
+  def removeActivationRecords(): Action[AnyContent] = Action.async { implicit request =>
+    (for {
+      _ <- campaignManagementService.removeActivationRecords()
+    } yield {
+      Ok
+    }).recover {
+      case e: Exception => BadRequest(e.getMessage)
+    }
+  }
+
   def setTScore = Action.async(parse.json) { implicit request =>
     withJsonBody[SetTScoreRequest] { tScoreRequest =>
       tScoreRequest.phase.toUpperCase match {
         case "PHASE1" =>
           campaignManagementService.setPhase1TScore(tScoreRequest).map(_ => Ok)
-            .recover{
+            .recover {
               case e: Exception => Forbidden(e.getMessage)
             }
         case "PHASE2" =>
           campaignManagementService.setPhase2TScore(tScoreRequest).map(_ => Ok)
-            .recover{
+            .recover {
               case e: Exception => Forbidden(e.getMessage)
             }
         case _ =>
