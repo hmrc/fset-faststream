@@ -16,17 +16,19 @@
 
 package services.campaignmanagement
 
+import connectors.AuthProviderClient
 import factories.UUIDFactory
 
 import javax.inject.{Inject, Singleton}
 import model.command.SetTScoreRequest
 import model.exchange.campaignmanagement.{AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused}
-import model.persisted._
-import repositories._
+import model.persisted.*
+import repositories.*
 import repositories.application.GeneralApplicationRepository
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.onlinetesting._
+import repositories.onlinetesting.*
+import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{OffsetDateTime, ZoneId}
 import scala.concurrent.{ExecutionContext, Future}
@@ -39,7 +41,8 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
                                            phase2TestRepo: Phase2TestRepository,
                                            questionnaireRepo: QuestionnaireRepository,
                                            mediaRepo: MediaRepository,
-                                           contactDetailsRepo: ContactDetailsRepository)(implicit ec: ExecutionContext) {
+                                           contactDetailsRepo: ContactDetailsRepository,
+                                           authProviderClient: AuthProviderClient)(implicit ec: ExecutionContext) {
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Future[AfterDeadlineSignupCodeUnused] = {
     afterDeadlineCodeRepository.findUnusedValidCode(code).map(storedCodeOpt =>
@@ -69,6 +72,10 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
 
   def removeCollection(name: String): Future[Either[Exception, Unit]] = {
     appRepo.removeCollection(name)
+  }
+
+  def removeActivationRecords()(implicit hc: HeaderCarrier): Future[Unit] = {
+    authProviderClient.removeAllActivationDocuments()
   }
 
   def removeCandidate(applicationId: String, userId: String): Future[Unit] = {

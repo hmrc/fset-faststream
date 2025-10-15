@@ -16,21 +16,22 @@
 
 package services.campaignmanagement
 
+import connectors.AuthProviderClient
 import factories.UUIDFactory
-import model.Phase1TestExamples._
-import model.Phase2TestExamples._
+import model.Phase1TestExamples.*
+import model.Phase2TestExamples.*
 import model.command.SetTScoreRequest
 import model.exchange.campaignmanagement.{AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused}
 import model.persisted.{CampaignManagementAfterDeadlineCode, Phase1TestProfile, Phase2TestGroup}
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito._
+import org.mockito.Mockito.*
 import repositories.application.GeneralApplicationRepository
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
 import repositories.contactdetails.ContactDetailsRepository
-import repositories.onlinetesting._
+import repositories.onlinetesting.*
 import repositories.{MediaRepository, QuestionnaireRepository}
 import services.BaseServiceSpec
-import testkit.MockitoImplicits._
+import testkit.MockitoImplicits.*
 
 import java.time.{OffsetDateTime, ZoneId}
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -238,6 +239,7 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
     val mockQuestionnaireRepository = mock[QuestionnaireRepository]
     val mockMediaRepository = mock[MediaRepository]
     val mockContactDetailsRepository = mock[ContactDetailsRepository]
+    val mockAuthProviderClient = mock[AuthProviderClient]
     val expirationDate = OffsetDateTime.now
 
     val service = new CampaignManagementService(
@@ -248,7 +250,8 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
       mockPhase2TestRepository,
       mockQuestionnaireRepository,
       mockMediaRepository,
-      mockContactDetailsRepository
+      mockContactDetailsRepository,
+      mockAuthProviderClient
     )
 
     val phase1 = "PHASE1"
