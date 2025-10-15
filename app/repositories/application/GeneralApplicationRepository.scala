@@ -145,7 +145,9 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       IndexModel(ascending("userId", "frameworkId"), IndexOptions().unique(true)),
       IndexModel(ascending("applicationStatus"), IndexOptions().unique(false)),
       IndexModel(ascending("assistance-details.needsSupportAtVenue"), IndexOptions().unique(false)),
-      IndexModel(ascending("assistance-details.guaranteedInterview"), IndexOptions().unique(false))
+      IndexModel(ascending("assistance-details.guaranteedInterview"), IndexOptions().unique(false)),
+      // Added mid campaign 2025/26. TODO: change the index so it is unique when the campaign is finished
+      IndexModel(ascending("testGroups.PHASE1.tests.orderId"), IndexOptions().unique(false))
     )
   ) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {

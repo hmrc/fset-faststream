@@ -255,7 +255,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
 
   private def findAndUpdateTest(orderId: String, update: Document,
                                 ignoreNotFound: Boolean = false)(implicit ec: ExecutionContext): Future[Unit] = {
-    val find = Document(
+    val query = Document(
       s"testGroups.$phaseName.tests" -> Document(
         "$elemMatch" -> Document("orderId" -> orderId)
       )
@@ -268,7 +268,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
         CannotFindTestByOrderIdException(s"Cannot find test group by Order ID: $orderId"))
     }
 
-    collection.updateOne(find, update).toFuture() map validator
+    collection.updateOne(query, update).toFuture() map validator
   }
 
   def upsertTestGroupEvaluationResult(applicationId: String, passmarkEvaluation: PassmarkEvaluation)(

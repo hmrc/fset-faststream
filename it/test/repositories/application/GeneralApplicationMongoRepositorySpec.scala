@@ -70,7 +70,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
           IndexDetails(name = "assistance-details.needsSupportAtVenue_1",
             keys = Seq(("assistance-details.needsSupportAtVenue", "Ascending")), unique = false),
           IndexDetails(name = "assistance-details.guaranteedInterview_1",
-            keys = Seq(("assistance-details.guaranteedInterview", "Ascending")), unique = false)
+            keys = Seq(("assistance-details.guaranteedInterview", "Ascending")), unique = false),
+          IndexDetails(name = "testGroups.PHASE1.tests.orderId_1", keys = Seq(("testGroups.PHASE1.tests.orderId", "Ascending")), unique = false)
         )
     }
 
