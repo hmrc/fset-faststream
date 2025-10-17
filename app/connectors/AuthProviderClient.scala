@@ -235,13 +235,25 @@ class AuthProviderClient @Inject() (http: HttpClientV2, config: MicroserviceAppC
   }
 
   def removeAllActivationDocuments()(implicit hc: HeaderCarrier): Future[Unit] = {
-    http.get(url"$url/activate/remove-all")
+    http.get(url"$url/campaign-reset/activate/remove-all")
       .execute[HttpResponse]
       .map { response =>
         if (response.status == OK) {
           ()
         } else {
           throw new ConnectorException(s"Bad response received when removing activation documents: $response")
+        }
+      }
+  }
+
+  def removeAllResetPasswordDocuments()(implicit hc: HeaderCarrier): Future[Unit] = {
+    http.get(url"$url/campaign-reset/reset-password/remove-all")
+      .execute[HttpResponse]
+      .map { response =>
+        if (response.status == OK) {
+          ()
+        } else {
+          throw new ConnectorException(s"Bad response received when removing reset-password documents: $response")
         }
       }
   }

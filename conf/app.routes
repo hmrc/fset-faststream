@@ -428,6 +428,7 @@ POST        /upscan/internal/upscan-callback                             @contro
 GET         /campaign-reset/listCollections                              @controllers.CampaignManagementController.listCollections
 GET         /campaign-reset/removeCollection                             @controllers.CampaignManagementController.removeCollection(name: String)
 GET         /campaign-reset/removeActivationRecords                      @controllers.CampaignManagementController.removeActivationRecords()
+GET         /campaign-reset/removeResetPasswordRecords                   @controllers.CampaignManagementController.removeResetPasswordRecords()
 POST        /campaign-reset/setTScore                                    @controllers.CampaignManagementController.setTScore
 
 GET         /management/findCandidateByUserId                            @controllers.CampaignManagementController.findCandidateByUserId(userId: String)

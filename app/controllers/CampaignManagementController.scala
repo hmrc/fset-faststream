@@ -68,6 +68,16 @@ class CampaignManagementController @Inject() (cc: ControllerComponents,
     }
   }
 
+  def removeResetPasswordRecords(): Action[AnyContent] = Action.async { implicit request =>
+    (for {
+      _ <- campaignManagementService.removeResetPasswordRecords()
+    } yield {
+      Ok
+    }).recover {
+      case e: Exception => BadRequest(e.getMessage)
+    }
+  }
+
   def setTScore = Action.async(parse.json) { implicit request =>
     withJsonBody[SetTScoreRequest] { tScoreRequest =>
       tScoreRequest.phase.toUpperCase match {
