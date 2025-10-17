@@ -78,6 +78,10 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
     authProviderClient.removeAllActivationDocuments()
   }
 
+  def removeResetPasswordRecords()(implicit hc: HeaderCarrier): Future[Unit] = {
+    authProviderClient.removeAllResetPasswordDocuments()
+  }
+
   def removeCandidate(applicationId: String, userId: String): Future[Unit] = {
     for {
       // Record is created as soon as account is created
