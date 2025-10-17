@@ -20,6 +20,8 @@ import model.ApplicationRoute.apply as _
 import model.Exceptions.CannotAddMedia
 import model.persisted.Media
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{IndexModel, IndexOptions}
 import org.mongodb.scala.{MongoException, ObservableFuture, SingleObservableFuture}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -41,7 +43,9 @@ class MediaMongoRepository @Inject() (mongoComponent: MongoComponent)(implicit e
     collectionName = CollectionNames.MEDIA,
     mongoComponent = mongoComponent,
     domainFormat = Media.mongoFormat,
-    indexes = Nil
+    indexes = Seq(
+      IndexModel(ascending("userId"), IndexOptions().unique(true))
+    )
   ) with MediaRepository with BaseBSONReader with ReactiveRepositoryHelpers {
 
   override def create(addMedia: Media): Future[Unit] = collection.insertOne(addMedia).toFuture().map { _ => ()

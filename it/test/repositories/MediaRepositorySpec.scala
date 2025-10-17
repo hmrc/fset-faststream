@@ -25,6 +25,17 @@ class MediaRepositorySpec extends MongoRepositorySpec {
 
   def repository = new MediaMongoRepository(mongo)
 
+  "Media repository" should {
+    "create indexes for the repository" in {
+      val indexes = indexDetails(repository).futureValue
+      indexes must contain theSameElementsAs
+        Seq(
+          IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
+          IndexDetails(name = "userId_1", keys = Seq(("userId", "Ascending")), unique = true)
+        )
+    }
+  }
+
   "find media" should {
     "return media when it exists" in {
       val testUserId = "userId1"
