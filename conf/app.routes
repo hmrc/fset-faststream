@@ -267,6 +267,7 @@ GET         /diagnostic/progress-candidate-to-fsb-or-offer-job                  
 GET         /diagnostic/progress-candidate-failed-at-fsb                                                @controllers.fixdata.FixDataConsistencyController.progressCandidateFailedAtFsb(applicationId: String)
 GET         /diagnostic/inviteP2CandidateToMissingTest                                                  @controllers.fixdata.FixDataConsistencyController.inviteP2CandidateToMissingTest(applicationId: String)
 GET         /diagnostic/application/:applicationId/setGis/:newGis                                       @controllers.fixdata.FixDataConsistencyController.setGis(applicationId: String, newGis: Boolean)
+GET         /diagnostic/application/:applicationId/updateSeb                                            @controllers.fixdata.FixDataConsistencyController.updateSeb(applicationId: String)
 #Diagnostic routes end
 
 GET         /online-test/psi/phase1/candidate/:applicationId             @controllers.OnlineTestController.getPhase1OnlineTest(applicationId: String)

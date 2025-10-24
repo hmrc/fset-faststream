@@ -18,8 +18,8 @@ package controllers.fixdata
 
 import factories.UUIDFactory
 import model.ApplicationStatus.ApplicationStatus
-import model.Exceptions._
-import model.ProgressStatuses._
+import model.Exceptions.*
+import model.ProgressStatuses.*
 import model.command.FastPassPromotion
 import model.persisted.sift.SiftAnswersStatus
 import model.{SchemeId, UniqueIdentifier}
@@ -33,6 +33,7 @@ import services.assessmentcentre.{AssessmentCentreService, ProgressionToFsbOrOff
 import services.fastpass.FastPassService
 import services.onlinetesting.phase2.Phase2TestService
 import services.onlinetesting.phase3.Phase3TestService
+import services.seb.SebCalculationService
 import services.sift.{ApplicationSiftService, SiftAnswersService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -52,6 +53,7 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
                                              fsbService: FsbService,
                                              phase2TestService: Phase2TestService,
                                              phase3TestService: Phase3TestService,
+                                             sebCalculationService: SebCalculationService,
                                              uuidFactory: UUIDFactory,
                                              schemeRepository: SchemeRepository
                                             ) extends BackendController(cc) with Logging {
@@ -933,6 +935,17 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
       .recover {
         case e: Exception =>
           val msg = s"Failed to update candidate $applicationId to GIS $newGis because ${e.getMessage}"
+          logger.warn(msg)
+          BadRequest(msg)
+      }
+  }
+
+  def updateSeb(applicationId: String): Action[AnyContent] = Action.async {
+    sebCalculationService.saveSocioEconomicScore(applicationId)
+      .map(score => Ok(s"Successfully updated candidate $applicationId SEB score to $score"))
+      .recover {
+        case e: Exception =>
+          val msg = s"Failed to update candidate $applicationId SEB score because ${e.getMessage}"
           logger.warn(msg)
           BadRequest(msg)
       }
