@@ -43,7 +43,8 @@ class ContactDetailsRepositorySpec extends MongoRepositorySpec {
       indexes must contain theSameElementsAs
         Seq(
           IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
-          IndexDetails(name = "userId_1", keys = Seq(("userId", "Ascending")), unique = true)
+          IndexDetails(name = "userId_1", keys = Seq(("userId", "Ascending")), unique = true),
+          IndexDetails(name = "contact-details.postCode_1", keys = Seq(("contact-details.postCode", "Ascending")), unique = false)
         )
     }
   }
