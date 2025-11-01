@@ -20,7 +20,7 @@ import model.Exceptions.NotFoundException
 
 import javax.inject.{Inject, Singleton}
 import model.command.SetTScoreRequest
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.campaignmanagement.CampaignManagementService
 import services.search.SearchForApplicantService
@@ -78,7 +78,7 @@ class CampaignManagementController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def setTScore = Action.async(parse.json) { implicit request =>
+  def setTScore(): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[SetTScoreRequest] { tScoreRequest =>
       tScoreRequest.phase.toUpperCase match {
         case "PHASE1" =>

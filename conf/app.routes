@@ -74,6 +74,8 @@ PUT         /assessment-centre/pass-mark-settings                        @contro
 GET         /assessment-centre/pass-mark-settings                        @controllers.AssessmentCentrePassMarkSettingsController.getLatestVersion
 # Pass mark management end
 
+POST        /phase1/bulkUpdateScores                                     @controllers.Phase1ScoresBulkUpdateController.updateScores()
+
 GET         /search/find-by-id/user/:userId/framework/:frameworkId       @controllers.SearchForApplicantsController.findById(userId: String, frameworkId: String)
 POST        /search/find-by-criteria                                     @controllers.SearchForApplicantsController.findByCriteria
 
@@ -430,7 +432,7 @@ GET         /campaign-reset/listCollections                              @contro
 GET         /campaign-reset/removeCollection                             @controllers.CampaignManagementController.removeCollection(name: String)
 GET         /campaign-reset/removeActivationRecords                      @controllers.CampaignManagementController.removeActivationRecords()
 GET         /campaign-reset/removeResetPasswordRecords                   @controllers.CampaignManagementController.removeResetPasswordRecords()
-POST        /campaign-reset/setTScore                                    @controllers.CampaignManagementController.setTScore
+POST        /campaign-reset/setTScore                                    @controllers.CampaignManagementController.setTScore()
 
 GET         /management/findCandidateByUserId                            @controllers.CampaignManagementController.findCandidateByUserId(userId: String)
 DELETE      /management/removeCandidate                                  @controllers.CampaignManagementController.removeCandidate(applicationId: String, userId:String)
