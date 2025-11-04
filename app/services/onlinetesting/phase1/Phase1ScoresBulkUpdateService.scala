@@ -35,7 +35,10 @@ class Phase1ScoresBulkUpdateService @Inject()(appRepo: GeneralApplicationReposit
     Future.sequence(scoreRequests.map { scoreRequest =>
       (for {
         _ <- checkApplicationFound(scoreRequest)
-        scoreDataIsValid <- verifyNumberOfTestsAndTestResults(scoreRequest)
+        idsVerified <- verifyInventoryAndOrderIds(scoreRequest)
+        _ = if (!idsVerified) {
+          throw NoTestFoundException(s"No test found for inventoryId=${scoreRequest.inventoryId} and orderId = ${scoreRequest.orderId}")
+        }
         phase1TestProfileOpt <- phase1TestRepo.getTestGroup(scoreRequest.applicationId)
         _ <- phase1TestRepo.insertOrUpdateTestGroup(
           scoreRequest.applicationId,
@@ -47,13 +50,7 @@ class Phase1ScoresBulkUpdateService @Inject()(appRepo: GeneralApplicationReposit
       } yield {
         Phase1ScoreUpdateResponse(scoreRequest, status = "Successfully updated")
       }).recover {
-        case e: ApplicationNotFoundException =>
-          Phase1ScoreUpdateResponse(scoreRequest, status = e.getMessage)
-        case e: TestScoresException =>
-          Phase1ScoreUpdateResponse(scoreRequest, status = e.getMessage)
-        case e: NoTestFoundException =>
-          Phase1ScoreUpdateResponse(scoreRequest, status = e.getMessage)
-        case e: IllegalStateException =>
+        case e @ (_: ApplicationNotFoundException | _: TestScoresException | _: NoTestFoundException | _: IllegalStateException) =>
           Phase1ScoreUpdateResponse(scoreRequest, status = e.getMessage)
       }
     })
@@ -69,30 +66,16 @@ class Phase1ScoresBulkUpdateService @Inject()(appRepo: GeneralApplicationReposit
     }
   }
 
-  private def verifyNumberOfTestsAndTestResults(scoreRequest: Phase1ScoreUpdateRequest): Future[Boolean] = {
+  private def verifyInventoryAndOrderIds(scoreRequest: Phase1ScoreUpdateRequest): Future[Boolean] = {
     for {
       phase1TestProfileOpt <- phase1TestRepo.getTestGroup(scoreRequest.applicationId)
     } yield {
-      val testsPresentWithResultsSaved = phase1TestProfileOpt.exists { phase1TestProfile =>
-        val expectedNumberOfTests = 2
-        val allTestsPresent = phase1TestProfile.activeTests.size == expectedNumberOfTests
-        if (!allTestsPresent) {
-          throw TestScoresException(s"Expected $expectedNumberOfTests tests but only found ${phase1TestProfile.activeTests.size}")
-        }
-        val allTestsHaveATestResult = phase1TestProfile.activeTests.forall(_.testResult.isDefined)
-        if (!allTestsHaveATestResult) {
-          throw TestScoresException(s"Not all tests have a test result")
-        }
+      phase1TestProfileOpt.exists { phase1TestProfile =>
         // Iterate the collection of active tests and check each one for inventoryId and orderId
-        val inventoryAndOrderIdsFound = phase1TestProfile.activeTests.exists { test =>
+        phase1TestProfile.activeTests.exists { test =>
           test.inventoryId == scoreRequest.inventoryId && test.orderId == scoreRequest.orderId
         }
-        if (!inventoryAndOrderIdsFound) {
-          throw NoTestFoundException(s"No test found for inventoryId=${scoreRequest.inventoryId} and orderId = ${scoreRequest.orderId}")
-        }
-        allTestsPresent && allTestsHaveATestResult
       }
-      testsPresentWithResultsSaved
     }
   }
 
