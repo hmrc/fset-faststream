@@ -105,7 +105,8 @@ class Phase1ScoresBulkUpdateServiceSpec extends BaseServiceSpec {
       val result = service.updatePhase1Scores(updates).futureValue
       val expected = Seq(
         Phase1ScoreUpdateResponse(
-          "appId1", "inventoryId1", "orderId1", tScore = 66.0, rawScore = 40.0, status = "No test found for inventoryId=inventoryId1 and orderId = orderId1"
+          "appId1", "inventoryId1", "orderId1", tScore = 66.0, rawScore = 40.0,
+          status = "No test found for inventoryId=inventoryId1 and orderId=orderId1 or missing test result"
         )
       )
 
@@ -133,7 +134,37 @@ class Phase1ScoresBulkUpdateServiceSpec extends BaseServiceSpec {
       val result = service.updatePhase1Scores(updates).futureValue
       val expected = Seq(
         Phase1ScoreUpdateResponse(
-          "appId1", "inventoryId1", "orderId1", tScore = 66.0, rawScore = 40.0, status = "No test found for inventoryId=inventoryId1 and orderId = orderId1"
+          "appId1", "inventoryId1", "orderId1", tScore = 66.0, rawScore = 40.0,
+          status = "No test found for inventoryId=inventoryId1 and orderId=orderId1 or missing test result"
+        )
+      )
+
+      result mustBe expected
+    }
+
+    "handle attempting to update a test that doesn't have a test result" in new TestFixture {
+      when(mockApplicationRepository.find(any[String])).thenReturnAsync(Some(candidate))
+
+      val phase1TestProfile = Phase1TestProfile(expirationDate = OffsetDateTime.now, tests = List(firstPsiTest.copy(testResult = None)))
+      when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
+
+      when(mockPhase1TestRepository.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
+
+      val updates = Seq(
+        Phase1ScoreUpdateRequest(
+          applicationId = "appId1",
+          inventoryId = "inventoryId1",
+          orderId = "orderId1",
+          tScore = 66.0,
+          rawScore = 40.0
+        )
+      )
+
+      val result = service.updatePhase1Scores(updates).futureValue
+      val expected = Seq(
+        Phase1ScoreUpdateResponse(
+          "appId1", "inventoryId1", "orderId1", tScore = 66.0, rawScore = 40.0,
+          status = "No test found for inventoryId=inventoryId1 and orderId=orderId1 or missing test result"
         )
       )
 

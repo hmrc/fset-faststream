@@ -37,7 +37,8 @@ class Phase1ScoresBulkUpdateService @Inject()(appRepo: GeneralApplicationReposit
         _ <- checkApplicationFound(scoreRequest)
         idsVerified <- verifyInventoryAndOrderIds(scoreRequest)
         _ = if (!idsVerified) {
-          throw NoTestFoundException(s"No test found for inventoryId=${scoreRequest.inventoryId} and orderId = ${scoreRequest.orderId}")
+          throw NoTestFoundException(s"No test found for inventoryId=${scoreRequest.inventoryId} " +
+            s"and orderId=${scoreRequest.orderId} or missing test result")
         }
         phase1TestProfileOpt <- phase1TestRepo.getTestGroup(scoreRequest.applicationId)
         _ <- phase1TestRepo.insertOrUpdateTestGroup(
@@ -66,14 +67,16 @@ class Phase1ScoresBulkUpdateService @Inject()(appRepo: GeneralApplicationReposit
     }
   }
 
+  // We also need to confirm that there are scores for the test
   private def verifyInventoryAndOrderIds(scoreRequest: Phase1ScoreUpdateRequest): Future[Boolean] = {
     for {
       phase1TestProfileOpt <- phase1TestRepo.getTestGroup(scoreRequest.applicationId)
     } yield {
       phase1TestProfileOpt.exists { phase1TestProfile =>
-        // Iterate the collection of active tests and check each one for inventoryId and orderId
+        // Iterate the collection of active tests and check each one for inventoryId and orderId and presence of testResult
         phase1TestProfile.activeTests.exists { test =>
-          test.inventoryId == scoreRequest.inventoryId && test.orderId == scoreRequest.orderId
+          test.inventoryId == scoreRequest.inventoryId && test.orderId == scoreRequest.orderId &&
+            test.testResult.isDefined
         }
       }
     }
