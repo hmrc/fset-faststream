@@ -39,7 +39,7 @@ class Phase1ScoresBulkUpdateServiceSpec extends BaseServiceSpec {
       val phase1TestProfile = Phase1TestProfile(expirationDate = OffsetDateTime.now, tests = List(firstPsiTest, secondPsiTest))
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
-      when(mockPhase1TestRepository.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
+      when(mockPhase1TestRepository.updateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
 
       val updates = Seq(
         Phase1ScoreUpdateRequest(
@@ -90,7 +90,7 @@ class Phase1ScoresBulkUpdateServiceSpec extends BaseServiceSpec {
       val phase1TestProfile = Phase1TestProfile(expirationDate = OffsetDateTime.now, tests = List(firstPsiTest.copy(inventoryId = "boom"), secondPsiTest))
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
-      when(mockPhase1TestRepository.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
+      when(mockPhase1TestRepository.updateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
 
       val updates = Seq(
         Phase1ScoreUpdateRequest(
@@ -119,7 +119,7 @@ class Phase1ScoresBulkUpdateServiceSpec extends BaseServiceSpec {
       val phase1TestProfile = Phase1TestProfile(expirationDate = OffsetDateTime.now, tests = List(firstPsiTest.copy(orderId = "boom"), secondPsiTest))
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
-      when(mockPhase1TestRepository.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
+      when(mockPhase1TestRepository.updateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
 
       val updates = Seq(
         Phase1ScoreUpdateRequest(
@@ -148,7 +148,7 @@ class Phase1ScoresBulkUpdateServiceSpec extends BaseServiceSpec {
       val phase1TestProfile = Phase1TestProfile(expirationDate = OffsetDateTime.now, tests = List(firstPsiTest.copy(testResult = None)))
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
-      when(mockPhase1TestRepository.insertOrUpdateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
+      when(mockPhase1TestRepository.updateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
 
       val updates = Seq(
         Phase1ScoreUpdateRequest(

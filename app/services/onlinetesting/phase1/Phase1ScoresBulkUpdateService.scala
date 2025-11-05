@@ -41,7 +41,7 @@ class Phase1ScoresBulkUpdateService @Inject()(appRepo: GeneralApplicationReposit
             s"and orderId=${scoreRequest.orderId} or missing test result")
         }
         phase1TestProfileOpt <- phase1TestRepo.getTestGroup(scoreRequest.applicationId)
-        _ <- phase1TestRepo.insertOrUpdateTestGroup(
+        _ <- phase1TestRepo.updateTestGroup(
           scoreRequest.applicationId,
           updatePhase1TestProfile(
             scoreRequest,
