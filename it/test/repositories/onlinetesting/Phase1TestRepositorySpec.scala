@@ -660,6 +660,32 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
   }
 
+  "update test group" should {
+    val phase1Test = model.Phase1TestExamples.firstPsiTest
+    val testProfile = Phase1TestProfile(expirationDate = Now, tests = List(phase1Test))
+    val appId = "appId"
+
+    "update the test group" in {
+      createApplicationWithAllFields("userId", appId, "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
+      phase1TestRepo.insertOrUpdateTestGroup(appId, testProfile).futureValue
+
+      val originalTestProfile = phase1TestRepo.getTestProfileByOrderId("orderId1").futureValue
+      originalTestProfile.tests.size mustBe 1
+      val firstTest = originalTestProfile.tests.head
+      firstTest.testResult.size mustBe 1
+      firstTest.testResult.head.tScore mustBe 12.5
+      firstTest.testResult.head.rawScore mustBe 5.5
+
+      val psiTestResult = PsiTestResult(tScore = 13.5, rawScore = 6.5, testReportUrl = None)
+      val newTestProfile = Phase1TestProfile(expirationDate = Now, tests = List(phase1Test.copy(testResult = Some(psiTestResult))))
+      phase1TestRepo.updateTestGroup(appId, newTestProfile).futureValue
+
+      val updatedTestProfile = phase1TestRepo.getTestProfileByOrderId("orderId1").futureValue
+      updatedTestProfile.tests.head.testResult.head.tScore mustBe 13.5
+      updatedTestProfile.tests.head.testResult.head.rawScore mustBe 6.5
+    }
+  }
+
   "next test for reminder" should {
     val date = Now.plusHours(1)
     val testProfile = Phase1TestProfile(expirationDate = date, tests = List(phase1Test))

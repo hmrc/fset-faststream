@@ -43,6 +43,7 @@ trait Phase1TestRepository extends OnlineTestRepository with Phase1TestConcern {
   def getTestProfileByOrderId(orderId: String): Future[Phase1TestProfile]
   def getTestGroupByOrderId(orderId: String): Future[Phase1TestGroupWithUserIds]
   def insertOrUpdateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
+  def updateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit]
   // Caution - for administrative fixes only (dataconsistency)
 //  def removeTestGroup(applicationId: String): Future[Unit]
   def updateGroupExpiryTime(applicationId: String, expirationDate: OffsetDateTime): Future[Unit]
@@ -150,6 +151,15 @@ class Phase1TestMongoRepository @Inject() (dateTime: DateTimeFactory, mongo: Mon
     )
 
     val validator = singleUpdateValidator(applicationId, actionDesc = "inserting test group")
+    collection.updateOne(query, update).toFuture() map validator
+  }
+
+  // This version does not update the applicationStatus and progressStatus to PHASE1_TESTS_INVITED
+  override def updateTestGroup(applicationId: String, phase1TestProfile: Phase1TestProfile): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val update = Document("$set" -> Document(s"testGroups.$phaseName" -> phase1TestProfile.toBson))
+    val validator = singleUpdateValidator(applicationId, actionDesc = "updating test group")
+
     collection.updateOne(query, update).toFuture() map validator
   }
 
