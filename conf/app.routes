@@ -310,6 +310,9 @@ GET         /application/:applicationId/issue                            @contro
 PUT         /application/:applicationId/issue                            @controllers.FlagCandidateController.save(applicationId: String)
 DELETE      /application/:applicationId/issue                            @controllers.FlagCandidateController.remove(applicationId: String)
 
+GET         /application/onboard-questions/:applicationId                @controllers.OnboardQuestionsController.find(applicationId: String)
+PUT         /application/onboard-questions/:applicationId                @controllers.OnboardQuestionsController.save(applicationId: String)
+
 GET         /schools                                                     @controllers.SchoolsController.getSchools(term: String)
 
 # Assessor routes start

@@ -40,7 +40,8 @@ class DiagnosticReportingMongoRepository @Inject() (mongo: MongoComponent)(impli
 
   private val defaultExclusions = Projections.exclude(
     "_id",
-    "personal-details"
+    "personal-details",
+    "onboarding-questions"
   )
 
   private val largeFields = Projections.exclude(

@@ -19,26 +19,27 @@ import com.google.inject.{AbstractModule, TypeLiteral}
 import connectors.{CSREmailClientImpl, OnlineTestEmailClient, Phase2OnlineTestEmailClient, Phase3OnlineTestEmailClient}
 import model.exchange.passmarksettings.{Phase1PassMarkSettingsPersistence, Phase2PassMarkSettingsPersistence, Phase3PassMarkSettingsPersistence}
 import play.api.{Configuration, Environment, Logging}
-import repositories._
-import repositories.application._
+import repositories.*
+import repositories.application.*
 import repositories.assessmentcentre.{AssessmentCentreMongoRepository, AssessmentCentreRepository}
 import repositories.assistancedetails.{AssistanceDetailsMongoRepository, AssistanceDetailsRepository}
-import repositories.campaignmanagement._
+import repositories.campaignmanagement.*
 import repositories.civilserviceexperiencedetails.{CivilServiceExperienceDetailsMongoRepository, CivilServiceExperienceDetailsRepository}
 import repositories.contactdetails.{ContactDetailsMongoRepository, ContactDetailsRepository}
-import repositories.events._
+import repositories.events.*
 import repositories.fsacindicator.{FSACIndicatorMongoRepository, FSACIndicatorRepository}
 import repositories.fsb.{FsbMongoRepository, FsbRepository}
 import repositories.locationpreferences.{LocationPreferencesMongoRepository, LocationPreferencesRepository}
-import repositories.onlinetesting._
+import repositories.onboardquestions.{OnboardQuestionsMongoRepository, OnboardQuestionsRepository}
+import repositories.onlinetesting.*
 import repositories.personaldetails.{PersonalDetailsMongoRepository, PersonalDetailsRepository}
 import repositories.schemepreferences.{SchemePreferencesMongoRepository, SchemePreferencesRepository}
-import repositories.sift._
+import repositories.sift.*
 import repositories.stc.{StcEventMongoRepository, StcEventRepository}
 import repositories.testdata.{ApplicationRemovalMongoRepository, ApplicationRemovalRepository}
 import scheduler.Scheduler
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
-import services.assessmentscores._
+import services.assessmentscores.*
 import services.events.{EventsService, EventsServiceImpl}
 import services.onlinetesting.OnlineTestService
 import services.onlinetesting.phase1.{EvaluatePhase1ResultService, Phase1TestService}
@@ -89,7 +90,6 @@ class Module(val environment: Environment, val configuration: Configuration) ext
 
     bind(classOf[StcEventRepository]).to(classOf[StcEventMongoRepository]).asEagerSingleton()
 
-    //Withdraw
     bind(classOf[AssessmentCentreRepository]).to(classOf[AssessmentCentreMongoRepository]).asEagerSingleton()
     bind(classOf[FsbRepository]).to(classOf[FsbMongoRepository]).asEagerSingleton()
     bind(classOf[Phase3TestRepository]).to(classOf[Phase3TestMongoRepository]).asEagerSingleton()
@@ -97,6 +97,7 @@ class Module(val environment: Environment, val configuration: Configuration) ext
     bind(classOf[SiftAnswersRepository]).to(classOf[SiftAnswersMongoRepository]).asEagerSingleton()
 
     bind(classOf[FinalOutcomeRepository]).to(classOf[FinalOutcomeMongoRepository]).asEagerSingleton()
+    bind(classOf[OnboardQuestionsRepository]).to(classOf[OnboardQuestionsMongoRepository]).asEagerSingleton()
     bind(classOf[AssessorsEventsSummaryJobsRepository]).to(classOf[AssessorsEventsSummaryJobsMongoRepository]).asEagerSingleton()
 
     //reporting

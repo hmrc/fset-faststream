@@ -155,7 +155,7 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
     fsacCompetencyHeaders +
     appTestResults(numOfSchemes) +
     "," + withdrawInfoHeaders +
-    "Admin comment,FSAC Indicator area,FSAC Indicator Assessment Centre,FSAC Indicator version"
+    "Admin comment,NI number,FSAC Indicator area,FSAC Indicator Assessment Centre,FSAC Indicator version"
 
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Outside UK,Country,Phone"
 
@@ -430,6 +430,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             getWithdrawInfo(doc) :::
 
             List(doc.get("issue").map(_.asString().getValue)) :::
+            onboardingQuestions(doc) :::
             List(fsacIndicatorOpt.map(_.area)) :::
             List(fsacIndicatorOpt.map(_.assessmentCentre)) :::
             List(fsacIndicatorOpt.map(_.version))
@@ -1801,6 +1802,11 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     columns.map ( columnName => personalDetailsOpt.map(_.get(columnName).asString().getValue) )
   }
 
+  private def onboardingQuestions(doc: Document): List[Option[String]] = {
+    val columns = List("niNumber")
+    val onboardingQuestionsOpt = subDocRoot("onboarding-questions")(doc)
+    columns.map ( columnName => Try(onboardingQuestionsOpt.map(_.get(columnName).asString().getValue)).toOption.flatten )
+  }
 
   private def makeRow(values: Option[String]*) =
     values.map { s =>
