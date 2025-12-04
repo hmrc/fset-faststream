@@ -177,7 +177,7 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
   // Record is created after submitting Page 1 Personal details
   override def removeContactDetails(userId: String): Future[Unit] = {
     val query = Document("userId" -> userId)
-    val validator = singleRemovalValidator(userId , actionDesc = s"deleting contact details for userId:$userId")
+    val validator = singleRemovalValidator(userId , actionDesc = s"deleting contact details")
     collection.deleteOne(query).toFuture() map validator
   }
 }

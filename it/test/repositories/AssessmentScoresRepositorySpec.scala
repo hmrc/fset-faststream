@@ -18,8 +18,9 @@ package repositories
 
 import config.MicroserviceAppConfig
 import factories.{ITDateTimeFactoryMock, UUIDFactory}
+import model.Exceptions.NotFoundException
 import model.UniqueIdentifier
-import model.assessmentscores._
+import model.assessmentscores.*
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.fsacscores.AssessmentScoresFinalFeedbackExamples
 import org.mockito.Mockito.when
@@ -353,6 +354,26 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
 
       val resultAfterReset = repository.find(ApplicationId).futureValue
       resultAfterReset mustBe Some(AssessmentScoresAllExercisesExamples.NoExercises.copy(applicationId = ApplicationId))
+    }
+  }
+
+  "removeScores" should {
+    "delete scores for the given data" in new TestFixture {
+      repository.save(Scores3).futureValue
+
+      val resultBeforeDelete = repository.find(ApplicationId).futureValue
+      resultBeforeDelete mustBe Some(Scores3)
+
+      repository.removeScores(ApplicationId).futureValue
+
+      val resultAfterDelete = repository.find(ApplicationId).futureValue
+      resultAfterDelete mustBe None
+    }
+
+    "throw a NotFoundException if no documents can be found to delete" in new TestFixture {
+      val applicationId = UniqueIdentifier(UUID.fromString(UUIDFactory.generateUUID()))
+      val result = repository.removeScores(applicationId).failed.futureValue
+      result mustBe a[NotFoundException]
     }
   }
 

@@ -110,4 +110,15 @@ class CampaignManagementController @Inject() (cc: ControllerComponents,
         case ex: NotFoundException => NotFound(ex.getMessage)
       }
   }
+
+  def getUploadedDocumentId(applicationId: String): Action[AnyContent] = Action.async {
+    for {
+      assessmentCentreTests <- campaignManagementService.getUploadedDocumentId(applicationId)
+    } yield {
+      assessmentCentreTests.analysisExercise match {
+        case Some(analysisExercise) => Ok(s"{\"fileId\":\"${analysisExercise.fileId}\"}")
+        case _ => NotFound(s"No uploaded document found for $applicationId")
+      }
+    }
+  }
 }

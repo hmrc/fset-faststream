@@ -149,10 +149,15 @@ class SiftAnswersRepositorySpec extends MongoRepositorySpec with ScalaFutures wi
       repository.removeSiftAnswers(AppId).futureValue
       repository.findSchemeSpecificAnswer(AppId, Commercial).futureValue mustBe None
     }
+
+    "throw an exception if sift answers cannot be found" in {
+      val result = repository.removeSiftAnswers(AppId).failed.futureValue
+      result mustBe a[NotFoundException]
+    }
   }
 
   "set sift answers status" should {
-    "throw an exception if the application cannopt be found" in {
+    "throw an exception if the application cannot be found" in {
       val result = repository.setSiftAnswersStatus(AppId, SiftAnswersStatus.SUBMITTED).failed.futureValue
       result mustBe a[NotFoundException]
     }

@@ -439,6 +439,7 @@ POST        /campaign-reset/setTScore                                    @contro
 
 GET         /management/findCandidateByUserId                            @controllers.CampaignManagementController.findCandidateByUserId(userId: String)
 DELETE      /management/removeCandidate                                  @controllers.CampaignManagementController.removeCandidate(applicationId: String, userId:String)
+GET         /management/getUploadedDocumentId                            @controllers.CampaignManagementController.getUploadedDocumentId(applicationId: String)
 
 # Metrics endpoints
 #GET         /metrics/progressStatusCounts                                @controllers.metrics.MetricsController.progressStatusCounts

@@ -16,10 +16,11 @@
 
 package repositories
 
+import model.Exceptions.NotFoundException
 import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
 import model.report.QuestionnaireReportItem
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.*
+import org.mockito.Mockito.*
 import org.scalatestplus.mockito.MockitoSugar
 import repositories.application.DiversityQuestionsText
 import services.reporting.SocioEconomicScoreCalculator
@@ -221,6 +222,15 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
       questionnaireRepo.removeQuestions(applicationId).futureValue
       val result1 = questionnaireRepo.find(applicationId).futureValue
       result1.size mustBe 0
+    }
+
+    "throw an exception if a delete is attempted but there are no questions to remove" in new TestFixture {
+      val applicationId = "appId"
+      val result = questionnaireRepo.find(applicationId).futureValue
+      result.size mustBe 0
+
+      val result1 = questionnaireRepo.removeQuestions(applicationId).failed.futureValue
+      result1 mustBe a[NotFoundException]
     }
   }
 
