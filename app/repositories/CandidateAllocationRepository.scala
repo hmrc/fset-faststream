@@ -51,6 +51,7 @@ trait CandidateAllocationRepository {
   def updateStructure(): Future[Unit]
   def allAllocationUnconfirmed: Future[Seq[CandidateAllocation]]
   def findAllConfirmedOrUnconfirmedAllocations(applicationIds: Seq[String], eventIds: Seq[String]): Future[Seq[CandidateAllocation]]
+  def deleteAllocations(applicationId: String): Future[Unit]
 }
 
 @Singleton
@@ -244,6 +245,12 @@ class CandidateAllocationMongoRepository @Inject() (mongoComponent: MongoCompone
     } else {
       remove.map(_ => ())
     }
+  }
+
+  override def deleteAllocations(applicationId: String): Future[Unit] = {
+    val query = Document("id" -> applicationId)
+    val validator = multipleRemoveValidator(applicationId, "deleting all candidate allocations")
+    collection.deleteMany(query).toFuture().map(validator)
   }
 
   override def markAsReminderSent(applicationId: String, eventId: String, sessionId: String): Future[Unit] = {

@@ -17,7 +17,9 @@
 package repositories.fileupload
 
 import com.google.inject.ImplementedBy
+import model.Exceptions.NotFoundException
 import model.persisted.fileupload.{FileUpload, FileUploadInfo}
+import org.mongodb.scala.bson.BsonObjectId
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.gridfs.{GridFSBucket, GridFSFile, GridFSUploadOptions}
 import org.mongodb.scala.{Observable, ObservableFuture}
@@ -42,6 +44,7 @@ trait FileUploadRepository {
   def retrieve(fileId: String): Future[FileUpload]
   def retrieveAllIdsAndSizes: Future[List[FileUploadInfo]]
   def retrieveMetaData(fileId: String): Future[Option[FileUploadInfo]]
+  def deleteDocument(objectId: String, applicationId: String): Future[Unit]
 }
 
 @Singleton
@@ -52,7 +55,7 @@ class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent)(impli
   override def add(contentType: String, fileContents: Array[Byte]): Future[String] = {
     val fileId = UUID.randomUUID().toString
 
-    import scala.jdk.CollectionConverters._
+    import scala.jdk.CollectionConverters.*
 
     val options: GridFSUploadOptions = new GridFSUploadOptions().metadata(org.bson.Document(Map("contentType" -> contentType).asJava))
 
@@ -95,10 +98,31 @@ class FileUploadMongoRepository @Inject() (mongoComponent: MongoComponent)(impli
 
   private def processFile(file: GridFSFile) = {
     FileUploadInfo(
+      file.getObjectId.toString,
       file.getFilename,
       getContentType(file),
       OffsetDateTime.ofInstant(file.getUploadDate.toInstant, ZoneOffset.UTC).toString,
       file.getLength
     )
+  }
+
+  override def deleteDocument(objectId: String, applicationId: String): Future[Unit] = {
+    // The Try will fail if the objectId is not a correctly formatted bson object id so we deal with it
+    // here in order to throw the common NotFoundException back instead of the IllegalArgumentException
+    // that gets thrown by the BsonObjectId code
+    val bsonObjectId = Try(BsonObjectId(objectId)).toEither match {
+      case Right(bsonObjectId) => bsonObjectId
+      case _ => throw new NotFoundException(s"No uploaded file found with the ObjectId: $objectId for applicationId: $applicationId")
+    }
+    gridFS.delete(bsonObjectId).toFuture().map {
+      _ => ()
+    }.recover {
+      case e: com.mongodb.MongoGridFSException =>
+        if (e.getMessage.startsWith("No file found with the ObjectId:")) {
+          throw new NotFoundException(s"No uploaded file found with the ObjectId: $objectId for applicationId: $applicationId")
+        } else {
+          throw e
+        }
+    }
   }
 }

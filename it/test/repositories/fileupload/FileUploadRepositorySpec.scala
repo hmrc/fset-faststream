@@ -16,6 +16,7 @@
 
 package repositories.fileupload
 
+import model.Exceptions.NotFoundException
 import org.scalatest.Tag
 import repositories.CollectionNames
 import repositories.fileupload.FileUploadRepository.FileUploadNotFoundException
@@ -74,6 +75,38 @@ class FileUploadRepositorySpec extends MongoRepositorySpec {
       result.head.id mustBe fileId
       result.head.contentType mustBe testContentType
       result.head.length mustBe testContent.length
+    }
+  }
+
+  "deleting uploaded documents" must {
+    "throw an exception if the uploaded document to delete cannot be found" in {
+      val result = repository.deleteDocument("692ddb08350dc56d41ef882f", "appId").failed.futureValue
+      result mustBe a[NotFoundException]
+      result.getMessage mustBe "No uploaded file found with the ObjectId: 692ddb08350dc56d41ef882f for applicationId: appId"
+    }
+
+    "throw an exception if the objectId is not a valid guid" in {
+      val exception = intercept[NotFoundException] {
+        repository.deleteDocument("i-am-not-valid", "appId")
+      }
+      exception.getMessage mustBe "No uploaded file found with the ObjectId: i-am-not-valid for applicationId: appId"
+    }
+
+    "successfully delete an uploaded document" in {
+      val testContent = "Test contents".toCharArray.map(_.toByte)
+      val testContentType = "application/pdf"
+      val fileId = repository.add(testContentType, testContent).futureValue
+
+      val result = repository.retrieveMetaData(fileId).futureValue
+      result.head.id mustBe fileId
+      result.head.contentType mustBe testContentType
+      result.head.length mustBe testContent.length
+
+      val objectId = result.head._id
+      repository.deleteDocument(objectId, "appId").futureValue
+
+      val result2 = repository.retrieveMetaData(fileId).futureValue
+      result2 mustBe None
     }
   }
 }

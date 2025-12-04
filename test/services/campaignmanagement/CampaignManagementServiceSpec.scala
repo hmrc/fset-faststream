@@ -18,10 +18,15 @@ package services.campaignmanagement
 
 import connectors.AuthProviderClient
 import factories.UUIDFactory
+import model.Exceptions.NotFoundException
 import model.Phase1TestExamples.*
 import model.Phase2TestExamples.*
-import model.command.SetTScoreRequest
+import model.UniqueIdentifier
+import model.command.{AssessmentCentre, Fsb, ProgressResponse, SetTScoreRequest, SiftProgressResponse}
 import model.exchange.campaignmanagement.{AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused}
+import model.persisted.fileupload.FileUploadInfo
+import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
+import model.persisted.sift.{SchemeSpecificAnswer, SiftAnswers, SiftAnswersStatus}
 import model.persisted.{CampaignManagementAfterDeadlineCode, Phase1TestProfile, Phase2TestGroup}
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.*
@@ -29,12 +34,16 @@ import repositories.application.GeneralApplicationRepository
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.*
-import repositories.{MediaRepository, QuestionnaireRepository}
+import repositories.sift.SiftAnswersRepository
+import repositories.*
+import repositories.assessmentcentre.AssessmentCentreRepository
+import repositories.fileupload.FileUploadRepository
 import services.BaseServiceSpec
 import testkit.MockitoImplicits.*
 
 import java.time.{OffsetDateTime, ZoneId}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class CampaignManagementServiceSpec extends BaseServiceSpec {
 
@@ -230,6 +239,545 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
     }
   }
 
+  "remove candidate" should {
+    val appId = "f83a4063-2a09-411e-8c83-960f7babb9d2"
+    val userId = "userId"
+    val siftAnswers = Some(
+      SiftAnswers(appId, SiftAnswersStatus.DRAFT, generalAnswers = None, schemeAnswers = Map.empty[String, SchemeSpecificAnswer])
+    )
+
+    "deal with a candidate who has only created their account but not started the application" in new TestFixture {
+      val progress = ProgressResponse(appId)
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+
+      val contactDetailsErrorMsg = s"No document found whilst deleting contact details for id $appId"
+      when(mockContactDetailsRepository.removeContactDetails(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(contactDetailsErrorMsg)))
+
+      val questionsErrorMsg = s"No document found whilst deleting questions for id $appId"
+      when(mockQuestionnaireRepository.removeQuestions(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(questionsErrorMsg)))
+
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(None)
+
+      val siftErrorMsg = s"No document found whilst deleting sift answers for id $appId"
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(siftErrorMsg)))
+
+      val fsacAssessorErrorMsg = s"No document found whilst deleting fsac assessor scores for id $appId"
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacAssessorErrorMsg)))
+
+      val fsacReviewerErrorMsg = s"No document found whilst deleting fsac reviewer scores for id $appId"
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacReviewerErrorMsg)))
+
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(None)
+
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String]))
+        .thenReturn(Future.failed(new NotFoundException(s"No uploaded file found with the ObjectId: for applicationId: $appId")))
+
+      val eventsErrorMsg = s"No document found whilst deleting candidate allocations for id $appId"
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(eventsErrorMsg)))
+
+      val result = service.removeCandidate(appId, userId).futureValue
+      result mustBe unit
+    }
+
+    "deal with a candidate who has entered personal details" in new TestFixture {
+      val progress = ProgressResponse(appId, personalDetails = true)
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+
+      val questionsErrorMsg = s"No document found whilst deleting questions for id $appId"
+      when(mockQuestionnaireRepository.removeQuestions(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(questionsErrorMsg)))
+
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(None)
+
+      val siftErrorMsg = s"No document found whilst deleting sift answers for id $appId"
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(siftErrorMsg)))
+
+      val fsacAssessorErrorMsg = s"No document found whilst deleting fsac assessor scores for id $appId"
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacAssessorErrorMsg)))
+
+      val fsacReviewerErrorMsg = s"No document found whilst deleting fsac reviewer scores for id $appId"
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacReviewerErrorMsg)))
+
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(None)
+
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String]))
+        .thenReturn(Future.failed(new NotFoundException(s"No uploaded file found with the ObjectId: for applicationId: $appId")))
+
+      val eventsErrorMsg = s"No document found whilst deleting candidate allocations for id $appId"
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(eventsErrorMsg)))
+
+      val result = service.removeCandidate(appId, userId).futureValue
+      result mustBe unit
+    }
+
+    "deal with a candidate who has entered diversity questions" in new TestFixture {
+      val progress = ProgressResponse(appId, personalDetails = true, questionnaire = List(""))
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(None)
+      val siftErrorMsg = s"No document found whilst deleting sift answers for id $appId"
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(siftErrorMsg)))
+
+      val fsacAssessorErrorMsg = s"No document found whilst deleting fsac assessor scores for id $appId"
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacAssessorErrorMsg)))
+
+      val fsacReviewerErrorMsg = s"No document found whilst deleting fsac reviewer scores for id $appId"
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacReviewerErrorMsg)))
+
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(None)
+
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String]))
+        .thenReturn(Future.failed(new NotFoundException(s"No uploaded file found with the ObjectId: for applicationId: $appId")))
+
+      val eventsErrorMsg = s"No document found whilst deleting candidate allocations for id $appId"
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(eventsErrorMsg)))
+
+      val result = service.removeCandidate(appId, userId).futureValue
+      result mustBe unit
+    }
+
+    "deal with a candidate who has entered sift answers" in new TestFixture {
+      val siftProgressResponse = SiftProgressResponse(siftEntered = true)
+      val progress = ProgressResponse(appId, personalDetails = true, questionnaire = List(""), siftProgressResponse = siftProgressResponse)
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(siftAnswers)
+
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String])).thenReturnAsync()
+
+      val fsacAssessorErrorMsg = s"No document found whilst deleting fsac assessor scores for id $appId"
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacAssessorErrorMsg)))
+
+      val fsacReviewerErrorMsg = s"No document found whilst deleting fsac reviewer scores for id $appId"
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacReviewerErrorMsg)))
+
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(None)
+
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String]))
+        .thenReturn(Future.failed(new NotFoundException(s"No uploaded file found with the ObjectId: for applicationId: $appId")))
+
+      val eventsErrorMsg = s"No document found whilst deleting candidate allocations for id $appId"
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(eventsErrorMsg)))
+
+      val result = service.removeCandidate(appId, userId).futureValue
+      result mustBe unit
+    }
+
+    "deal with a candidate who didn't go via sift, has fsac scores assessed but not reviewed and no uploaded document" in new TestFixture {
+      val assessmentCentre = AssessmentCentre(allocationConfirmed = true, scoresEntered = true)
+      val progress = ProgressResponse(appId, personalDetails = true, questionnaire = List(""), assessmentCentre = assessmentCentre)
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(None)
+
+      val siftErrorMsg = s"No document found whilst deleting sift answers for id $appId"
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(siftErrorMsg)))
+
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+
+      val fsacReviewerErrorMsg = s"No document found whilst deleting fsac reviewer scores for id $appId"
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacReviewerErrorMsg)))
+
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(None)
+
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String]))
+        .thenReturn(Future.failed(new NotFoundException(s"No uploaded file found with the ObjectId: for applicationId: $appId")))
+
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String])).thenReturnAsync()
+
+      val result = service.removeCandidate(appId, userId).futureValue
+      result mustBe unit
+    }
+
+    "deal with a candidate who didn't go via sift, has fsac scores assessed but not reviewed and has an uploaded document" in new TestFixture {
+      val assessmentCentre = AssessmentCentre(allocationConfirmed = true, scoresEntered = true)
+      val progress = ProgressResponse(appId, personalDetails = true, questionnaire = List(""), assessmentCentre = assessmentCentre)
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(None)
+
+      val siftErrorMsg = s"No document found whilst deleting sift answers for id $appId"
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(siftErrorMsg)))
+
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+
+      val fsacReviewerErrorMsg = s"No document found whilst deleting fsac reviewer scores for id $appId"
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacReviewerErrorMsg)))
+
+      when(mockAssessmentCentreRepository.getTests(any[String]))
+        .thenReturnAsync(AssessmentCentreTests(Some(AnalysisExercise(fileId = "fileId"))))
+
+      val fileUploadInfo = FileUploadInfo(_id = "objectId", id = "fileId",
+        contentType = "application/msword", created = "2025-12-01T12:24:56.110Z", length = 99
+      )
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(Some(fileUploadInfo))
+
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String])).thenReturnAsync()
+
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String])).thenReturnAsync()
+
+      val result = service.removeCandidate(appId, userId).futureValue
+      result mustBe unit
+    }
+
+    "deal with a candidate who didn't go via sift, has fsac scores assessed and reviewed and an uploaded document" in new TestFixture {
+      val assessmentCentre = AssessmentCentre(allocationConfirmed = true, scoresEntered = true, scoresAccepted = true)
+      val progress = ProgressResponse(appId, personalDetails = true, questionnaire = List(""), assessmentCentre = assessmentCentre)
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(None)
+
+      val siftErrorMsg = s"No document found whilst deleting sift answers for id $appId"
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(siftErrorMsg)))
+
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+
+      when(mockAssessmentCentreRepository.getTests(any[String]))
+        .thenReturnAsync(AssessmentCentreTests(Some(AnalysisExercise(fileId = "fileId"))))
+
+      val fileUploadInfo = FileUploadInfo(_id = "objectId", id = "fileId",
+        contentType = "application/msword", created = "2025-12-01T12:24:56.110Z", length = 99
+      )
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(Some(fileUploadInfo))
+
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String])).thenReturnAsync()
+
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String])).thenReturnAsync()
+
+      val result = service.removeCandidate(appId, userId).futureValue
+      result mustBe unit
+    }
+
+    "deal with a candidate who has filled in personal details but none are found" in new TestFixture {
+      val progress = ProgressResponse(appId, personalDetails = true)
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+
+      val errorMsg = s"No document found whilst deleting contact details for id $appId"
+      when(mockContactDetailsRepository.removeContactDetails(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(errorMsg)))
+
+      val result = service.removeCandidate(appId, userId).failed.futureValue
+      result mustBe a[NotFoundException]
+      result.getMessage mustBe errorMsg
+    }
+
+    "deal with a candidate who has filled in diversity questions but none are found" in new TestFixture {
+      val progress = ProgressResponse(appId, personalDetails = true, questionnaire = List(""))
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+
+      val errorMsg = s"No document found whilst deleting questions for id $appId"
+      when(mockQuestionnaireRepository.removeQuestions(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(errorMsg)))
+
+      val result = service.removeCandidate(appId, userId).failed.futureValue
+      result mustBe a[NotFoundException]
+      result.getMessage mustBe errorMsg
+    }
+
+    "deal with a candidate who has filled in sift answers but none are found" in new TestFixture {
+      val siftProgressResponse = SiftProgressResponse(siftEntered = true)
+      val progress = ProgressResponse(appId, personalDetails = true, questionnaire = List(""),
+        siftProgressResponse = siftProgressResponse
+      )
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(siftAnswers)
+
+      val errorMsg = s"No document found whilst deleting sift answers for id $appId"
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(errorMsg)))
+
+      val result = service.removeCandidate(appId, userId).failed.futureValue
+      result mustBe a[NotFoundException]
+      result.getMessage mustBe errorMsg
+    }
+
+    "deal with a candidate who doesn't have an uploaded document but who has fsac assessor scores but none are found" in new TestFixture {
+      val siftProgressResponse = SiftProgressResponse(siftReady = true)
+      val assessmentCentre = AssessmentCentre(allocationConfirmed = true, scoresEntered = true)
+      val progress = ProgressResponse(
+        appId, personalDetails = true, questionnaire = List(""),
+        siftProgressResponse = siftProgressResponse, assessmentCentre = assessmentCentre
+      )
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(siftAnswers)
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String])).thenReturnAsync()
+
+      val errorMsg = s"No document found whilst deleting fsac assessor scores for id $appId"
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(errorMsg)))
+
+      val result = service.removeCandidate(appId, userId).failed.futureValue
+      result mustBe a[NotFoundException]
+      result.getMessage mustBe errorMsg
+    }
+
+    "deal with a candidate who doesn't have an uploaded document but who has fsac reviewer scores but none are found" in new TestFixture {
+      val siftProgressResponse = SiftProgressResponse(siftReady = true)
+      val assessmentCentre = AssessmentCentre(allocationConfirmed = true, scoresEntered = true, scoresAccepted = true)
+      val progress = ProgressResponse(
+        appId, personalDetails = true, questionnaire = List(""), siftProgressResponse = siftProgressResponse, assessmentCentre = assessmentCentre
+      )
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(siftAnswers)
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String])).thenReturnAsync()
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+
+      val errorMsg = s"No document found whilst deleting fsac reviewer scores for id $appId"
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(errorMsg)))
+
+      val result = service.removeCandidate(appId, userId).failed.futureValue
+      result mustBe a[NotFoundException]
+      result.getMessage mustBe errorMsg
+    }
+
+    "deal with a candidate who has an uploaded document and has fsac reviewer scores but the document isn't found" in new TestFixture {
+      val siftProgressResponse = SiftProgressResponse(siftReady = true)
+      val assessmentCentre = AssessmentCentre(allocationConfirmed = true, scoresEntered = true, scoresAccepted = true)
+      val progress = ProgressResponse(
+        appId, personalDetails = true, questionnaire = List(""), siftProgressResponse = siftProgressResponse, assessmentCentre = assessmentCentre
+      )
+      val fileId = "fileId"
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockAssessmentCentreRepository.getTests(any[String]))
+        .thenReturnAsync(AssessmentCentreTests(Some(AnalysisExercise(fileId))))
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(siftAnswers)
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String])).thenReturnAsync()
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+
+      val fileUploadInfo = FileUploadInfo(_id = "objectId", id = fileId,
+        contentType = "application/msword", created = "2025-12-01T12:24:56.110Z", length = 99
+      )
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(Some(fileUploadInfo))
+
+      val errorMsg = s"No uploaded file found with the ObjectId: $fileId for applicationId: $appId"
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String]))
+        .thenReturn(Future.failed(new NotFoundException(errorMsg)))
+
+      val result = service.removeCandidate(appId, userId).failed.futureValue
+      result mustBe a[NotFoundException]
+      result.getMessage mustBe errorMsg
+    }
+
+    "deal with a candidate who has been allocated to an event but none is found" in new TestFixture {
+      val siftProgressResponse = SiftProgressResponse(siftReady = true)
+      val assessmentCentre = AssessmentCentre(allocationConfirmed = true, scoresEntered = true, scoresAccepted = true)
+      val progress = ProgressResponse(
+        appId, personalDetails = true, questionnaire = List(""), siftProgressResponse = siftProgressResponse, assessmentCentre = assessmentCentre
+      )
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(siftAnswers)
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String])).thenReturnAsync()
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(None)
+
+      val fileUploadErrorMsg = s"No uploaded file found with the ObjectId: for applicationId: $appId"
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String]))
+        .thenReturn(Future.failed(new NotFoundException(fileUploadErrorMsg)))
+
+      val errorMsg = s"No document found whilst deleting candidate allocations for id $appId"
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(errorMsg)))
+
+      val result = service.removeCandidate(appId, userId).failed.futureValue
+      result mustBe a[NotFoundException]
+      result.getMessage mustBe errorMsg
+    }
+
+    "deal with a candidate who has been allocated to an event and the data is deleted" in new TestFixture {
+      val siftProgressResponse = SiftProgressResponse(siftReady = true)
+      val assessmentCentre = AssessmentCentre(allocationConfirmed = true, scoresEntered = true, scoresAccepted = true)
+      val progress = ProgressResponse(
+        appId, personalDetails = true, questionnaire = List(""), siftProgressResponse = siftProgressResponse, assessmentCentre = assessmentCentre
+      )
+      val fileId = "fileId"
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(Some(AnalysisExercise(fileId))))
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(siftAnswers)
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String])).thenReturnAsync()
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+
+      val fileUploadInfo = FileUploadInfo(_id = "objectId", id = fileId,
+        contentType = "application/msword", created = "2025-12-01T12:24:56.110Z", length = 99
+      )
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(Some(fileUploadInfo))
+
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String])).thenReturnAsync()
+
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String])).thenReturnAsync()
+
+      val result = service.removeCandidate(appId, userId).futureValue
+      result mustBe unit
+    }
+
+    "deal with a candidate who skipped sift and fsac and has been allocated to an fsb event" in new TestFixture {
+      val fsb = Fsb(allocationConfirmed = true)
+      val progress = ProgressResponse(appId, personalDetails = true, questionnaire = List(""), fsb = fsb)
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(None)
+
+      val siftErrorMsg = s"No document found whilst deleting sift answers for id $appId"
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(siftErrorMsg)))
+
+      val fsacAssessorErrorMsg = s"No document found whilst deleting fsac assessor scores for id $appId"
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacAssessorErrorMsg)))
+
+      val fsacReviewerErrorMsg = s"No document found whilst deleting fsac reviewer scores for id $appId"
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacReviewerErrorMsg)))
+
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(None)
+
+      val fileUploadErrorMsg = s"No uploaded file found with the ObjectId: for applicationId: $appId"
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String]))
+        .thenReturn(Future.failed(new NotFoundException(fileUploadErrorMsg)))
+
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String])).thenReturnAsync()
+
+      val result = service.removeCandidate(appId, userId).futureValue
+      result mustBe unit
+    }
+
+    "deal with a candidate who skipped sift, has had their fsac scores assessed but not reviewed with no uploaded document" in new TestFixture {
+      val assessmentCentre = AssessmentCentre(allocationConfirmed = true, scoresEntered = true)
+      val progress = ProgressResponse(appId, personalDetails = true, questionnaire = List(""), assessmentCentre = assessmentCentre)
+      when(mockApplicationRepository.findProgress(any[String])).thenReturnAsync(progress)
+      when(mockAssessmentCentreRepository.getTests(any[String])).thenReturnAsync(AssessmentCentreTests(analysisExercise = None))
+      when(mockApplicationRepository.removeCandidate(any[String])).thenReturnAsync()
+      when(mockMediaRepository.removeMedia(any[String])).thenReturnAsync()
+      when(mockContactDetailsRepository.removeContactDetails(any[String])).thenReturnAsync()
+      when(mockQuestionnaireRepository.removeQuestions(any[String])).thenReturnAsync()
+      when(mockSiftAnswersRepository.findSiftAnswers(any[String])).thenReturnAsync(None)
+
+      val siftErrorMsg = s"No document found whilst deleting sift answers for id $appId"
+      when(mockSiftAnswersRepository.removeSiftAnswers(any[String]))
+        .thenReturn(Future.failed(new NotFoundException(siftErrorMsg)))
+
+      when(mockAssessorAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier])).thenReturnAsync()
+
+      val fsacReviewerErrorMsg = s"No document found whilst deleting fsac reviewer scores for id $appId"
+      when(mockReviewerAssessmentScoresMongoRepository.removeScores(any[UniqueIdentifier]))
+        .thenReturn(Future.failed(new NotFoundException(fsacReviewerErrorMsg)))
+
+      when(mockFileUploadRepository.retrieveMetaData(any[String])).thenReturnAsync(None)
+
+      val fileUploadErrorMsg = s"No uploaded file found with the ObjectId: for applicationId: $appId"
+      when(mockFileUploadRepository.deleteDocument(any[String], any[String]))
+        .thenReturn(Future.failed(new NotFoundException(fileUploadErrorMsg)))
+
+      when(mockCandidateAllocationRepository.deleteAllocations(any[String])).thenReturnAsync()
+
+      val result = service.removeCandidate(appId, userId).futureValue
+      result mustBe unit
+    }
+  }
+
   trait TestFixture  {
     val mockAfterDeadlineCodeRepository = mock[CampaignManagementAfterDeadlineSignupCodeRepository]
     val mockUuidFactory = mock[UUIDFactory]
@@ -239,6 +787,12 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
     val mockQuestionnaireRepository = mock[QuestionnaireRepository]
     val mockMediaRepository = mock[MediaRepository]
     val mockContactDetailsRepository = mock[ContactDetailsRepository]
+    val mockSiftAnswersRepository = mock[SiftAnswersRepository]
+    val mockAssessorAssessmentScoresMongoRepository = mock[AssessorAssessmentScoresMongoRepository]
+    val mockReviewerAssessmentScoresMongoRepository = mock[ReviewerAssessmentScoresMongoRepository]
+    val mockAssessmentCentreRepository = mock[AssessmentCentreRepository]
+    val mockFileUploadRepository = mock[FileUploadRepository]
+    val mockCandidateAllocationRepository = mock[CandidateAllocationRepository]
     val mockAuthProviderClient = mock[AuthProviderClient]
     val expirationDate = OffsetDateTime.now
 
@@ -251,6 +805,12 @@ class CampaignManagementServiceSpec extends BaseServiceSpec {
       mockQuestionnaireRepository,
       mockMediaRepository,
       mockContactDetailsRepository,
+      mockSiftAnswersRepository,
+      mockAssessorAssessmentScoresMongoRepository,
+      mockReviewerAssessmentScoresMongoRepository,
+      mockAssessmentCentreRepository,
+      mockFileUploadRepository,
+      mockCandidateAllocationRepository,
       mockAuthProviderClient
     )
 

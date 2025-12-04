@@ -18,19 +18,26 @@ package services.campaignmanagement
 
 import connectors.AuthProviderClient
 import factories.UUIDFactory
-
-import javax.inject.{Inject, Singleton}
-import model.command.SetTScoreRequest
+import model.Exceptions.NotFoundException
+import model.UniqueIdentifier
+import model.command.{ProgressResponse, SetTScoreRequest}
 import model.exchange.campaignmanagement.{AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused}
 import model.persisted.*
+import model.persisted.fsac.AssessmentCentreTests
+import model.persisted.sift.SiftAnswers
+import play.api.Logging
 import repositories.*
 import repositories.application.GeneralApplicationRepository
+import repositories.assessmentcentre.AssessmentCentreRepository
 import repositories.campaignmanagement.CampaignManagementAfterDeadlineSignupCodeRepository
 import repositories.contactdetails.ContactDetailsRepository
+import repositories.fileupload.FileUploadRepository
 import repositories.onlinetesting.*
+import repositories.sift.SiftAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.{OffsetDateTime, ZoneId}
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -42,7 +49,13 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
                                            questionnaireRepo: QuestionnaireRepository,
                                            mediaRepo: MediaRepository,
                                            contactDetailsRepo: ContactDetailsRepository,
-                                           authProviderClient: AuthProviderClient)(implicit ec: ExecutionContext) {
+                                           siftAnswersRepo: SiftAnswersRepository,
+                                           assessorAssessmentScoresRepo: AssessorAssessmentScoresMongoRepository,
+                                           reviewerAssessmentScoresRepo: ReviewerAssessmentScoresMongoRepository,
+                                           assessmentCentreRepo: AssessmentCentreRepository,
+                                           fileUploadRepo: FileUploadRepository,
+                                           candidateAllocationRepository: CandidateAllocationRepository,
+                                           authProviderClient: AuthProviderClient)(implicit ec: ExecutionContext) extends Logging {
 
   def afterDeadlineSignupCodeUnusedAndValid(code: String): Future[AfterDeadlineSignupCodeUnused] = {
     afterDeadlineCodeRepository.findUnusedValidCode(code).map(storedCodeOpt =>
@@ -84,15 +97,176 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
 
   def removeCandidate(applicationId: String, userId: String): Future[Unit] = {
     for {
+      progress <- appRepo.findProgress(applicationId)
+      // Fetch this before we remove the document from the application collection because that is where the data lives
+      assessmentCentreTests <- assessmentCentreRepo.getTests(applicationId)
       // Record is created as soon as account is created
-      _ <- appRepo.removeCandidate(applicationId)
+      _ <- removeCandidate(applicationId)
       // Record is created as soon as account is created
-      _ <- mediaRepo.removeMedia(userId)
-      // Record is created after submitting Page 1 Personal details
-      _ <- contactDetailsRepo.removeContactDetails(userId)
-      // Record is created after submitting Page 4 Before you continue (diversity questions)
-      _ <- questionnaireRepo.removeQuestions(applicationId)
+      _ <- removeMedia(userId)
+      // Record is created after submitting page 1 personal details
+      _ <- removeContactDetails(userId, progress)
+      // Record is created after submitting page 4 Before you continue (diversity questions)
+      _ <- removeQuestions(applicationId, progress)
+      // Just check to see if any sift answers have been saved
+      siftAnswersOpt <- siftAnswersRepo.findSiftAnswers(applicationId)
+      // If the candidate didn't have any schemes needing to be sifted then there will be no data to delete here
+      _ <- removeSiftAnswers(applicationId, progress, siftAnswersOpt)
+      // fsac assessor scores
+      _ <- removeFsacAssessorScores(applicationId, assessorAssessmentScoresRepo, progress)
+      // fsac reviewer scores
+      _ <- removeFsacReviewerScores(applicationId, reviewerAssessmentScoresRepo, progress)
+      // uploaded document
+      _ <- removeFsacDocument(applicationId, progress, assessmentCentreTests)
+      // fsac events or fsb events
+      _ <- removeCandidateAllocations(applicationId, progress)
     } yield ()
+  }
+
+  private def removeCandidate(applicationId: String) = {
+    for {
+      _ <- appRepo.removeCandidate(applicationId)
+    } yield {
+      logger.warn(s"Candidate deletion - successfully deleted application for applicationId: $applicationId")
+    }
+  }
+
+  private def removeMedia(userId: String) = {
+    for {
+      _ <- mediaRepo.removeMedia(userId)
+    } yield {
+      logger.warn(s"Candidate deletion - successfully deleted media for userId: $userId")
+    }
+  }
+
+  private def removeContactDetails(userId: String, progress: ProgressResponse) = {
+    (for {
+      _ <- contactDetailsRepo.removeContactDetails(userId)
+    } yield {
+      logger.warn(s"Candidate deletion - successfully deleted contact details for userId: $userId")
+    }).recover {
+      case e: NotFoundException =>
+        if (progress.personalDetails) {
+          logger.warn(s"Candidate deletion - contact details have been filled in but none found so will throw NotFoundException")
+          throw e
+        } else {
+          // Just swallow because the candidate hasn't filled in personal details
+          logger.warn(s"Candidate deletion - ${e.getMessage} and none expected")
+          ()
+        }
+    }
+  }
+
+  private def removeQuestions(applicationId: String, progress: ProgressResponse) = {
+    (for {
+      _ <- questionnaireRepo.removeQuestions(applicationId)
+    } yield {
+      logger.warn(s"Candidate deletion - successfully deleted questions for applicationId: $applicationId")
+    }).recover {
+      case e: NotFoundException =>
+        if (progress.questionnaire.nonEmpty) {
+          logger.warn(s"Candidate deletion - questionnaire has been filled in but none found so will throw NotFoundException")
+          throw e
+        } else {
+          // Just swallow because the candidate hasn't filled in any diversity info
+          logger.warn(s"Candidate deletion - ${e.getMessage} and none expected")
+          ()
+        }
+    }
+  }
+
+  private def removeSiftAnswers(applicationId: String, progress: ProgressResponse, siftAnswersOpt: Option[SiftAnswers]) = {
+    (for {
+      _ <- siftAnswersRepo.removeSiftAnswers(applicationId)
+    } yield {
+      logger.warn(s"Candidate deletion - successfully deleted sift answers for applicationId: $applicationId")
+    }).recover {
+      case e: NotFoundException =>
+        if (progress.siftProgressResponse.siftEntered && siftAnswersOpt.nonEmpty) {
+          logger.warn(s"Candidate deletion - sift answers have been filled in but none found so will throw NotFoundException")
+          throw e
+        } else {
+          // Just swallow because the candidate doesn't have any schemes that need to be sifted
+          logger.warn(s"Candidate deletion - ${e.getMessage} and none expected")
+          ()
+        }
+    }
+  }
+
+  private def removeFsacAssessorScores(applicationId: String,
+                                       assessorAssessmentScoresRepo: AssessorAssessmentScoresMongoRepository,
+                                       progress: ProgressResponse) = {
+    (for {
+      _ <- assessorAssessmentScoresRepo.removeScores(UniqueIdentifier(applicationId))
+    } yield {
+      logger.warn(s"Candidate deletion - successfully deleted fsac assessor scores for applicationId: $applicationId")
+    }).recover {
+      case e: NotFoundException =>
+        if (progress.assessmentCentre.scoresEntered) {
+          throw e
+        } else {
+          // Just swallow because the candidate doesn't have assessor fsac scores
+          logger.warn(s"Candidate deletion - ${e.getMessage} and none expected")
+          ()
+        }
+    }
+  }
+
+  private def removeFsacReviewerScores(applicationId: String,
+                                       reviewerAssessmentScoresRepo: ReviewerAssessmentScoresMongoRepository,
+                                       progress: ProgressResponse) = {
+    (for {
+      _ <- reviewerAssessmentScoresRepo.removeScores(UniqueIdentifier(applicationId))
+    } yield {
+      logger.warn(s"Candidate deletion - successfully deleted fsac reviewer scores for applicationId: $applicationId")
+    }).recover {
+      case e: NotFoundException =>
+        if (progress.assessmentCentre.scoresAccepted) {
+          throw e
+        } else {
+          // Just swallow because the candidate doesn't have reviewer fsac scores
+          logger.warn(s"Candidate deletion - ${e.getMessage} and none expected")
+          ()
+        }
+    }
+  }
+
+  private def removeFsacDocument(applicationId: String,
+                                 progress: ProgressResponse,
+                                 assessmentCentreTests: AssessmentCentreTests) = {
+    val uploadedDocumentFileIdOpt = assessmentCentreTests.analysisExercise.map(_.fileId)
+    (for {
+      metaDataOpt <- fileUploadRepo.retrieveMetaData(uploadedDocumentFileIdOpt.getOrElse(""))
+      _ <- fileUploadRepo.deleteDocument(metaDataOpt.map(md => md._id).getOrElse(""), applicationId)
+    } yield {
+      logger.warn(s"Candidate deletion - successfully deleted fsac uploaded document for applicationId: $applicationId")
+    }).recover {
+      case e @ (_: NotFoundException | _: IllegalArgumentException) =>
+        if (progress.assessmentCentre.allocationConfirmed && uploadedDocumentFileIdOpt.isDefined) {
+          throw e
+        } else {
+          // Just swallow because the candidate doesn't have an uploaded fsac document
+          logger.warn(s"Candidate deletion - ${e.getMessage} and none expected")
+          ()
+        }
+    }
+  }
+
+  private def removeCandidateAllocations(applicationId: String, progress: ProgressResponse) = {
+    (for {
+      _ <- candidateAllocationRepository.deleteAllocations(applicationId)
+    } yield {
+      logger.warn(s"Candidate deletion - successfully deleted candidate allocations for applicationId: $applicationId")
+    }).recover {
+      case e: NotFoundException =>
+        if (progress.assessmentCentre.allocationConfirmed || progress.fsb.allocationConfirmed) {
+          throw e
+        } else {
+          // Just swallow because the candidate hasn't been allocated to any fsac or fsb events
+          logger.warn(s"Candidate deletion - ${e.getMessage} and none expected")
+          ()
+        }
+    }
   }
 
   private def verifyPhase1TestScoreData(tScoreRequest: SetTScoreRequest, isGis: Boolean): Future[Boolean] = {
@@ -196,5 +370,11 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
 
   private def updatePhase2TestGroup(tScoreRequest: SetTScoreRequest, phase2TestGroup: Phase2TestGroup): Phase2TestGroup = {
     phase2TestGroup.copy(tests = updateTests(tScoreRequest, phase2TestGroup.tests))
+  }
+
+  def getUploadedDocumentId(applicationId: String): Future[AssessmentCentreTests] = {
+    for {
+      assessmentCentreTests <- assessmentCentreRepo.getTests(applicationId)
+    } yield assessmentCentreTests
   }
 }

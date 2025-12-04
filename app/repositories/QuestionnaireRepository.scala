@@ -129,7 +129,8 @@ class QuestionnaireMongoRepository @Inject() (socioEconomicCalculator: SocioEcon
   // This record is only created after submitting Page 4: Before you continue Diversity questions
   override def removeQuestions(applicationId: String): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
-    collection.deleteOne(query).toFuture().map(_ => ())
+    val validator = singleRemovalValidator(applicationId, actionDesc = s"deleting questions")
+    collection.deleteOne(query).toFuture().map { deleteResult => validator(deleteResult) }
   }
 
   override def calculateSocioEconomicScore(applicationId: String): Future[String] = {

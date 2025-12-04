@@ -79,6 +79,18 @@ trait ReactiveRepositoryHelpers extends Logging {
     }
   }
 
+  def multipleRemoveValidator(id: String, actionDesc: String): DeleteResult => Unit = (result: DeleteResult) => {
+    if (result.wasAcknowledged()) {
+      if (result.getDeletedCount > 0) {
+        ()
+      } else {
+        throw new NotFoundException(s"No documents found whilst $actionDesc for id $id")
+      }
+    } else {
+      handleUnacknowledgedResult(actionDesc)
+    }
+  }
+
   def singleRemovalValidator(id: String, actionDesc: String): DeleteResult => Unit = (result: DeleteResult) => {
     if (result.wasAcknowledged()) {
       if (result.getDeletedCount == 1) {

@@ -31,7 +31,7 @@ object UniqueIdentifier {
     UniqueIdentifier(UUID.fromString(value))
   }
 
-  def randomUniqueIdentifier = {
+  def randomUniqueIdentifier: UniqueIdentifier = {
     UniqueIdentifier(UUID.randomUUID())
   }
 

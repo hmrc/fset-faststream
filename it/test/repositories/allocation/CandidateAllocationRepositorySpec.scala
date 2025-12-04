@@ -40,8 +40,13 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
       LocalDate.now().minusDays(6), reminderSent = false
     )
   )
+  val multipleAllocationsForSameAppId: Seq[CandidateAllocation] = Seq(
+    CandidateAllocation(appId1, "eventId1", "sessionId1", UNCONFIRMED, "version1", removeReason = None, LocalDate.now(), reminderSent = false),
+    CandidateAllocation(appId1, "eventId2", "sessionId1", CONFIRMED, "version1", removeReason = None, LocalDate.now(), reminderSent = false),
+  )
 
   def storeAllocations() = allocations.foreach(a => repository.save(Seq(a)).futureValue)
+  def storeMultipleAllocations() = multipleAllocationsForSameAppId.foreach(a => repository.save(Seq(a)).futureValue)
 
   "CandidateAllocationRepository" must {
     "create indexes for the repository" in {
@@ -202,12 +207,29 @@ class CandidateAllocationRepositorySpec extends MongoRepositorySpec {
         result2.size mustBe 1
       }
 
-      "throw a NotFoundException if the document cannot be found" in {
+      "throw a NotFoundException if the document cannot be found to delete" in {
         storeAllocations()
         val result1 = repository.deleteOneAllocation("eventId1", "sessionId1", appId1, "version1Missing").failed.futureValue
         result1 mustBe a[NotFoundException]
         val result2 = repository.deleteOneAllocation("eventId1", "sessionId1", appId1, "version1", REMOVED).failed.futureValue
         result2 mustBe a[NotFoundException]
+      }
+    }
+
+    "deleting multiple allocations" should {
+      "delete multiple allocations for the given data" in {
+        storeMultipleAllocations()
+        val result1 = repository.findAllAllocations(Seq(appId1)).futureValue
+        result1.size mustBe 2
+        repository.deleteAllocations(appId1).futureValue
+        val result2 = repository.findAllAllocations(Seq(appId1)).futureValue
+        result2.size mustBe 0
+      }
+
+      "throw a NotFoundException if no documents can be found to delete" in {
+        storeMultipleAllocations()
+        val result = repository.deleteAllocations("missingAppId").failed.futureValue
+        result mustBe a[NotFoundException]
       }
     }
   }

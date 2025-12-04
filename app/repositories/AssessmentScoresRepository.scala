@@ -47,6 +47,7 @@ trait AssessmentScoresRepository {
   def findAll: Future[List[AssessmentScoresAllExercises]]
   def findAllByIds(applicationIds: Seq[String]): Future[List[AssessmentScoresAllExercises]]
   def resetExercise(applicationId: UniqueIdentifier, exercisesToRemove: List[String]): Future[Unit]
+  def removeScores(applicationId: UniqueIdentifier): Future[Unit]
 }
 
 abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String,
@@ -182,6 +183,12 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
     val validator = singleUpdateValidator(applicationId.toString, actionDesc = "resetting exercises")
     val unsetDoc = Document("$unset" -> Document(exercisesToUnset))
     collection.updateOne(query, unsetDoc).toFuture() map validator
+  }
+
+  override def removeScores(applicationId: UniqueIdentifier): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId.toBson)
+    val validator = singleRemovalValidator(applicationId.toString, actionDesc = s"deleting fsac scores from $collectionName")
+    collection.deleteOne(query).toFuture().map(validator)
   }
 }
 

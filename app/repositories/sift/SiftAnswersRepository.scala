@@ -200,7 +200,8 @@ class SiftAnswersMongoRepository @Inject() (mongoComponent: MongoComponent)(impl
 
   override def removeSiftAnswers(applicationId: String): Future[Unit] = {
     val query = Document("applicationId" -> applicationId)
-    collection.deleteOne(query).toFuture().map(_ => ())
+    val validator = singleRemovalValidator(applicationId, "deleting sift answers")
+    collection.deleteOne(query).toFuture().map ( result => validator(result) )
   }
 
   private def failIfAlreadySubmitted(applicationId: String)(action: => Future[Unit]): Future[Unit] = {
