@@ -23,6 +23,7 @@ import model.UniqueIdentifier
 import model.command.{ProgressResponse, SetTScoreRequest}
 import model.exchange.campaignmanagement.{AfterDeadlineSignupCode, AfterDeadlineSignupCodeUnused}
 import model.persisted.*
+import model.persisted.fileupload.FileUploadInfo
 import model.persisted.fsac.AssessmentCentreTests
 import model.persisted.sift.SiftAnswers
 import play.api.Logging
@@ -376,5 +377,11 @@ class CampaignManagementService @Inject() (afterDeadlineCodeRepository: Campaign
     for {
       assessmentCentreTests <- assessmentCentreRepo.getTests(applicationId)
     } yield assessmentCentreTests
+  }
+
+  def getFileUploadInfo(fileId: String): Future[Option[FileUploadInfo]] = {
+    for {
+      metaDataOpt <- fileUploadRepo.retrieveMetaData(fileId)
+    } yield metaDataOpt
   }
 }
