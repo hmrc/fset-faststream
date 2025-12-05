@@ -117,7 +117,18 @@ class CampaignManagementController @Inject() (cc: ControllerComponents,
     } yield {
       assessmentCentreTests.analysisExercise match {
         case Some(analysisExercise) => Ok(s"{\"fileId\":\"${analysisExercise.fileId}\"}")
-        case _ => NotFound(s"No uploaded document found for $applicationId")
+        case _ => NotFound(s"No uploaded document found for applicationId $applicationId")
+      }
+    }
+  }
+
+  def getUploadedDocumentMetadata(fileId: String): Action[AnyContent] = Action.async {
+    for {
+      metadataOpt <- campaignManagementService.getFileUploadInfo(fileId)
+    } yield {
+      metadataOpt match {
+        case Some(metadata) => Ok(Json.toJson(metadata))
+        case _ => NotFound(s"No uploaded document found for fileId $fileId")
       }
     }
   }
