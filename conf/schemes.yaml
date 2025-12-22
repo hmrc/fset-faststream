@@ -17,8 +17,9 @@
     required: Degree_22
     specificRequirement: false
   siftEvaluationRequired: false
-  fsbType: CYB - Skype interview
-  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-cyb.odt
+# Removed fsb during live campaign 2025/26
+#  fsbType: CYB - Skype interview
+#  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-cyb.odt
 
 - id: Digital
   code: DDTAC
