@@ -33,7 +33,7 @@ import play.api.libs.json.JsArray
 import play.api.test.Helpers.*
 import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import repositories.*
-import repositories.application.{GeneralApplicationRepository, PreviousYearCandidatesDetailsRepository, ReportingRepository}
+import repositories.application.{GeneralApplicationRepository, NeoReportRepository, PreviousYearCandidatesDetailsRepository, ReportingRepository}
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.events.*
 import repositories.fsb.*
@@ -315,6 +315,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
     val mockFsbRepo = mock[FsbRepository]
     val mockAppRepo = mock[GeneralApplicationRepository]
     val mockPrevYearCandidatesDetailsRepo = mock[PreviousYearCandidatesDetailsRepository]
+    val mockNeoReportRepo = mock[NeoReportRepository]
     val mockPersonalDetailsRepository = mock[PersonalDetailsRepository]
 
     val testableReportingController = new ReportingController(
@@ -326,6 +327,7 @@ class ReportingControllerSpec extends UnitWithAppSpec {
       contactDetailsRepository = mockContactDetailsRepository,
       questionnaireRepository = mockQuestionnaireRepository,
       prevYearCandidatesDetailsRepository = mockPrevYearCandidatesDetailsRepo,
+      neoReportRepository = mockNeoReportRepo,
       assessmentScoresRepository = mockAssessmentScoresRepository,
       mediaRepository = mockMediaRepository,
       applicationSiftRepository = mockApplicationSiftRepo,

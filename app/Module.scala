@@ -103,6 +103,7 @@ class Module(val environment: Environment, val configuration: Configuration) ext
     //reporting
     bind(classOf[ReportingRepository]).to(classOf[ReportingMongoRepository]).asEagerSingleton()
     bind(classOf[PreviousYearCandidatesDetailsRepository]).to(classOf[PreviousYearCandidatesDetailsMongoRepository]).asEagerSingleton()
+    bind(classOf[NeoReportRepository]).to(classOf[NeoReportMongoRepository]).asEagerSingleton()
     bind(classOf[CandidateAllocationRepository]).to(classOf[CandidateAllocationMongoRepository]).asEagerSingleton()
 
     bind(classOf[AssessorRepository]).to(classOf[AssessorMongoRepository]).asEagerSingleton()

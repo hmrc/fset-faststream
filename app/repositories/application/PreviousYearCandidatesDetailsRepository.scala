@@ -213,7 +213,7 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
         ).mkString(",")
   )
 
-def assessmentScoresHeaders(assessor: String): String = {
+  def assessmentScoresHeaders(assessor: String): String = {
     assessmentScoresExerciseAverageFields.map(_._1).map { exercise =>
       s"$assessor $exercise - attended,updatedBy,submittedDate,${assessmentScoresExerciseAverageFieldsMap(exercise)},${assessmentScoresFeedbackFieldsMap(exercise)}," +
         s"${fsacBarScoresHeadersMap(exercise)}"
@@ -1067,7 +1067,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
           contactDetailsOpt.getStringOpt("postCode"),
           contactDetailsOpt.map(_.get("outsideUk").asBoolean().getValue).map(outside => if (outside) "Yes" else "No"),
           contactDetailsOpt.getStringOpt("country"),
-          contactDetailsOpt.getStringOpt("phone"),
+          contactDetailsOpt.getStringOpt("phone")
         )
         extractUserId(doc) -> csvRecord
       }

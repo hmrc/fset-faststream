@@ -170,4 +170,11 @@ package object repositories {
       otherInternshipColumnOpt, otherInternshipNameColumnOpt, otherInternshipYearColumnOpt, Some(fastPassCertificate)
     )
   } //scalastyle:on method.length cyclomatic.complexity
+
+  def getCivilServiceExperienceDetailsForNeo(doc: Document): Option[String] = {
+    val csedDocOpt = subDocRoot("civil-service-experience-details")(doc)
+    val civilServantDepartmentOpt = extract("civilServantDepartment")(csedDocOpt)
+
+    civilServantDepartmentOpt
+  }
 }
