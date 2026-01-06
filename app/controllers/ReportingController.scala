@@ -56,6 +56,7 @@ class ReportingController @Inject() (cc: ControllerComponents,
                                      contactDetailsRepository: ContactDetailsRepository,
                                      questionnaireRepository: QuestionnaireRepository,
                                      prevYearCandidatesDetailsRepository: PreviousYearCandidatesDetailsRepository,
+                                     neoReportRepository: NeoReportRepository,
                                      @Named("ReviewerAssessmentScoresRepo") assessmentScoresRepository: AssessmentScoresRepository,
                                      mediaRepository: MediaRepository,
                                      applicationSiftRepository: ApplicationSiftRepository,
@@ -137,6 +138,13 @@ class ReportingController @Inject() (cc: ControllerComponents,
     reportFut.map { report =>
       Ok(Json.toJson(report))
     }
+  }
+
+  def streamNeoExtractReport: Action[AnyContent] = {
+    streamNeoReport(
+      Seq(Faststream),
+      Seq(ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER)
+    )
   }
 
   def streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport: Action[AnyContent] = {
@@ -317,6 +325,35 @@ class ReportingController @Inject() (cc: ControllerComponents,
     )
   }
 
+  private def streamNeoReport(
+                             applicationRoutes: Seq[ApplicationRoute],
+                             applicationStatuses: Seq[ApplicationStatus]
+                             ): Action[AnyContent] = Action.async {
+    logRpt(s"started report for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses")
+    neoReportRepository.findApplicationsFor(applicationRoutes, applicationStatuses).flatMap { candidates =>
+      logRpt(s"fetched ${candidates.size} candidates")
+      val appIds = candidates.map(_.applicationId)
+      val userIds = candidates.map(_.userId)
+
+      enrichNeoCandidateDetails(appIds, userIds) {
+        (contactDetails, questionnaireDetails, mediaDetails, siftAnswers, reviewerAssessmentScores) => {
+          val header = buildNeoHeaders
+          logRpt(s"started initialising the application details stream for ${appIds.size} candidates")
+          val candidatesStream = neoReportRepository.applicationDetailsStream(appIds).map {
+            app =>
+              createNeoCandidateInfoBackUpRecord(
+                app, contactDetails, questionnaireDetails, mediaDetails, siftAnswers, reviewerAssessmentScores
+              ) + "\n"
+          }
+          logRpt(s"stopped initialising the application details stream for ${appIds.size} candidates")
+          logRpt(s"finished loading enriched data for appRoutes: $applicationRoutes, appStatuses: $applicationStatuses. " +
+            s"Now sending the chunked response.")
+          Ok.chunked(header ++ candidatesStream)
+        }
+      }
+    }
+  }
+
   private def streamPreviousYearCandidatesDetailsReport(
                                                          applicationRoutes: Seq[ApplicationRoute],
                                                          applicationStatuses: Seq[ApplicationStatus]
@@ -464,6 +501,23 @@ class ReportingController @Inject() (cc: ControllerComponents,
       Nil).mkString(",")
   }
 
+  private def createNeoCandidateInfoBackUpRecord(
+                                               candidateDetails: CandidateDetailsReportItem,
+                                               contactDetails: CsvExtract[String],
+                                               questionnaireDetails: CsvExtract[String],
+                                               mediaDetails: CsvExtract[String],
+                                               siftAnswersDetails: CsvExtract[String],
+                                               reviewerAssessmentScoresDetails: CsvExtract[String]
+                                             ) = {
+    (candidateDetails.csvRecord ::
+      contactDetails.records.getOrElse(candidateDetails.userId, contactDetails.emptyRecord) ::
+      questionnaireDetails.records.getOrElse(candidateDetails.appId, questionnaireDetails.emptyRecord) ::
+      mediaDetails.records.getOrElse(candidateDetails.userId, mediaDetails.emptyRecord) ::
+      siftAnswersDetails.records.getOrElse(candidateDetails.appId, siftAnswersDetails.emptyRecord) ::
+      reviewerAssessmentScoresDetails.records.getOrElse(candidateDetails.appId, reviewerAssessmentScoresDetails.emptyRecord) ::
+      Nil).mkString(",")
+  }
+
   //TODO: remove
   /*
   private def buildHeadersLegacy(numOfSchemes: Int): Enumerator[String] = {
@@ -479,6 +533,18 @@ class ReportingController @Inject() (cc: ControllerComponents,
         Nil).mkString(",") + "\n"
     )
   }*/
+
+  private def buildNeoHeaders: Source[String, _] = {
+    Source.single(
+      (neoReportRepository.applicationDetailsHeader ::
+        neoReportRepository.contactDetailsHeader ::
+        neoReportRepository.questionnaireDetailsHeader ::
+        neoReportRepository.mediaHeader ::
+        neoReportRepository.siftAnswersHeader ::
+        neoReportRepository.assessmentScoresHeaders ::
+        Nil).mkString(",") + "\n"
+    )
+  }
 
   private def buildHeaders(numOfSchemes: Int): Source[String, _] = {
     Source.single(
@@ -497,7 +563,30 @@ class ReportingController @Inject() (cc: ControllerComponents,
   type ReportStreamBlockType = (Int, CsvExtract[String], CsvExtract[String], CsvExtract[String], CsvExtract[String],
     CsvExtract[String], CsvExtract[String], CsvExtract[String]) => Result
 
+  type NeoReportStreamBlockType = (CsvExtract[String], CsvExtract[String], CsvExtract[String],
+    CsvExtract[String], CsvExtract[String]) => Result
+
   private def logRpt(msg: String) = logger.warn(s"streamPreviousYearCandidatesDetailsReport: $msg")
+
+  private def enrichNeoCandidateDetails(applicationIds: Seq[String], userIds: Seq[String] = Nil)(
+    block: NeoReportStreamBlockType): Future[Result] = {
+    logRpt(s"started fetching enriched data for ${applicationIds.size} candidates")
+    for {
+      contactDetails <- neoReportRepository.findContactDetails(userIds)
+      _ = logRpt(s"enriching data - contactDetails size = ${contactDetails.records.size}")
+      questionnaireDetails <- neoReportRepository.findQuestionnaireDetails(applicationIds)
+      _ = logRpt(s"enriching data - questionnaireDetails size = ${questionnaireDetails.records.size}")
+      mediaDetails <- neoReportRepository.findMediaDetails(userIds)
+      _ = logRpt(s"enriching data - mediaDetails size = ${mediaDetails.records.size}")
+      siftAnswers <- neoReportRepository.findSiftAnswers(applicationIds)
+      _ = logRpt(s"enriching data - siftAnswers size = ${siftAnswers.records.size}")
+      reviewerAssessmentScores <- neoReportRepository.findReviewerAssessmentScores(applicationIds)
+      _ = logRpt(s"enriching data - reviewerAssessmentScores size = ${reviewerAssessmentScores.records.size}")
+    } yield {
+      logRpt(s"finished fetching enriched data for ${applicationIds.size} candidates")
+      block(contactDetails, questionnaireDetails, mediaDetails, siftAnswers, reviewerAssessmentScores)
+    }
+  }
 
   private def enrichPreviousYearCandidateDetails(applicationIds: Seq[String], userIds: Seq[String] = Nil)(
     block: ReportStreamBlockType): Future[Result] = {

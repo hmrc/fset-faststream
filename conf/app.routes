@@ -100,6 +100,8 @@ GET         /report/fast-pass-awaiting-acceptance                        @contro
 GET         /report/fsac-scores                                          @controllers.ReportingController.fsacScores()
 
 # Streamed reports start
+GET         /report/neo-extract                                              @controllers.ReportingController.streamNeoExtractReport()
+
 GET         /report/fs-presubmitted-candidates-details-stream/previous-year  @controllers.ReportingController.streamPreviousYearFaststreamPresubmittedCandidatesDetailsReport()
 
 GET         /report/fs-p1-candidates-details-stream/previous-year            @controllers.ReportingController.streamPreviousYearFaststreamP1CandidatesDetailsReport()
