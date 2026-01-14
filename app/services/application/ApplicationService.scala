@@ -974,6 +974,27 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     } yield ()
   }
 
+  def setCurrentSchemeStatus(applicationId: String): Future[Seq[SchemeEvaluationResult]] = {
+
+    def buildCss(schemes: SelectedSchemes) = {
+      for {
+        scheme <- schemes.schemes
+      } yield {
+        SchemeEvaluationResult(scheme, EvaluationResults.Green.toString)
+      }
+    }
+
+    for {
+      progressResponse <- appRepository.findProgress(applicationId)
+      _ = if (!progressResponse.submittedCheckPassed) {
+        throw CandidateInIncorrectState(s"Cannot set css for candidate $applicationId because they have not passed the submit check")
+      }
+      schemes <- schemePrefsRepository.find(applicationId)
+      newCss = buildCss(schemes)
+      _ <- appRepository.updateCurrentSchemeStatus(applicationId, newCss)
+    } yield newCss
+  }
+
   def updateCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId, newResult: model.EvaluationResults.Result): Future[Unit] = {
     for {
       currentSchemeStatus <- appRepository.getCurrentSchemeStatus(applicationId)

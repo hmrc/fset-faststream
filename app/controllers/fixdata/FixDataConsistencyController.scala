@@ -519,6 +519,17 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
     }
   }
 
+  def setCurrentSchemeStatus(applicationId: String): Action[AnyContent] = Action.async {
+      applicationService.setCurrentSchemeStatus(applicationId).map(newCss =>
+        Ok(s"Successfully set CSS to $newCss for $applicationId")
+      ).recover {
+        case ex @(_: ApplicationNotFound | _: CandidateInIncorrectState) =>
+          BadRequest(s"Error setting CSS: ${ex.getMessage}")
+        case ex: SchemePreferencesNotFound =>
+          BadRequest(s"Error setting CSS: no scheme preferences found for $applicationId")
+      }
+  }
+
   def updateCurrentSchemeStatusScheme(applicationId: String, schemeId: SchemeId,
                                       result: model.EvaluationResults.Result): Action[AnyContent] = Action.async {
     applicationService.updateCurrentSchemeStatusScheme(applicationId, schemeId, result).map(_ =>
