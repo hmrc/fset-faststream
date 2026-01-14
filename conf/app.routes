@@ -234,6 +234,7 @@ GET         /diagnostic/moveSdipFaststreamFailedFaststreamInvitedToVideoIntervie
 GET         /diagnostic/application/fixSdipFaststreamCandidateWhoExpiredInOnlineTests                   @controllers.fixdata.FixDataConsistencyController.fixSdipFaststreamCandidateWhoExpiredInOnlineTests(applicationId: String)
 GET         /diagnostic/application/rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation           @controllers.fixdata.FixDataConsistencyController.rollbackToSiftReadyFromAssessmentCentreAwaitingAllocation(applicationId: String)
 
+GET         /diagnostic/currentSchemeStatus                                                             @controllers.fixdata.FixDataConsistencyController.setCurrentSchemeStatus(applicationId: String)
 GET         /diagnostic/currentSchemeStatus/markAs/:result/schemeId/:schemeId                           @controllers.fixdata.FixDataConsistencyController.updateCurrentSchemeStatusScheme(applicationId: String, schemeId: model.SchemeId, result: model.EvaluationResults.Result)
 DELETE      /diagnostic/currentSchemeStatus/remove/schemeId/:schemeId                                   @controllers.fixdata.FixDataConsistencyController.removeCurrentSchemeStatusScheme(applicationId: String, schemeId: model.SchemeId)
 
