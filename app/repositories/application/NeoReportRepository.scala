@@ -81,6 +81,7 @@ trait NeoReportRepository extends Schemes {
   val contactDetailsHeader = "Email,Address line1,Address line2,Address line3,Address line4,Postcode,Country,Phone"
 
   val questionnaireDetailsHeader: String = "Sex at Birth,Sexual Orientation,Ethnic Group," +
+    "Type of school," +
     "Eligible for free school meals?," +
     "Lower socio-economic background?," +
     "Parent guardian completed Uni?,Parents job at 14,Employee?,Size,Supervise employees"
@@ -284,6 +285,7 @@ class NeoReportMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
           getAnswer(sex, questionsDocOpt),
           getAnswer(sexualOrientation, questionsDocOpt),
           getAnswer(ethnicGroup, questionsDocOpt),
+          getAnswer(schoolTypeAged14to16, questionsDocOpt),
           getAnswer(eligibleForFreeSchoolMeals, questionsDocOpt),
           getAnswer(lowerSocioEconomicBackground, questionsDocOpt),
           getAnswer(parentOrGuardianQualificationsAtAge18, questionsDocOpt),
