@@ -27,6 +27,9 @@ case class CivilServiceExperienceDetails(
   applicable: Boolean,
   civilServantAndInternshipTypes: Option[Seq[CivilServantAndInternshipType]] = None,
   civilServantDepartment: Option[String] = None,
+  liveDisciplinaryWarning: Option[Boolean] = None,
+  inReviewPeriodFollowingAWarning: Option[Boolean] = None,
+  inImprovementPeriodFollowingAWarning: Option[Boolean] = None,
   edipYear: Option[String] = None,
   sdipYear: Option[String] = None,
   otherInternshipName: Option[String] = None,
@@ -35,10 +38,13 @@ case class CivilServiceExperienceDetails(
   fastPassAccepted: Option[Boolean] = None,
   certificateNumber: Option[String] = None
 ) {
-  override def toString = {
+  override def toString: String =
     s"applicable=$applicable," +
       s"civilServantAndInternshipTypes=$civilServantAndInternshipTypes," +
       s"civilServantDepartment=$civilServantDepartment," +
+      s"liveDisciplinaryWarning=$liveDisciplinaryWarning," +
+      s"inReviewPeriodFollowingAWarning=$inReviewPeriodFollowingAWarning," +
+      s"inImprovementPeriodFollowingAWarning=$inImprovementPeriodFollowingAWarning," +
       s"edipYear=$edipYear," +
       s"sdipYear=$sdipYear," +
       s"otherInternshipName=$otherInternshipName," +
@@ -46,7 +52,6 @@ case class CivilServiceExperienceDetails(
       s"fastPassReceived=$fastPassReceived," +
       s"fastPassAccepted=$fastPassAccepted," +
       s"certificateNumber=$certificateNumber"
-  }
 }
 
 object CivilServiceExperienceDetails {
@@ -58,6 +63,9 @@ object CivilServiceExperienceDetails {
     (__ \ root \ "applicable").format[Boolean] and
       (__ \ root \ "civilServantAndInternshipTypes").formatNullable[Seq[CivilServantAndInternshipType]] and
       (__ \ root \ "civilServantDepartment").formatNullable[String] and
+      (__ \ root \ "liveDisciplinaryWarning").formatNullable[Boolean] and
+      (__ \ root \ "inReviewPeriodFollowingAWarning").formatNullable[Boolean] and
+      (__ \ root \ "inImprovementPeriodFollowingAWarning").formatNullable[Boolean] and
       (__ \ root \ "edipYear").formatNullable[String] and
       (__ \ root \ "sdipYear").formatNullable[String] and
       (__ \ root \ "otherInternshipName").formatNullable[String] and
