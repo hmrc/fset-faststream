@@ -52,7 +52,8 @@ class ContactDetailsMongoRepository @Inject() (mongo: MongoComponent, appConfig:
     mongoComponent = mongo,
     domainFormat = ContactDetails.mongoFormat,
     indexes = Seq(
-      IndexModel(ascending("userId"), IndexOptions().unique(true))
+      IndexModel(ascending("userId"), IndexOptions().unique(true)),
+      IndexModel(ascending("contact-details.postCode"), IndexOptions().unique(false))
     )
   ) with ContactDetailsRepository with ReactiveRepositoryHelpers {
 
