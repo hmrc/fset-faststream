@@ -57,6 +57,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
           IndexDetails(name = "_id_", keys = Seq(("_id", "Ascending")), unique = false),
           IndexDetails(name = "applicationId_1_userId_1", keys = Seq(("applicationId", "Ascending"), ("userId", "Ascending")), unique = true),
           IndexDetails(name = "userId_1_frameworkId_1", keys = Seq(("userId", "Ascending"), ("frameworkId", "Ascending")), unique = true),
+          IndexDetails(name = "applicationRoute_1", keys = Seq(("applicationRoute", "Ascending")), unique = false),
           IndexDetails(name = "applicationStatus_1", keys = Seq(("applicationStatus", "Ascending")), unique = false),
           IndexDetails(name = "assistance-details.needsSupportAtVenue_1",
             keys = Seq(("assistance-details.needsSupportAtVenue", "Ascending")), unique = false),

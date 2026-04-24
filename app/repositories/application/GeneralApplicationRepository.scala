@@ -143,6 +143,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     indexes = Seq(
       IndexModel(ascending("applicationId", "userId"), IndexOptions().unique(true)),
       IndexModel(ascending("userId", "frameworkId"), IndexOptions().unique(true)),
+      IndexModel(ascending("applicationRoute"), IndexOptions().unique(false)),
       IndexModel(ascending("applicationStatus"), IndexOptions().unique(false)),
       IndexModel(ascending("assistance-details.needsSupportAtVenue"), IndexOptions().unique(false)),
       IndexModel(ascending("assistance-details.guaranteedInterview"), IndexOptions().unique(false)),
