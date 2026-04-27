@@ -151,6 +151,9 @@ class TestDataMongoRepository @Inject() (mongo: MongoComponent)(implicit ec: Exe
           CivilServantAndInternshipType.OtherInternship.toBson
         ),
         "civilServantDepartment" -> "Accountant in Bankruptcy",
+        "liveDisciplinaryWarning" -> false,
+        "inReviewPeriodFollowingAWarning" -> false,
+        "inImprovementPeriodFollowingAWarning" -> false,
         "edipYear" -> "2018",
         "sdipYear" -> "2019",
         "otherInternshipName" -> "other",
