@@ -362,7 +362,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
 
   private def setTestCompletedTime(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] =
     eventSink {
-      updatePhase1Test(orderId, testRepository.updateTestCompletionTime(_: String, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
+      updatePhase1TestTimeStamp(orderId, testRepository.updateTestCompletionTime(_: String, dateTimeFactory.nowLocalTimeZone)) flatMap { u =>
         require(u.testGroup.activeTests.nonEmpty, s"Active tests cannot be found orderId=$orderId")
         val activeTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
         if (activeTestsCompleted) {
@@ -379,17 +379,24 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
 
   def markAsStarted(orderId: String, startedTime: OffsetDateTime = dateTimeFactory.nowLocalTimeZone)
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
-    updatePhase1Test(orderId, testRepository.updateTestStartTime(_: String, startedTime)) flatMap { u =>
-      //TODO: remove the next line and comment in the following line at end of campaign 2019
-      testRepository.updateProgressStatus(u.applicationId, ProgressStatuses.PHASE1_TESTS_STARTED) map { _ =>
-        //      maybeMarkAsStarted(u.applicationId).map { _ =>
-        DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
-      }
+    for {
+      tg <- testRepository.getTestGroupByOrderId(orderId)
+      startedDateTimeOpt = tg.testGroup.tests.find(test => test.orderId == orderId).flatMap(test => test.startedDateTime)
+      u <- maybeUpdatePhase1TestTimeStamp(orderId, startedDateTimeOpt, testRepository.updateTestStartTime(_: String, startedTime))
+      _ <- maybeAddPhase1TestsStarted(u.applicationId)
+    } yield {
+      DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
     }
   }
 
-  private def maybeMarkAsStarted(appId: String): Future[Unit] = {
-    appRepository.getProgressStatusTimestamps(appId).map { timestamps =>
+  // Only add the PHASE1_TESTS_STARTED progress status if it doesn't already exist. This should only be added when the
+  // candidate starts the first phase 1 test. For example, if the candidate only partially completes the test and
+  // finishes it later, there should be no further updates and the same applies when the candidate starts the second
+  // phase 1 test, which should not result in updating the progress status either.
+  private def maybeAddPhase1TestsStarted(appId: String): Future[Unit] = {
+    for {
+      timestamps <- appRepository.getProgressStatusTimestamps(appId)
+    } yield {
       val hasStarted = timestamps.exists { case (progressStatus, _) => progressStatus == PHASE1_TESTS_STARTED.key }
       if (hasStarted) {
         Future.successful(())
@@ -454,9 +461,21 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
   }
   //scalastyle:on
 
-  private def updatePhase1Test(orderId: String, updatePsiTest: String => Future[Unit]): Future[Phase1TestGroupWithUserIds] = {
+  private def updatePhase1TestTimeStamp(orderId: String, updatePsiTestFn: String => Future[Unit]): Future[Phase1TestGroupWithUserIds] = {
     for {
-      _ <- updatePsiTest(orderId)
+      _ <- updatePsiTestFn(orderId)
+      updated <- testRepository.getTestGroupByOrderId(orderId)
+    } yield {
+      updated
+    }
+  }
+
+  // Only update the test with a new date if one does not already exist
+  private def maybeUpdatePhase1TestTimeStamp(orderId: String,
+                                             dateTime: Option[OffsetDateTime],
+                                             updatePsiTestFn: String => Future[Unit]): Future[Phase1TestGroupWithUserIds] = {
+    for {
+      _ <- if (dateTime.isEmpty) updatePsiTestFn(orderId) else Future.successful(())
       updated <- testRepository.getTestGroupByOrderId(orderId)
     } yield {
       updated
