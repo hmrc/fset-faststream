@@ -120,7 +120,7 @@ trait OnlineTestRepository extends RandomSelection with ReactiveRepositoryHelper
     }
   }
 
-  def cannotFindTestByOrderId(orderId: String) = {
+  def cannotFindTestByOrderId(orderId: String): Nothing = {
     throw CannotFindTestByOrderIdException(s"Cannot find test group by orderId=$orderId")
   }
 

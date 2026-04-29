@@ -16,8 +16,9 @@
 
 package model.persisted
 
+import model.exchange
 import org.mongodb.scala.bson.BsonValue
-import repositories.formats.MongoJavatimeFormats.Implicits._ // Needed to handle storing ISODate format
+import repositories.formats.MongoJavatimeFormats.Implicits.*
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.play.json.Codecs
 
@@ -53,7 +54,7 @@ case class PsiTest(inventoryId: String,
                    testResult: Option[model.persisted.PsiTestResult] = None,
                    invigilatedAccessCode: Option[String] = None
                   ) extends Test {
-  override def toString =
+  override def toString: String =
     s"inventoryId=$inventoryId," +
       s"orderId=$orderId," +
       s"usedForResults=$usedForResults," +
@@ -69,8 +70,8 @@ case class PsiTest(inventoryId: String,
       s"reportStatus=$reportStatus," +
       s"testResult=$testResult," +
       s"invigilatedAccessCode=$invigilatedAccessCode"
-  def isCompleted = completedDateTime.isDefined
-  def toExchange = model.exchange.PsiTest(
+  def isCompleted: Boolean = completedDateTime.isDefined
+  def toExchange: exchange.PsiTest = model.exchange.PsiTest(
     inventoryId,
     orderId,
     usedForResults,

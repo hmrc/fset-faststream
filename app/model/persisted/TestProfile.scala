@@ -25,9 +25,9 @@ abstract class PsiTestProfile() extends TestProfile[PsiTest] {
 trait TestProfile[T <: Test] {
   def expirationDate: OffsetDateTime
   def tests: List[T]
-  def activeTests = tests.filter(_.usedForResults)
-  def hasNotStartedYet = activeTests.forall(_.startedDateTime.isEmpty)
-  def hasNotCompletedYet =  activeTests.exists(_.completedDateTime.isEmpty)
+  def activeTests: List[T] = tests.filter(_.usedForResults)
+  def hasNotStartedYet: Boolean = activeTests.forall(_.startedDateTime.isEmpty)
+  def hasNotCompletedYet: Boolean =  activeTests.exists(_.completedDateTime.isEmpty)
   def evaluation: Option[PassmarkEvaluation]
 }
 

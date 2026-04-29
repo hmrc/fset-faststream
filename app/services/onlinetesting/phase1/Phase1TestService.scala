@@ -28,7 +28,7 @@ import model.EvaluationResults.Green
 import javax.inject.{Inject, Singleton}
 import model.Exceptions._
 import model.OnlineTestCommands._
-import model.ProgressStatuses.PHASE1_TESTS_STARTED
+import model.ProgressStatuses.{PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED}
 import model._
 import model.exchange.{Phase1TestGroupWithNames, PsiRealTimeResults}
 import model.persisted.{Phase1TestProfile, PsiTestResult => _, _}
@@ -353,10 +353,19 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       )
   }
 
-  def markAsCompleted(orderId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
-    testRepository.getTestProfileByOrderId(orderId).flatMap { p =>
-      p.tests.find(_.orderId == orderId).map { test => setTestCompletedTime(test.orderId) } // TODO: here handle if we do not find the data
-        .getOrElse(Future.successful(()))
+  def markAsCompleted(orderId: String, completedTime: OffsetDateTime = dateTimeFactory.nowLocalTimeZone)
+                     (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
+    for {
+      p <- testRepository.getTestProfileByOrderId(orderId)
+      completedDateTimeOpt = p.tests.find(test => test.orderId == orderId).flatMap(_.completedDateTime)
+      // Using partial function application to provide the completedTime and leave the argument for the orderId open.
+      // This converts the 2 argument function into a 1 argument function, with the completedTime already applied
+      u <- maybeUpdateTestTimeStamp(orderId, completedDateTimeOpt, testRepository.updateTestCompletionTime(_, completedTime))
+
+      allActiveTestsCompleted = u.testGroup.activeTests forall (_.completedDateTime.isDefined)
+      _ <- maybeAddPhase1TestsCompleted(u.applicationId, allActiveTestsCompleted)
+    } yield {
+      DataStoreEvents.OnlineExercisesCompleted(u.applicationId) :: Nil
     }
   }
 
@@ -381,8 +390,10 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
                    (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {
       tg <- testRepository.getTestGroupByOrderId(orderId)
-      startedDateTimeOpt = tg.testGroup.tests.find(test => test.orderId == orderId).flatMap(test => test.startedDateTime)
-      u <- maybeUpdatePhase1TestTimeStamp(orderId, startedDateTimeOpt, testRepository.updateTestStartTime(_: String, startedTime))
+      startedDateTimeOpt = tg.testGroup.tests.find(test => test.orderId == orderId).flatMap(_.startedDateTime)
+      // Using partial function application to provide the startedTime and leave the argument for the orderId open.
+      // This converts the 2 argument function into a 1 argument function, with the startedTime already applied
+      u <- maybeUpdateTestTimeStamp(orderId, startedDateTimeOpt, testRepository.updateTestStartTime(_, startedTime))
       _ <- maybeAddPhase1TestsStarted(u.applicationId)
     } yield {
       DataStoreEvents.OnlineExerciseStarted(u.applicationId) :: Nil
@@ -403,6 +414,23 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       } else {
         testRepository.updateProgressStatus(appId, PHASE1_TESTS_STARTED)
       }
+    }
+  }
+
+  private def maybeAddPhase1TestsCompleted(appId: String, activeTestsCompleted: Boolean): Future[Unit] = {
+    if (activeTestsCompleted) {
+      for {
+        timestamps <- appRepository.getProgressStatusTimestamps(appId)
+      } yield {
+        val hasCompleted = timestamps.exists { case (progressStatus, _) => progressStatus == PHASE1_TESTS_COMPLETED.key }
+        if (hasCompleted) {
+          Future.successful(())
+        } else {
+          testRepository.updateProgressStatus(appId, PHASE1_TESTS_COMPLETED)
+        }
+      }
+    } else {
+      Future.successful(())
     }
   }
 
@@ -432,7 +460,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       }
     }
 
-    def markTestAsCompleted(profile: PsiTestProfile): Future[Unit] =
+    def maybeMarkTestAsCompleted(profile: PsiTestProfile): Future[Unit] =
       profile.tests.find(_.orderId == orderId).map { test =>
         if (!test.isCompleted) {
           logger.info(s"Processing real time results - setting completed date on psi test whose orderId=$orderId")
@@ -452,7 +480,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       val appId = appIdOpt.getOrElse(throw CannotFindTestByOrderIdException(s"Application not found for test for orderId=$orderId"))
       for {
         profile <- testRepository.getTestProfileByOrderId(orderId)
-        _ <- markTestAsCompleted(profile)
+        _ <- maybeMarkTestAsCompleted(profile)
         _ <- profile.tests.find(_.orderId == orderId).map { test => insertResults(appId, test.orderId, profile, results) }
           .getOrElse(throw CannotFindTestByOrderIdException(s"Test not found for orderId=$orderId"))
         _ <- maybeUpdateProgressStatus(appId)
@@ -471,7 +499,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
   }
 
   // Only update the test with a new date if one does not already exist
-  private def maybeUpdatePhase1TestTimeStamp(orderId: String,
+  private def maybeUpdateTestTimeStamp(orderId: String,
                                              dateTime: Option[OffsetDateTime],
                                              updatePsiTestFn: String => Future[Unit]): Future[Phase1TestGroupWithUserIds] = {
     for {

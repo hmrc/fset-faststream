@@ -354,9 +354,6 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       when(appRepositoryMock.getProgressStatusTimestamps(anyString()))
         .thenReturnAsync(List("PHASE1_TESTS_STARTED" -> OffsetDateTime.now()))
 
-      when(phase1TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_STARTED))
-        .thenReturnAsync()
-
       phase1TestService.markAsStarted(orderId).futureValue
 
       verify(phase1TestRepositoryMock, never()).updateTestStartTime(any[String], any[OffsetDateTime])(any[ExecutionContext])
@@ -366,12 +363,16 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
 
   "mark as completed" should {
     "change progress to completed if all tests are completed and the test profile hasn't expired" in new OnlineTest {
-      when(phase1TestRepositoryMock.updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])).thenReturnAsync()
       val phase1Tests: Phase1TestProfile = phase1TestProfile.copy(
         tests = phase1TestProfile.tests.map(t => t.copy(orderId = orderId, completedDateTime = Some(OffsetDateTime.now))),
         expirationDate = OffsetDateTime.now.plusDays(2)
       )
       when(phase1TestRepositoryMock.getTestProfileByOrderId(anyString())).thenReturnAsync(phase1Tests)
+
+      when(phase1TestRepositoryMock.updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])).thenReturnAsync()
+
+      when(appRepositoryMock.getProgressStatusTimestamps(anyString())).thenReturnAsync(Nil)
+
       when(phase1TestRepositoryMock.getTestGroupByOrderId(anyString()))
         .thenReturnAsync(Phase1TestGroupWithUserIds("appId123", userId, phase1Tests))
       when(phase1TestRepositoryMock.updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)).thenReturnAsync()
@@ -379,6 +380,28 @@ class Phase1TestServiceSpec extends UnitSpec with ExtendedTimeout
       phase1TestService.markAsCompleted(orderId).futureValue
 
       verify(phase1TestRepositoryMock).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
+    }
+
+    "not update the completed timestamp or the completed progress status if they already exist" in new OnlineTest {
+      private val myPhase1TestProfile = Phase1TestProfile(
+        expirationDate,
+        List(phase1Test.copy(orderId = orderId, startedDateTime = Some(startedDate), completedDateTime = Some(startedDate.plusDays(1))))
+      )
+      when(phase1TestRepositoryMock.getTestGroupByOrderId(anyString()))
+        .thenReturnAsync(Phase1TestGroupWithUserIds("appId123", userId, myPhase1TestProfile))
+
+      when(appRepositoryMock.getProgressStatusTimestamps(anyString()))
+        .thenReturnAsync(
+          List(
+            "PHASE1_TESTS_STARTED" -> OffsetDateTime.now(),
+            "PHASE1_TESTS_COMPLETED" -> OffsetDateTime.now()
+          )
+        )
+
+      phase1TestService.markAsStarted(orderId).futureValue
+
+      verify(phase1TestRepositoryMock, never()).updateTestCompletionTime(any[String], any[OffsetDateTime])(any[ExecutionContext])
+      verify(phase1TestRepositoryMock, never()).updateProgressStatus("appId123", ProgressStatuses.PHASE1_TESTS_COMPLETED)
     }
   }
 
