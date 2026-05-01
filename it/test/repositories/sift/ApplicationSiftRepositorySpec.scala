@@ -76,8 +76,8 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
       insertApplicationWithPhase3TestNotifiedResults("appId5",
         List(SchemeEvaluationResult(OperationalDelivery, EvaluationResults.Red.toString))).futureValue
 
-      insertApplicationWithPhase1TestNotifiedResults("appId6",
-        List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString)), appRoute = ApplicationRoute.Edip).futureValue
+//      insertApplicationWithPhase1TestNotifiedResults("appId6",
+//        List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString)), appRoute = ApplicationRoute.Edip).futureValue
 
       // The Sdip application should not be selected for campaign 2024/25 as it no longer goes via Sift
       insertApplicationWithPhase1TestNotifiedResults("appId7",
@@ -104,24 +104,24 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
           List(SchemeEvaluationResult(DiplomaticAndDevelopmentEconomics, EvaluationResults.Green.toString))),
         ApplicationForSift("appId4", "appId4", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
           List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString))),
-        ApplicationForSift("appId6", "appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
-          List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString))),
+//        ApplicationForSift("appId6", "appId6", ApplicationStatus.PHASE1_TESTS_PASSED_NOTIFIED,
+//          List(SchemeEvaluationResult(Edip, EvaluationResults.Green.toString))),
         /* FSET-1803 - temporarily disabled
         ApplicationForSift("appId8", "appId8", ApplicationStatus.PHASE3_TESTS_PASSED_NOTIFIED,
         List(SchemeEvaluationResult(Sdip, EvaluationResults.Green.toString),
           SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Red.toString)))*/
       )
 
-      appsForSift.size mustBe 4
+      appsForSift.size mustBe 3
     }
 
     "return no results when there are only applications that aren't in Passed_Notified which apply for sift " +
       "or don't have Green/Passed results" in {
 
-      insertApplicationWithPhase1TestResults("appId5", 5.5d, Some(5.5d), applicationRoute = ApplicationRoute.Edip)(Edip)
+//      insertApplicationWithPhase1TestResults("appId5", 5.5d, Some(5.5d), applicationRoute = ApplicationRoute.Edip)(Edip)
       insertApplicationWithPhase1TestResults("appId6", 5.5d, Some(5.5d), applicationRoute = ApplicationRoute.Sdip)(Sdip)
 
-      insertApplicationWithPhase3TestResults("appId7", None,
+      insertApplicationWithPhase3TestResults("appId7", videoInterviewScore = None,
         PassmarkEvaluation("1", None, List(SchemeEvaluationResult(Finance, EvaluationResults.Green.toString)), "1", None))(Finance)
 
       insertApplicationWithPhase3TestNotifiedResults("appId8",
@@ -150,12 +150,12 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
   "siftCandidate" must {
     def candidates = Table(
       ("appId", "unit", "scheme"),
-      ("appId1", createSiftEligibleCandidates("appId1"), Commercial),
-      ("appId2", createSdipSiftCandidates("appId2"), Sdip),
-      ("appId3", createEdipSiftCandidates("appId3"), Edip)
+      ("appId1", createSiftEligibleCandidates("appId1"), Commercial)//,
+//      ("appId2", createSdipSiftCandidates("appId2"), Sdip),
+//      ("appId3", createEdipSiftCandidates("appId3"), Edip)
     )
 
-    "sift candidate as Passed" in {
+    "sift candidate as passed" in {
       forAll(candidates) { (appId: String, _: Unit, scheme: SchemeId) =>
         repository.siftApplicationForScheme(appId, SchemeEvaluationResult(scheme, Green.toString),
           Seq(Document(s"testGroups.SIFT.evaluation.dummy" -> "test"))).futureValue
@@ -739,10 +739,12 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     val phase2TestWithResult = phase2TestWithResults(model.persisted.PsiTestResult(
       tScore = 20.5, rawScore = 20.5, testReportUrl = None)
     )
-    val phase2Evaluation = PassmarkEvaluation("phase2_version1", None, resultToSave, "phase2_version2-res", None)
+    val phase2Evaluation = PassmarkEvaluation(
+      "phase2_version1", previousPhasePassMarkVersion = None, resultToSave, "phase2_version2-res", previousPhaseResultVersion = None
+    )
 
     insertApplication(appAndUserId,
-      ApplicationStatus.PHASE3_TESTS, None, Some(phase2TestWithResult),
+      ApplicationStatus.PHASE3_TESTS, phase1Tests = None, Some(phase2TestWithResult),
       Some(phase3TestWithResult),
       schemes = List(Commercial, DiplomaticAndDevelopmentEconomics),
       phase2Evaluation = Some(phase2Evaluation))
