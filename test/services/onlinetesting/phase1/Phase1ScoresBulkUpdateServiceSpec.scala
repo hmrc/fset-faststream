@@ -36,7 +36,8 @@ class Phase1ScoresBulkUpdateServiceSpec extends BaseServiceSpec {
     "update the scores successfully" in new TestFixture {
       when(mockApplicationRepository.find(any[String])).thenReturnAsync(Some(candidate))
 
-      val phase1TestProfile = Phase1TestProfile(expirationDate = OffsetDateTime.now, tests = List(firstPsiTest, secondPsiTest))
+      val myFirstPsiTest = firstPsiTest
+      val phase1TestProfile = Phase1TestProfile(expirationDate = OffsetDateTime.now, tests = List(myFirstPsiTest, secondPsiTest))
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
       when(mockPhase1TestRepository.updateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
@@ -45,7 +46,7 @@ class Phase1ScoresBulkUpdateServiceSpec extends BaseServiceSpec {
         Phase1ScoreUpdateRequest(
           applicationId = "appId1",
           inventoryId = "inventoryId1",
-          orderId = "orderId1",
+          orderId = myFirstPsiTest.orderId,
           tScore = 66.0,
           rawScore = 40.0
         )
@@ -54,7 +55,7 @@ class Phase1ScoresBulkUpdateServiceSpec extends BaseServiceSpec {
       val result = service.updatePhase1Scores(updates).futureValue
       val expected = Seq(
         Phase1ScoreUpdateResponse(
-          "appId1", "inventoryId1", "orderId1", tScore = 66.0, rawScore = 40.0, status = "Successfully updated"
+          "appId1", "inventoryId1", myFirstPsiTest.orderId, tScore = 66.0, rawScore = 40.0, status = "Successfully updated"
         )
       )
 

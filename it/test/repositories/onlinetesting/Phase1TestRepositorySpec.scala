@@ -38,13 +38,13 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   implicit val Now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
   val DatePlus7Days = Now.plusDays(7)
 
-  val phase1Test = model.Phase1TestExamples.firstPsiTest.copy(testResult = None)
+  def phase1Test: PsiTest = model.Phase1TestExamples.firstPsiTest.copy(testResult = None)
 
-  val TestProfile = Phase1TestProfile(expirationDate = DatePlus7Days, tests = List(phase1Test))
+  def testProfile: Phase1TestProfile = Phase1TestProfile(expirationDate = DatePlus7Days, tests = List(phase1Test))
   val testProfileWithAppId = Phase1TestGroupWithUserIds(
     "appId",
     "userId",
-    TestProfile.copy(tests = List(
+    testProfile.copy(tests = List(
       phase1Test.copy(usedForResults = true, resultsReadyToDownload = true),
       phase1Test.copy(usedForResults = true, resultsReadyToDownload = true))
     )
@@ -60,9 +60,10 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "return an online test for the specific user id" in {
       insertApplication("appId", "userId")
-      phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
+      val myTestProfile = testProfile
+      phase1TestRepo.insertOrUpdateTestGroup("appId", myTestProfile).futureValue
       val result = phase1TestRepo.getTestGroup("appId").futureValue
-      result mustBe Some(TestProfile)
+      result mustBe Some(myTestProfile)
     }
 
     "return None if there is an application without test group" in {
@@ -74,15 +75,16 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
   "Get online test by orderId" should {
     "return None if there is no test with the orderId" in {
-      val result = phase1TestRepo.getTestProfileByOrderId("orderId").failed.futureValue
+      val result = phase1TestRepo.getTestProfileByOrderId("i-dont-exist-orderId").failed.futureValue
       result mustBe a[CannotFindTestByOrderIdException]
     }
 
     "return an online test for the specific orderId" in {
       insertApplication("appId", "userId")
-      phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
-      val result = phase1TestRepo.getTestProfileByOrderId("orderId1").futureValue
-      result mustBe TestProfile
+      val myTestProfile = testProfile
+      phase1TestRepo.insertOrUpdateTestGroup("appId", myTestProfile).futureValue
+      val result = phase1TestRepo.getTestProfileByOrderId(myTestProfile.tests.head.orderId).futureValue
+      result mustBe myTestProfile
     }
   }
 
@@ -138,10 +140,10 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
       createApplicationWithAllFields("userId1", "app1",  "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS,
-        phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.SdipFaststream.toString
+        phase1TestProfile = Some(testProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.SdipFaststream.toString
       ).futureValue
       createApplicationWithAllFields("userId2", "app2",  "testAccountId", appStatus = ApplicationStatus.PHASE2_TESTS,
-        phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.Sdip.toString
+        phase1TestProfile = Some(testProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.Sdip.toString
       ).futureValue
 
       val results = phase1TestRepo.nextSdipFaststreamCandidateReadyForSdipProgression.futureValue
@@ -155,10 +157,10 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val evaluation = PassmarkEvaluation("version1", None, resultToSave, "version1-res", None)
 
       createApplicationWithAllFields("userId1", "app1", "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS,
-        phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.SdipFaststream.toString
+        phase1TestProfile = Some(testProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.SdipFaststream.toString
       ).futureValue
       createApplicationWithAllFields("userId2", "app2", "testAccountId", appStatus = ApplicationStatus.PHASE2_TESTS,
-        phase1TestProfile = Some(TestProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.Sdip.toString
+        phase1TestProfile = Some(testProfile.copy(evaluation = Some(evaluation))), applicationRoute = ApplicationRoute.Sdip.toString
       ).futureValue
 
       val results = phase1TestRepo.nextSdipFaststreamCandidateReadyForSdipProgression.futureValue
@@ -530,10 +532,11 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
   "update psi test" should {
     "add the start time for a psi test" in {
       insertApplication("appId", "userId")
-      phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
+      val myTestProfile = testProfile
+      phase1TestRepo.insertOrUpdateTestGroup("appId", myTestProfile).futureValue
 
       val startedDateTime = Now
-      phase1TestRepo.updateTestStartTime(TestProfile.tests.head.orderId, startedDateTime).futureValue
+      phase1TestRepo.updateTestStartTime(myTestProfile.tests.head.orderId, startedDateTime).futureValue
 
       val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
       val psiTest = phase1TestProfile.tests.head
@@ -542,21 +545,23 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     }
 
     "add the completion time for a psi test if the test group has not expired" in {
-      val input = Phase1TestProfile(expirationDate = Now.plusDays(5), tests = List(phase1Test))
+      val myPhase1TestProfile = Phase1TestProfile(expirationDate = Now.plusDays(5), tests = List(phase1Test))
 
-      createApplicationWithAllFields("userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS", phase1TestProfile = Some(input))
-        .futureValue
+      createApplicationWithAllFields(
+        "userId", "appId", "testAccountId", "frameworkId", "PHASE1_TESTS", phase1TestProfile = Some(myPhase1TestProfile)
+      ).futureValue
 
-      phase1TestRepo.updateTestCompletionTime("orderId1", Now).futureValue
-      val result = phase1TestRepo.getTestGroupByOrderId("orderId1").futureValue
+      phase1TestRepo.updateTestCompletionTime(myPhase1TestProfile.tests.head.orderId, Now).futureValue
+      val result = phase1TestRepo.getTestGroupByOrderId(myPhase1TestProfile.tests.head.orderId).futureValue
       result.testGroup.tests.head.completedDateTime mustBe Some(Now)
     }
 
     "mark the psi test as inactive" in {
       insertApplication("appId", "userId")
-      phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
+      val myTestProfile = testProfile
+      phase1TestRepo.insertOrUpdateTestGroup("appId", myTestProfile).futureValue
 
-      phase1TestRepo.markTestAsInactive(TestProfile.tests.head.orderId).futureValue
+      phase1TestRepo.markTestAsInactive(myTestProfile.tests.head.orderId).futureValue
       val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
 
       val psiTest = phase1TestProfile.tests.head
@@ -565,11 +570,12 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
     "mark the psi test as inactive and insert new tests" in {
       insertApplication("appId", "userId")
-      phase1TestRepo.insertOrUpdateTestGroup("appId", TestProfile).futureValue
+      val myTestProfile = testProfile
+      phase1TestRepo.insertOrUpdateTestGroup("appId", myTestProfile).futureValue
 
-      phase1TestRepo.markTestAsInactive(TestProfile.tests.head.orderId).futureValue
+      phase1TestRepo.markTestAsInactive(myTestProfile.tests.head.orderId).futureValue
 
-      val newTestProfile = TestProfile.copy(tests = List(phase1Test.copy(orderId = "orderId2")))
+      val newTestProfile = testProfile.copy(tests = List(phase1Test.copy(orderId = "orderId2")))
 
       phase1TestRepo.insertPsiTests("appId", newTestProfile).futureValue
       val phase1TestProfile = phase1TestRepo.getTestGroup("appId").futureValue.get
@@ -587,7 +593,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
     "return an applicationId for a valid orderId" in {
       createApplicationWithAllFields("userId", appId, "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
       phase1TestRepo.insertOrUpdateTestGroup(appId, testProfile).futureValue
-      phase1TestRepo.getApplicationIdForOrderId("orderId1").futureValue mustBe Some(appId)
+      phase1TestRepo.getApplicationIdForOrderId(testProfile.tests.head.orderId).futureValue mustBe Some(appId)
     }
 
     "not return an applicationId for an invalid orderId" in {
@@ -655,7 +661,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
 
       phase1TestRepo.updateGroupExpiryTime(appId, Now)
 
-      val p1TestProfile = phase1TestRepo.getTestProfileByOrderId("orderId1").futureValue
+      val p1TestProfile = phase1TestRepo.getTestProfileByOrderId(testProfile.tests.head.orderId).futureValue
       p1TestProfile.expirationDate mustBe Now
     }
   }
@@ -669,7 +675,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       createApplicationWithAllFields("userId", appId, "testAccountId", appStatus = ApplicationStatus.PHASE1_TESTS).futureValue
       phase1TestRepo.insertOrUpdateTestGroup(appId, testProfile).futureValue
 
-      val originalTestProfile = phase1TestRepo.getTestProfileByOrderId("orderId1").futureValue
+      val originalTestProfile = phase1TestRepo.getTestProfileByOrderId(phase1Test.orderId).futureValue
       originalTestProfile.tests.size mustBe 1
       val firstTest = originalTestProfile.tests.head
       firstTest.testResult.size mustBe 1
@@ -680,7 +686,7 @@ class Phase1TestRepositorySpec extends MongoRepositorySpec with ApplicationDataF
       val newTestProfile = Phase1TestProfile(expirationDate = Now, tests = List(phase1Test.copy(testResult = Some(psiTestResult))))
       phase1TestRepo.updateTestGroup(appId, newTestProfile).futureValue
 
-      val updatedTestProfile = phase1TestRepo.getTestProfileByOrderId("orderId1").futureValue
+      val updatedTestProfile = phase1TestRepo.getTestProfileByOrderId(phase1Test.orderId).futureValue
       updatedTestProfile.tests.head.testResult.head.tScore mustBe 13.5
       updatedTestProfile.tests.head.testResult.head.rawScore mustBe 6.5
     }

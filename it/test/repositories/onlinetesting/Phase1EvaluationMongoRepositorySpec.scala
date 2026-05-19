@@ -61,7 +61,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
 
     "return application in PHASE1_TESTS with results" in {
-      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult))
+      val myPhase1TestsWithResult = phase1TestsWithResult
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(myPhase1TestsWithResult))
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
 
@@ -72,7 +73,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE1_TESTS,
         ApplicationRoute.Faststream,
         isGis = false,
-        Phase1TestProfile(expirationDate = now, phase1TestsWithResult).activeTests,
+        Phase1TestProfile(expirationDate = now, myPhase1TestsWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = None,
         selectedSchemes(List(Commercial)),
@@ -81,7 +82,8 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
     }
 
     "return GIS application in PHASE1_TESTS with results" in {
-      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(phase1TestsWithResult), isGis = true)
+      val myPhase1TestsWithResult = phase1TestsWithResult
+      insertApplication("app1", ApplicationStatus.PHASE1_TESTS, Some(myPhase1TestsWithResult), isGis = true)
 
       val result = phase1EvaluationRepo.nextApplicationsReadyForEvaluation("version1", batchSize = 1).futureValue
 
@@ -91,7 +93,7 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
         ApplicationStatus.PHASE1_TESTS,
         ApplicationRoute.Faststream,
         isGis = true,
-        Phase1TestProfile(expirationDate = now, phase1TestsWithResult).activeTests,
+        Phase1TestProfile(expirationDate = now, myPhase1TestsWithResult).activeTests,
         activeLaunchpadTest = None,
         prevPhaseEvaluation = None,
         selectedSchemes(List(Commercial)),
@@ -297,14 +299,14 @@ class Phase1EvaluationMongoRepositorySpec extends MongoRepositorySpec with Commo
 
 object Phase1EvaluationMongoRepositorySpec {
   implicit val now: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
-  val phase1Tests = List(
+  def phase1Tests: List[PsiTest] = List(
     model.Phase1TestExamples.firstPsiTest.copy(testResult = None),
     model.Phase1TestExamples.secondPsiTest.copy(testResult = None),
     model.Phase1TestExamples.thirdPsiTest.copy(testResult = None)
   )
 
-  val phase1TestsWithResult = phase1TestsWithResults(PsiTestResult(tScore = 20.5d, rawScore = 10.0d, testReportUrl = None))
-  def phase1TestsWithResults(testResult: PsiTestResult) = {
+  def phase1TestsWithResult: List[PsiTest] = phase1TestsWithResults(PsiTestResult(tScore = 20.5d, rawScore = 10.0d, testReportUrl = None))
+  def phase1TestsWithResults(testResult: PsiTestResult): List[PsiTest] = {
     phase1Tests.map(t => t.copy(testResult = Some(testResult)))
   }
 }

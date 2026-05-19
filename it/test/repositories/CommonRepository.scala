@@ -163,7 +163,7 @@ trait CommonRepository extends CurrentSchemeStatusHelper with Schemes {
                                              applicationRoute: ApplicationRoute = ApplicationRoute.Faststream
                                             )(schemes: SchemeId*): ApplicationReadyForEvaluation = {
     val launchPadTests = phase3TestWithResults(videoInterviewScore).activeTests
-    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, None, None, Some(launchPadTests))
+    insertApplication(appId, ApplicationStatus.PHASE3_TESTS, phase1Tests = None, phase2Tests = None, phase3Tests = Some(launchPadTests))
     phase2EvaluationRepo.savePassmarkEvaluation(
       appId, phase2PassMarkEvaluation, newProgressStatus = None, css = phase2PassMarkEvaluation.result
     ).futureValue

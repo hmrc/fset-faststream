@@ -31,7 +31,7 @@ import model.persisted.eventschedules.EventType.EventType
 import model.persisted.fsb.ScoresAndFeedback
 import model.{ApplicationStatus, *}
 import org.mongodb.scala.bson.collection.immutable.Document
-import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonRegularExpression}
+import org.mongodb.scala.bson.{BsonArray, BsonBoolean, BsonDocument, BsonRegularExpression}
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.Sorts.ascending as sortAsc
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections}
@@ -147,12 +147,11 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       IndexModel(ascending("applicationStatus"), IndexOptions().unique(false)),
       IndexModel(ascending("assistance-details.needsSupportAtVenue"), IndexOptions().unique(false)),
       IndexModel(ascending("assistance-details.guaranteedInterview"), IndexOptions().unique(false)),
-      // Added mid campaign 2025/26. TODO: change the index so it is unique when the campaign is finished
-      IndexModel(ascending("testGroups.PHASE1.tests.orderId"), IndexOptions().unique(false)),
       IndexModel(ascending("personal-details.firstName"), IndexOptions().unique(false)),
       IndexModel(ascending("personal-details.preferredName"), IndexOptions().unique(false)),
       IndexModel(ascending("personal-details.lastName"), IndexOptions().unique(false)),
-      IndexModel(ascending("personal-details.dateOfBirth"), IndexOptions().unique(false))
+      IndexModel(ascending("personal-details.dateOfBirth"), IndexOptions().unique(false)),
+      IndexModel(ascending("testGroups.PHASE1.tests.orderId"), IndexOptions().unique(true).sparse(true))
     )
   ) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {
@@ -167,8 +166,36 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     )
   }
 
-  // Use this collection when using hand written bson documents
+  // Use this collection when using handwritten bson documents
   val applicationCollection: MongoCollection[Document] = mongo.database.getCollection(CollectionNames.APPLICATION)
+
+  override def ensureIndexes(): Future[Seq[String]] = {
+    def displayIndexes(indexes: Seq[Document], logger: play.api.Logger): Unit =
+      indexes.foreach { doc =>
+        if (doc.get("unique").contains(BsonBoolean(true))) {
+          logger.warn(s"Index report: ${doc.toJson()} - This index is unique.")
+        } else {
+          logger.warn(s"Index report: ${doc.toJson()} - This index is NOT unique.")
+        }
+      }
+
+    val logger = play.api.Logger(getClass)
+    for {
+      indexes <- collection.listIndexes().toFuture()
+      _ = displayIndexes(indexes, logger)
+      indexesToDrop = indexes.filter {index =>
+        // We only drop the index if it is the expected name, and it is not unique (the unique key is absent)
+        (index("name").asString().getValue == "testGroups.PHASE1.tests.orderId_1") && index.get("unique").isEmpty}
+      _ = if (indexesToDrop.nonEmpty) {
+        logger.warn("Index report: found indexes that need to be dropped: " +
+          s"${indexesToDrop.map(index => index("name").asString.getValue).mkString(",")}")
+      } else {
+        logger.warn("Index report: found no indexes that need to be dropped")
+      }
+      _ <- Future.sequence(indexesToDrop.map(index => collection.dropIndex(index("name").asString().getValue).toFuture()))
+      ensuring <- super.ensureIndexes()
+    } yield ensuring
+  }
 
   override def getApplicationStatusForCandidates(applicationIds: Seq[String]): Future[Seq[(String, ApplicationStatus)]] = {
     val query = Document("applicationId" -> Document("$in" -> applicationIds))

@@ -19,15 +19,16 @@ package model
 import model.persisted.{PsiTest, PsiTestResult}
 
 import java.time.OffsetDateTime
+import java.util.UUID
 
 object Phase1TestExamples {
 
-  val psiTestResult = PsiTestResult(tScore = 12.5, rawScore = 5.5, testReportUrl = None)
+  val psiTestResult: PsiTestResult = PsiTestResult(tScore = 12.5, rawScore = 5.5, testReportUrl = None)
 
-  def firstPsiTest(implicit now: OffsetDateTime) =
+  def firstPsiTest(implicit now: OffsetDateTime): PsiTest =
     PsiTest(
       inventoryId = "inventoryId1",
-      orderId = "orderId1",
+      orderId = UUID.randomUUID().toString,
       assessmentId = "assessmentId1",
       reportId = "reportId1",
       normId = "normId1",
@@ -37,7 +38,9 @@ object Phase1TestExamples {
       testResult = Some(psiTestResult)
     )
 
-  def secondPsiTest(implicit now: OffsetDateTime) = firstPsiTest.copy(inventoryId = "inventoryId2", orderId = "orderId2")
+  def secondPsiTest(implicit now: OffsetDateTime): PsiTest =
+    firstPsiTest.copy(inventoryId = "inventoryId2", orderId = UUID.randomUUID().toString)
 
-  def thirdPsiTest(implicit now: OffsetDateTime) = firstPsiTest.copy(inventoryId = "inventoryId3", orderId = "orderId3")
+  def thirdPsiTest(implicit now: OffsetDateTime): PsiTest =
+    firstPsiTest.copy(inventoryId = "inventoryId3", orderId = UUID.randomUUID().toString)
 }
