@@ -527,10 +527,8 @@ class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService,
 
   override def preSubmittedApplications(frameworkId: String): Future[Seq[ApplicationIdsAndStatus]] = {
     val query = BsonDocument("$and" -> BsonArray(
-
       BsonDocument("frameworkId" -> frameworkId),
       BsonDocument("$or" -> BsonArray(
-        BsonDocument(s"progress-status.${ProgressStatuses.CREATED}" -> true),
         BsonDocument(s"applicationStatus" -> ApplicationStatus.IN_PROGRESS.toBson),
         BsonDocument(s"applicationStatus" -> ApplicationStatus.CREATED.toBson)
       ))
