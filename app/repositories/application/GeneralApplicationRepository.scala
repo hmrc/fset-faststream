@@ -151,7 +151,8 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
       IndexModel(ascending("personal-details.preferredName"), IndexOptions().unique(false)),
       IndexModel(ascending("personal-details.lastName"), IndexOptions().unique(false)),
       IndexModel(ascending("personal-details.dateOfBirth"), IndexOptions().unique(false)),
-      IndexModel(ascending("testGroups.PHASE1.tests.orderId"), IndexOptions().unique(true).sparse(true))
+      IndexModel(ascending("testGroups.PHASE1.tests.orderId"), IndexOptions().unique(true).sparse(true)),
+      IndexModel(ascending("testGroups.SIFT_PHASE.evaluation.result"), IndexOptions().unique(false).sparse(true))
     )
   ) with GeneralApplicationRepository with RandomSelection with CommonBSONDocuments
     with GeneralApplicationRepoBSONReader with ReactiveRepositoryHelpers with CurrentSchemeStatusHelper {

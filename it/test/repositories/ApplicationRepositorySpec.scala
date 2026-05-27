@@ -60,14 +60,19 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
           IndexDetails(name = "applicationRoute_1", keys = Seq(("applicationRoute", "Ascending")), unique = false),
           IndexDetails(name = "applicationStatus_1", keys = Seq(("applicationStatus", "Ascending")), unique = false),
           IndexDetails(name = "assistance-details.needsSupportAtVenue_1",
-            keys = Seq(("assistance-details.needsSupportAtVenue", "Ascending")), unique = false),
+            keys = Seq(("assistance-details.needsSupportAtVenue", "Ascending")), unique = false
+          ),
           IndexDetails(name = "assistance-details.guaranteedInterview_1",
-            keys = Seq(("assistance-details.guaranteedInterview", "Ascending")), unique = false),
+            keys = Seq(("assistance-details.guaranteedInterview", "Ascending")), unique = false
+          ),
           IndexDetails(name = "personal-details.firstName_1", keys = Seq(("personal-details.firstName", "Ascending")), unique = false),
           IndexDetails(name = "personal-details.preferredName_1", keys = Seq(("personal-details.preferredName", "Ascending")), unique = false),
           IndexDetails(name = "personal-details.lastName_1", keys = Seq(("personal-details.lastName", "Ascending")), unique = false),
           IndexDetails(name = "personal-details.dateOfBirth_1", keys = Seq(("personal-details.dateOfBirth", "Ascending")), unique = false),
-          IndexDetails(name = "testGroups.PHASE1.tests.orderId_1", keys = Seq(("testGroups.PHASE1.tests.orderId", "Ascending")), unique = true)
+          IndexDetails(name = "testGroups.PHASE1.tests.orderId_1", keys = Seq(("testGroups.PHASE1.tests.orderId", "Ascending")), unique = true),
+          IndexDetails(name = "testGroups.SIFT_PHASE.evaluation.result_1",
+            keys = Seq(("testGroups.SIFT_PHASE.evaluation.result", "Ascending")), unique = false
+          )
         )
     }
 

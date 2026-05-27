@@ -76,7 +76,8 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
           IndexDetails(name = "personal-details.preferredName_1", keys = Seq(("personal-details.preferredName", "Ascending")), unique = false),
           IndexDetails(name = "personal-details.lastName_1", keys = Seq(("personal-details.lastName", "Ascending")), unique = false),
           IndexDetails(name = "personal-details.dateOfBirth_1", keys = Seq(("personal-details.dateOfBirth", "Ascending")), unique = false),
-          IndexDetails(name = "testGroups.PHASE1.tests.orderId_1", keys = Seq(("testGroups.PHASE1.tests.orderId", "Ascending")), unique = true)
+          IndexDetails(name = "testGroups.PHASE1.tests.orderId_1", keys = Seq(("testGroups.PHASE1.tests.orderId", "Ascending")), unique = true),
+          IndexDetails(name = "testGroups.SIFT_PHASE.evaluation.result_1", keys = Seq(("testGroups.SIFT_PHASE.evaluation.result", "Ascending")), unique = false)
         )
     }
 
