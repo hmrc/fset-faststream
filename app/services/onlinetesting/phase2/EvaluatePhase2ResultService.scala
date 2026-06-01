@@ -20,7 +20,7 @@ import com.google.inject.name.Named
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
 import model.Phase
-import model.exchange.passmarksettings.{Phase2PassMarkSettings, Phase2PassMarkSettingsPersistence}
+import model.exchange.passmarksettings.Phase2PassMarkSettingsPersistence
 import model.persisted.{ApplicationReadyForEvaluation, PsiTestResult}
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository

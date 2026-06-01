@@ -20,7 +20,6 @@ import model.Exceptions.{AssistanceDetailsNotFound, CannotUpdateAssistanceDetail
 import model.persisted.AssistanceDetails
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.{Filters, Projections}
-import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}

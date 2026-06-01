@@ -18,7 +18,7 @@ import model.ApplicationStatus.ApplicationStatus
 import model.{ApplicationStatus, ProgressStatuses, SchemeId, UniqueIdentifier}
 import model.EvaluationResults.Result
 import model.ProgressStatuses.ProgressStatus
-import model.persisted.eventschedules.{EventType, SkillType, VenueType}
+import model.persisted.eventschedules.{EventType, SkillType}
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

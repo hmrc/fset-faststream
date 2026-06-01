@@ -93,7 +93,7 @@ class FinalOutcomeService @Inject() (contactDetailsRepo: ContactDetailsRepositor
     }
   }
 
-  private def retrieveCandidateDetails(applicationId: String)(implicit hc: HeaderCarrier) = {
+  private def retrieveCandidateDetails(applicationId: String) = {
     applicationRepo.find(applicationId).flatMap {
       case Some(app) => contactDetailsRepo.find(app.userId).map { cd => (app, cd) }
       case None => sys.error(s"Can't find application $applicationId")

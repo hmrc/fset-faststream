@@ -29,6 +29,9 @@ import uk.gov.hmrc.play.config.{ AppName, ControllerConfig }
 import uk.gov.hmrc.play.microservice.bootstrap.DefaultMicroserviceGlobal
 import uk.gov.hmrc.play.microservice.filters.{ AuditFilter, LoggingFilter, MicroserviceFilterSupport }
 */
+
+object microserviceGlobal {}
+
 /*
 object ControllerConfiguration extends ControllerConfig with MicroserviceFilterSupport {
   @silent lazy val controllerConfigs: Config = Play.current.configuration.underlying.as[Config]("controllers")

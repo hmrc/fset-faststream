@@ -16,17 +16,19 @@
 
 package services.testdata
 
+import model.exchange.testdata.CreateCandidateResponse
+
 import javax.inject.{Inject, Singleton}
 import model.persisted.{QuestionnaireAnswer, QuestionnaireQuestion}
 import model.testdata.candidate.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories._
+import repositories.*
 import repositories.application.{DiversityQuestionsText, GeneralApplicationRepository}
 import services.testdata.candidate.{ConstructiveGenerator, InProgressAssistanceDetailsStatusGenerator}
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 //object InProgressQuestionnaireStatusGenerator extends InProgressQuestionnaireStatusGenerator {
 //  override val previousStatusGenerator = InProgressAssistanceDetailsStatusGenerator
@@ -39,7 +41,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
                                                         appRepository: GeneralApplicationRepository,
                                                         qRepository: QuestionnaireRepository,
                                                         dataFaker: DataFaker
-                                                       )(implicit ec : ExecutionContext) extends ConstructiveGenerator
+                                                       ) extends ConstructiveGenerator
   with DiversityQuestionsText {
 //  val appRepository: GeneralApplicationRepository
 //  val qRepository: QuestionnaireRepository
@@ -189,7 +191,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
   ).filter(_.isDefined).map { someItem => someItem.get }
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData.CreateCandidateData)(
-    implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
+    implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
 
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)

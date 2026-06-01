@@ -90,7 +90,6 @@ trait OnlineTestsGatewayClient extends Logging {
 }
 
 @Singleton
-class OnlineTestsGatewayClientImpl @Inject() (val http: HttpClientV2, appConfig: MicroserviceAppConfig)(
-  implicit ec: ExecutionContext) extends OnlineTestsGatewayClient {
+class OnlineTestsGatewayClientImpl @Inject() (val http: HttpClientV2, appConfig: MicroserviceAppConfig) extends OnlineTestsGatewayClient {
   val url: String = appConfig.onlineTestsGatewayConfig.url
 }

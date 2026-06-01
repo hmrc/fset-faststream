@@ -34,7 +34,6 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import repositories.{CurrentSchemeStatusHelper, SchemeRepository}
-import services.application.DSSchemeIds._
 import services.scheme.SchemePreferencesService
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -97,7 +96,7 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
   }
 
   private def getResultsForScheme(appId: String, schemeId: SchemeId, results: Seq[SchemeEvaluationResult]): SchemeEvaluationResult = {
-    import DSSchemeIds._
+//    import DSSchemeIds._
     val r = schemeId match {
       //Code removed to replace EAC_DS with GES_DS
 /*
@@ -125,6 +124,7 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
     }
   }
 
+/*
   private def canEvaluateNextWithExistingResults(
                                                   currentSchemeStatus: Seq[SchemeEvaluationResult],
                                                   newFirstPreference: Option[SchemeEvaluationResult],
@@ -144,6 +144,7 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
         false
     }
   }
+ */
 
   // scalastyle:off method.length
   protected[application] def passOrFailFsb(appId: String,
@@ -222,7 +223,7 @@ class FsbService @Inject() (applicationRepo: GeneralApplicationRepository,
     }
   }
 
-  private def retrieveCandidateDetails(applicationId: String)(implicit hc: HeaderCarrier) = {
+  private def retrieveCandidateDetails(applicationId: String) = {
     applicationRepo.find(applicationId).flatMap {
       case Some(app) => contactDetailsRepo.find(app.userId).map { cd => (app, cd) }
       case None => sys.error(s"Can't find application $applicationId")

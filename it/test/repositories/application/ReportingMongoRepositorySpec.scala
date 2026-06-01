@@ -29,7 +29,6 @@ import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.CollectionNames
-import services.GBTimeZoneService
 import services.testdata.TestDataGeneratorService
 import services.testdata.candidate.CandidateStatusGeneratorFactory
 import services.testdata.faker.DataFaker
@@ -45,8 +44,7 @@ class ReportingMongoRepositorySpec extends MongoRepositorySpec with UUIDFactory 
 
   val collectionName = CollectionNames.APPLICATION
 
-  def repository = new ReportingMongoRepository(
-    new GBTimeZoneService, ITDateTimeFactoryMock, mongo, mock[MicroserviceAppConfig])
+  def repository = new ReportingMongoRepository(ITDateTimeFactoryMock, mongo, mock[MicroserviceAppConfig])
 
   def applicationRepo = new GeneralApplicationMongoRepository(ITDateTimeFactoryMock, appConfig, mongo)
 

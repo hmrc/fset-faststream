@@ -16,11 +16,11 @@
 
 package services.testdata.candidate
 
-import model._
+import model.*
+import model.exchange.testdata.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.locationpreferences.LocationPreferencesRepository
-import repositories.schemepreferences.SchemePreferencesRepository
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -31,10 +31,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class InProgressLocationPreferencesStatusGenerator @Inject()(val previousStatusGenerator: InProgressSchemePreferencesStatusGenerator,
                                                              lpRepository: LocationPreferencesRepository,
                                                              dataFaker: DataFaker
-                                                           )(implicit ec: ExecutionContext) extends ConstructiveGenerator with Schemes {
+                                                           ) extends ConstructiveGenerator with Schemes {
 
   // scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
     def getLocationPreferences: Future[SelectedLocations] = {
       val interests = List("Interest 1") //TODO: change this to actual interests once we know what they are
       Future.successful(

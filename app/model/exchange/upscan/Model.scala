@@ -19,8 +19,6 @@ package model.exchange.upscan
 import org.bson.types.ObjectId
 import play.api.libs.json.*
 
-import java.util.UUID
-
 case class Reference(value: String) extends AnyVal {
   override def toString: String = s"Reference(value=$value)"
 }

@@ -19,7 +19,6 @@ package repositories.sift
 import config.MicroserviceAppConfig
 import factories.DateTimeFactory
 import model.*
-import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{Amber, Green, Red}
 import model.Exceptions.*
@@ -31,7 +30,7 @@ import model.sift.{FixStuckUser, FixUserStuckInSiftEntered}
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
+import org.mongodb.scala.{MongoCollection, bsonDocumentToDocument}
 import repositories.*
 import repositories.application.GeneralApplicationRepoBSONReader
 import uk.gov.hmrc.mongo.MongoComponent
@@ -313,6 +312,9 @@ class ApplicationSiftMongoRepository @Inject() (
       Document("$or" -> greenNumericSchemes)
     ))
 
+    // Provides the implicit conversion from Document => NumericalTestApplication
+    // required by selectRandom below and needs implicitConversions to be imported
+    import scala.language.implicitConversions
     implicit def processDoc(doc: Document): NumericalTestApplication = {
       val applicationId = doc.get("applicationId").get.asString().getValue
       val testAccountId = doc.get("testAccountId").get.asString().getValue

@@ -22,7 +22,7 @@ import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.*
 import model.Exceptions.*
 import model.OnlineTestCommands.OnlineTestApplication
-import model.ProgressStatuses.{EventProgressStatuses, PREVIEW, ProgressStatus}
+import model.ProgressStatuses.ProgressStatus
 import model.command.*
 import model.exchange.{CandidateEligibleForEvent, CandidatesEligibleForEventResponse}
 import model.persisted.*
@@ -35,7 +35,7 @@ import org.mongodb.scala.bson.{BsonArray, BsonBoolean, BsonDocument, BsonRegular
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.Sorts.ascending as sortAsc
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections}
-import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
+import org.mongodb.scala.{MongoCollection, bsonDocumentToDocument}
 import repositories.*
 import scheduler.fixer.FixBatch
 import scheduler.fixer.RequiredFixes.{AddMissingPhase2ResultReceived, PassToPhase1TestPassed, PassToPhase2, ResetPhase1TestInvitedSubmitted}
@@ -504,7 +504,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
   }
 
   override def submit(applicationId: String): Future[Unit] = {
-    val guard = progressStatusGuardBSON(PREVIEW)
+    val guard = progressStatusGuardBSON(model.ProgressStatuses.PREVIEW)
     val query = Document("applicationId" -> applicationId) ++ guard
 
     val updateBSON = Document("$set" -> applicationStatusBSON(SUBMITTED))
@@ -1117,7 +1117,7 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
     logger.info("Finding candidates eligible for event allocation with " +
       s"maxNumberOfCandidates = ${appConfig.eventsConfig.maxNumberOfCandidates}")
     val appStatus = eventType.applicationStatus
-    val status = EventProgressStatuses.get(appStatus)
+    val status = model.ProgressStatuses.EventProgressStatuses.get(appStatus)
     val awaitingAllocation = status.awaitingAllocation.key
     val confirmedAllocation = status.allocationConfirmed.key
     val unconfirmedAllocation = status.allocationUnconfirmed.key
@@ -1157,11 +1157,11 @@ class GeneralApplicationMongoRepository @Inject() (val dateTimeFactory: DateTime
   }
 
   override def resetApplicationAllocationStatus(applicationId: String, eventType: EventType): Future[Unit] = {
-    replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).awaitingAllocation)
+    replaceAllocationStatus(applicationId, model.ProgressStatuses.EventProgressStatuses.get(eventType.applicationStatus).awaitingAllocation)
   }
 
   override def setFailedToAttendAssessmentStatus(applicationId: String, eventType: EventType): Future[Unit] = {
-    replaceAllocationStatus(applicationId, EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
+    replaceAllocationStatus(applicationId, model.ProgressStatuses.EventProgressStatuses.get(eventType.applicationStatus).failedToAttend)
   }
 
   import ProgressStatuses.*

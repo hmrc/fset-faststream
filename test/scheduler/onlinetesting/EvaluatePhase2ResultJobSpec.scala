@@ -16,15 +16,15 @@
 
 package scheduler.onlinetesting
 
+import model.*
 import model.EvaluationResults.Green
-import model._
-import model.exchange.passmarksettings.{Phase2PassMarkSettings, Phase2PassMarkSettingsExamples, Phase2PassMarkSettingsPersistence}
+import model.exchange.passmarksettings.{Phase2PassMarkSettingsExamples, Phase2PassMarkSettingsPersistence}
 import model.persisted.{ApplicationReadyForEvaluation, SchemeEvaluationResult}
-import org.mockito.ArgumentMatchers._
-import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers.*
+import org.mockito.Mockito.*
 import play.api.libs.json.Format
-import uk.gov.hmrc.mongo.MongoComponent
 import testkit.UnitWithAppSpec
+import uk.gov.hmrc.mongo.MongoComponent
 
 import java.time.{OffsetDateTime, ZoneId}
 import scala.concurrent.ExecutionContext.Implicits.global

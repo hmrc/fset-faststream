@@ -16,9 +16,11 @@
 
 package services.evaluation
 
-import model.EvaluationResults._
-import model.OnlineTestCommands._
-import model.Scheme
+//import model.EvaluationResults._
+//import model.OnlineTestCommands._
+//import model.Scheme
+
+class OnlineTestPassmarkRulesEngineSpec{}
 
 /* TODO: in faststream
 class OnlineTestPassmarkRulesEngineSpec extends UnitSpec {

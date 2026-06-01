@@ -21,11 +21,11 @@ import com.google.inject.name.Named
 import javax.inject.{Inject, Singleton}
 import model.Exceptions.{CandidateAllocationNotFoundException, CannotUpdateRecord, EventNotFoundException, OptimisticLockException}
 import model.UniqueIdentifier
-import model.assessmentscores._
-import model.command.AssessmentScoresCommands._
+import model.assessmentscores.*
+import model.command.AssessmentScoresCommands.*
 import play.api.Logging
-import play.api.libs.json._
-import play.api.mvc.ControllerComponents
+import play.api.libs.json.*
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.AssessmentScoresRepository
 import services.AuditService
 import services.assessmentscores.AssessmentScoresService
@@ -224,13 +224,13 @@ class AssessorAssessmentScoresController @Inject() (@Named("AssessorAssessmentSc
   val AssessmentScoresAllExercisesSubmitted = "AssessorAssessmentScoresAllExercisesSubmitted"
   val UserIdForAudit = "reviewerId"
 
-  override def submitFinalFeedback() = Action.async(parse.json) {
-    implicit request =>
+  override def submitFinalFeedback(): Action[JsValue] = Action.async(parse.json) {
+    implicit _ =>
       throw new UnsupportedOperationException("This method is only applicable for a reviewer")
   }
 
-  override def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier) = Action.async {
-    implicit request =>
+  override def findAcceptedAssessmentScoresByApplicationId(applicationId: UniqueIdentifier): Action[AnyContent] = Action.async {
+    implicit _ =>
       throw new UnsupportedOperationException("This method is only applicable for a reviewer")
   }
 }

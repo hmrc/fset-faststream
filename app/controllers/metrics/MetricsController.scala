@@ -19,7 +19,7 @@ package controllers.metrics
 import javax.inject.{Inject, Singleton}
 import model.ApplicationStatus
 import play.api.libs.json.Json
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -31,13 +31,13 @@ class MetricsController @Inject() (cc: ControllerComponents, applicationRepo: Ge
 
   implicit val ec: ExecutionContext = cc.executionContext
 
-  def progressStatusCounts = Action.async {
+  def progressStatusCounts: Action[AnyContent] = Action.async {
     for {
       allApplications <- applicationRepo.countLong
       createdCount <- applicationRepo.countByStatus(ApplicationStatus.CREATED)
       list <- applicationRepo.getLatestProgressStatuses
     } yield {
-      val listWithCounts = SortedMap[String, Long]() ++ list.groupBy(identity).mapValues(_.size.toLong)
+      val listWithCounts = SortedMap[String, Long]() ++ list.groupBy(identity).view.mapValues(_.size.toLong)
       Ok(Json.toJson(
         listWithCounts ++
           Map("TOTAL_APPLICATION_COUNT" -> allApplications) ++

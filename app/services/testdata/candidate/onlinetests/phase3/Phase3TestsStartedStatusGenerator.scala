@@ -22,7 +22,6 @@ import javax.inject.{Inject, Singleton}
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
-import repositories.onlinetesting.Phase3TestRepository
 import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.candidate.ConstructiveGenerator
 import uk.gov.hmrc.http.HeaderCarrier
@@ -32,9 +31,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class Phase3TestsStartedStatusGenerator @Inject() (val previousStatusGenerator: Phase3TestsInvitedStatusGenerator,
-                                                   otRepository: Phase3TestRepository,
                                                    otService: Phase3TestService
-                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                  ) extends ConstructiveGenerator {
 //  val otRepository: Phase3TestRepository
 //  val otService: Phase3TestService
 

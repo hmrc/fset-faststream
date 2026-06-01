@@ -36,10 +36,10 @@ class AssessmentCentrePassedStatusGenerator @Inject() (val previousStatusGenerat
                                                        applicationAssessmentService: AssessmentCentreService,
                                                        passmarkService: AssessmentCentrePassMarkSettingsService,
                                                        schemeRepository: SchemeRepository
-                                                      )(implicit ec: ExecutionContext) extends ConstructiveGenerator with Schemes {
+                                                      ) extends ConstructiveGenerator with Schemes {
 
-  val updatedBy = UniqueIdentifier.randomUniqueIdentifier
-  val version = UniqueIdentifier.randomUniqueIdentifier
+  private val updatedBy = UniqueIdentifier.randomUniqueIdentifier
+  private val version = UniqueIdentifier.randomUniqueIdentifier
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {

@@ -104,7 +104,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val applicationId = createApplication()
       val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString)
       repository.saveResult(applicationId, schemeEvaluationResult).futureValue
-      val Some(result) = repository.findByApplicationId(applicationId).futureValue
+      val result = repository.findByApplicationId(applicationId).futureValue.get
       val fsbTestGroup = FsbTestGroup(List(schemeEvaluationResult))
       result mustBe fsbTestGroup
     }
@@ -117,7 +117,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val schemeEvaluationResult2 = SchemeEvaluationResult("GovernmentSocialResearchService", Green.toString)
       repository.saveResult(applicationId, schemeEvaluationResult2).futureValue
 
-      val Some(result) = repository.findByApplicationId(applicationId).futureValue
+      val result = repository.findByApplicationId(applicationId).futureValue.get
       val expectedFsbTestGroup = FsbTestGroup(List(schemeEvaluationResult1, schemeEvaluationResult2))
       result mustBe expectedFsbTestGroup
     }
@@ -139,7 +139,7 @@ class FsbRepositorySpec extends MongoRepositorySpec with UUIDFactory with Common
       val applicationId = createApplication()
       val schemeEvaluationResult = SchemeEvaluationResult("GovernmentOperationalResearchService", Green.toString)
       repository.saveResult(applicationId, schemeEvaluationResult).futureValue
-      val Some(result) = repository.findByApplicationId(applicationId).futureValue
+      val result = repository.findByApplicationId(applicationId).futureValue.get
       val fsbTestGroup = FsbTestGroup(List(schemeEvaluationResult))
       result mustBe fsbTestGroup
     }

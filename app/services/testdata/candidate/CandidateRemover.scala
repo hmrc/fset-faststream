@@ -27,7 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CandidateRemover @Inject()(appRemovalRepo: ApplicationRemovalRepository,
-                                  authClient: AuthProviderClientTDG)(implicit ec: ExecutionContext) {
+                                  authClient: AuthProviderClientTDG) {
 
   def remove(applicationStatus: Option[String])(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Int] = {
     for {

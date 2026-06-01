@@ -17,11 +17,9 @@
 package model
 
 import model.CivilServantAndInternshipType.CivilServantAndInternshipType
-import play.api.libs.json._
-import play.api.libs.json.Reads._
-import play.api.libs.functional.syntax._
-
-import play.api.libs.json.Json
+import play.api.libs.functional.syntax.*
+import play.api.libs.json.*
+import play.api.libs.json.Reads.*
 
 case class CivilServiceExperienceDetails(
   applicable: Boolean,

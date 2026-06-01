@@ -16,19 +16,15 @@
 
 package services.testdata.candidate.onlinetests.phase3
 
-import connectors.launchpadgateway.exchangeobjects.in.reviewed._
-
 import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
+import model.exchange.testdata.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
-import repositories.onlinetesting.Phase3TestRepository
 import services.testdata.candidate.ConstructiveGenerator
-import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-import java.time.{LocalDate, OffsetDateTime}
 import scala.concurrent.{ExecutionContext, Future}
 
 //object Phase3TestsResultsReceivedStatusGenerator extends Phase3TestsResultsReceivedStatusGenerator {
@@ -39,13 +35,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class Phase3TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGenerator: Phase3TestsCompletedStatusGenerator,
-                                                           appRepository: GeneralApplicationRepository,
-                                                           phase3TestRepo: Phase3TestRepository,
-                                                           dataFaker: DataFaker
-                                                          )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                           appRepository: GeneralApplicationRepository
+                                                          ) extends ConstructiveGenerator {
 //  val appRepository: GeneralApplicationRepository
 //  val phase3TestRepo: Phase3TestRepository
-
+/*
   private def getCallbackData(receivedBeforeInHours: Int, scores: List[Double],
                               generateNullScoresForFewQuestions: Boolean = false): ReviewedCallbackRequest = {
     ReviewedCallbackRequest(OffsetDateTime.now.minusHours(receivedBeforeInHours), "cnd_0f38b92f2e04b87d27ffcdbe4348d5f6",
@@ -61,7 +55,8 @@ class Phase3TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGen
             scores.take(2).reverse.headOption, generateNullScoresForFewQuestions)))
       ))
   }
-
+ */
+/*
   private def getReviewSectionReviewersRequest(name: String, email: String, criteria1Score: Option[Double] = None,
                                                criteria2Score: Option[Double] = None, generateNullScoresForFewQuestions: Boolean) = {
     ReviewSectionReviewerRequest(name, email, Some(dataFaker.videoInterviewFeedback),
@@ -75,7 +70,9 @@ class Phase3TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGen
       question8 = getReviewSectionQuestionRequest(107, criteria1Score, criteria2Score)
     )
   }
+*/
 
+/*
   private def getReviewSectionQuestionRequest(questionId: Int, criteria1Score: Option[Double] = None, criteria2Score: Option[Double] = None,
                                               setNullScores: Boolean = false) = {
     val (score1, score2) = if (setNullScores) {
@@ -89,15 +86,17 @@ class Phase3TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGen
       ReviewSectionCriteriaRequest("numeric", score2)
     )
   }
+*/
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
-    val receivedBeforeInHours = generatorConfig.phase3TestData.flatMap(_.receivedBeforeInHours).getOrElse(0)
-    val scores = generatorConfig.phase3TestData.map(_.scores).getOrElse(Nil)
-    val generateNullScoresForFewQuestions = generatorConfig.phase3TestData.flatMap(_.generateNullScoresForFewQuestions).getOrElse(false)
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
+//    val receivedBeforeInHours = generatorConfig.phase3TestData.flatMap(_.receivedBeforeInHours).getOrElse(0)
+//    val scores = generatorConfig.phase3TestData.map(_.scores).getOrElse(Nil)
+//    val generateNullScoresForFewQuestions = generatorConfig.phase3TestData.flatMap(_.generateNullScoresForFewQuestions).getOrElse(false)
 
-    val callbackData1 = getCallbackData(receivedBeforeInHours, scores, generateNullScoresForFewQuestions)
-    val callbackData2 = getCallbackData(receivedBeforeInHours, scores, generateNullScoresForFewQuestions)
-    val callbackData3 = getCallbackData(receivedBeforeInHours, scores, generateNullScoresForFewQuestions)
+//    val callbackData1 = getCallbackData(receivedBeforeInHours, scores, generateNullScoresForFewQuestions)
+//    val callbackData2 = getCallbackData(receivedBeforeInHours, scores, generateNullScoresForFewQuestions)
+//    val callbackData3 = getCallbackData(receivedBeforeInHours, scores, generateNullScoresForFewQuestions)
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       token <- Future.successful(candidate.phase3TestGroup.get.tests.head.token)

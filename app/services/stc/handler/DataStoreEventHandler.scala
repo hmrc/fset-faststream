@@ -33,8 +33,7 @@ trait DataStoreEventHandler extends StcEventHandler[DataStoreEvent] {
 }
 
 @Singleton
-class DataStoreEventHandlerImpl @Inject() (eventRepository: StcEventRepository)(
-  implicit ec: ExecutionContext) extends DataStoreEventHandler with Logging {
+class DataStoreEventHandlerImpl @Inject() (eventRepository: StcEventRepository) extends DataStoreEventHandler with Logging {
   //  val eventRepository: StcEventRepository2 = repositories.stcEventMongoRepository
 
   override def handle(event: DataStoreEvent)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {

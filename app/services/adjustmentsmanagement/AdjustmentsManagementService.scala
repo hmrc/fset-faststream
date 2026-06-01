@@ -16,22 +16,16 @@
 
 package services.adjustmentsmanagement
 
-import javax.inject.{Inject, Singleton}
-import model.Exceptions.ApplicationNotFound
-import model._
-import model.persisted.ContactDetails
-import model.stc.StcEventTypes.StcEvents
-import model.stc.{AuditEvents, DataStoreEvents, EmailEvents}
+import model.*
+import model.stc.{AuditEvents, DataStoreEvents}
 import play.api.Logging
 import play.api.mvc.RequestHeader
-import repositories._
+import repositories.*
 import repositories.application.GeneralApplicationRepository
-import repositories.contactdetails.ContactDetailsRepository
-import services.scheme.SchemePreferencesService
-import services.sift.ApplicationSiftService
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

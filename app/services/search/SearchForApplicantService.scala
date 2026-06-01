@@ -21,7 +21,6 @@ import connectors.AuthProviderClient
 import javax.inject.{Inject, Singleton}
 import model.Exceptions.ContactDetailsNotFound
 import model.exchange.CandidateToRemove
-import model.persisted.ContactDetailsWithId
 import model.{Candidate, SearchCandidate}
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository

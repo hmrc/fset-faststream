@@ -16,10 +16,10 @@
 
 package controllers.upscan
 
-import model.exchange.upscan.{Reference, UploadId, UploadStatuses}
+import model.exchange.upscan.Reference
 import play.api.Logging
 import play.api.libs.json.*
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, ControllerComponents}
 import services.upscan.UpscanService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 

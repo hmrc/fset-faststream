@@ -20,10 +20,10 @@ import com.mongodb.client.model.{Projections, Updates}
 import config.MicroserviceAppConfig
 import model.Exceptions.{ContactDetailsNotFound, ContactDetailsNotFoundForEmail}
 import model.persisted.*
+import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions, UpdateOptions}
-import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
 import repositories.{CollectionNames, ReactiveRepositoryHelpers, insertIfNoRecordFound}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, CollectionFactory, PlayMongoRepository}

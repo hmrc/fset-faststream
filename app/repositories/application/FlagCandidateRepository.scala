@@ -19,7 +19,6 @@ package repositories.application
 import model.FlagCandidatePersistedObject.FlagCandidate
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import repositories.*
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository

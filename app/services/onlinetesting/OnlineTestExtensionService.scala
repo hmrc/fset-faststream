@@ -27,7 +27,6 @@ import model.{Phase1FirstReminder, Phase1SecondReminder}
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
-import services.AuditService
 import services.onlinetesting.Exceptions.TestExtensionException
 import services.stc.{EventSink, StcEventService}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -38,7 +37,6 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class OnlineTestExtensionService @Inject() (appRepository: GeneralApplicationRepository,
                                             otRepository: Phase1TestRepository,
-                                            auditService: AuditService,
                                             dateTimeFactory: DateTimeFactory,
                                             val eventService: StcEventService)(implicit ec: ExecutionContext) extends EventSink {
   import OnlineTestExtensionServiceImpl._

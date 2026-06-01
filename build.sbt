@@ -51,10 +51,12 @@ lazy val microservice = Project(appName, file("."))
 //    scalacOptions += "-Ydebug-cyclic",
 //    scalacOptions += "-explain-cyclic",
 //    scalacOptions += "-explain",
+    // Suppresses all warnings in routes files
+    scalacOptions += "-Wconf:src=routes/.*:s",
     // Currently don't enable warning in value discard in tests until ScalaTest 3
     Compile / compile / scalacOptions += "-Ywarn-value-discard",
     Compile / compile / scalacOptions += "-Xlint:-missing-interpolator,_",
-    Compile / compile / scalacOptions += "-Ywarn-unused"
+//    Compile / compile / scalacOptions += "-Ywarn-unused"
   )
   // Even though log4j does not appear in the dependency graph, sbt still downloads it into the Coursier cache
   // when we compile. It is version log4j-1.2.17.jar, which contains the security vulnerabilities so as a workaround

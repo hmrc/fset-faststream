@@ -27,8 +27,8 @@ import model.persisted.fsb.ScoresAndFeedback
 import model.persisted.{FsbSchemeResult, FsbTestGroup, SchemeEvaluationResult}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
+import org.mongodb.scala.bsonDocumentToDocument
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
 import repositories.*
 import repositories.assessmentcentre.AssessmentCentreRepository
 import uk.gov.hmrc.mongo.MongoComponent

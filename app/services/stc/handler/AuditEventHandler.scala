@@ -33,7 +33,7 @@ trait AuditEventHandler extends StcEventHandler[AuditEvent] {
 }
 
 @Singleton
-class AuditEventHandlerImpl @Inject() (auditService: AuditService)(implicit ec: ExecutionContext) extends AuditEventHandler with Logging {
+class AuditEventHandlerImpl @Inject() (auditService: AuditService) extends AuditEventHandler with Logging {
   def handle(event: AuditEvent)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     val sanitisedDetails = event.details - "email"
     logger.info(s"Audit event ${event.eventName}, details: $sanitisedDetails")

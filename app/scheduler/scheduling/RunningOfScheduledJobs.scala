@@ -28,8 +28,8 @@ import scala.util.{Failure, Success}
   * All implementing classes must be singletons - see
   * https://www.playframework.com/documentation/2.6.x/ScalaDependencyInjection#Stopping/cleaning-up
   */
-trait RunningOfScheduledJobs(val application: Application, val applicationLifecycle: ApplicationLifecycle)(
-  implicit val ec: ExecutionContext) extends Logging {
+trait RunningOfScheduledJobs(application: Application, applicationLifecycle: ApplicationLifecycle)(
+  implicit ec: ExecutionContext) extends Logging {
 
   lazy val scheduler: Scheduler = application.actorSystem.scheduler
 

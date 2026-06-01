@@ -20,7 +20,7 @@ import model.EvaluationResults._
 import model.ProgressStatuses._
 import model.SchemeId.{apply => _}
 import model.persisted.SchemeEvaluationResult
-import model.{ApplicationRoute, ApplicationStatus, Phase, SchemeId, Schemes}
+import model.{ApplicationRoute, ApplicationStatus, Phase, Schemes}
 import services.BaseServiceSpec
 
 class ApplicationStatusCalculatorSpec extends BaseServiceSpec with Schemes {
@@ -28,8 +28,9 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec with Schemes {
 
   "determine SDIP with Faststream phase 1 application status" must {
     "promote the application for all Greens" in {
-       val newStatus = calc.determineApplicationStatus(ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS,
-        List(green, sdipGreen), Phase.PHASE1)
+      val newStatus = calc.determineApplicationStatus(
+        ApplicationRoute.SdipFaststream, ApplicationStatus.PHASE1_TESTS, List(green, sdipGreen), Phase.PHASE1
+      )
       newStatus mustBe Some(PHASE1_TESTS_PASSED)
     }
 

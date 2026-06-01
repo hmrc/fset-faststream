@@ -20,7 +20,7 @@ import model.Phase1TestExamples.{firstPsiTest, secondPsiTest}
 import model.command.{Phase1ScoreUpdateRequest, Phase1ScoreUpdateResponse}
 import model.persisted.Phase1TestProfile
 import model.{ApplicationRoute, ApplicationStatus, Candidate}
-import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.ArgumentMatchers.*
 import org.mockito.Mockito.*
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
@@ -90,7 +90,9 @@ class Phase1ScoresBulkUpdateServiceSpec2 extends BaseServiceSpec {
     "handle an inventoryId that can't be found" in new TestFixture {
       when(mockApplicationRepository.find(any[String])).thenReturnAsync(Some(candidate))
 
-      val phase1TestProfile = Phase1TestProfile(expirationDate = OffsetDateTime.now, tests = List(firstPsiTest.copy(inventoryId = "boom"), secondPsiTest))
+      val phase1TestProfile = Phase1TestProfile(
+        expirationDate = OffsetDateTime.now, tests = List(firstPsiTest.copy(inventoryId = "boom"), secondPsiTest)
+      )
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
       when(mockPhase1TestRepository.updateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()
@@ -119,7 +121,9 @@ class Phase1ScoresBulkUpdateServiceSpec2 extends BaseServiceSpec {
     "handle an orderId that can't be found" in new TestFixture {
       when(mockApplicationRepository.find(any[String])).thenReturnAsync(Some(candidate))
 
-      val phase1TestProfile = Phase1TestProfile(expirationDate = OffsetDateTime.now, tests = List(firstPsiTest.copy(orderId = "boom"), secondPsiTest))
+      val phase1TestProfile = Phase1TestProfile(
+        expirationDate = OffsetDateTime.now, tests = List(firstPsiTest.copy(orderId = "boom"), secondPsiTest)
+      )
       when(mockPhase1TestRepository.getTestGroup(any[String])).thenReturnAsync(Some(phase1TestProfile))
 
       when(mockPhase1TestRepository.updateTestGroup(any[String], any[Phase1TestProfile])).thenReturnAsync()

@@ -18,6 +18,7 @@ package services.testdata.candidate
 
 import javax.inject.{Inject, Singleton}
 import model.ProgressStatuses
+import model.exchange.testdata.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
@@ -26,7 +27,7 @@ import services.fastpass.FastPassService
 import services.scheme.SchemePreferencesService
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class FastPassAcceptedStatusGenerator @Inject() (val previousStatusGenerator: SubmittedCheckPassedStatusGenerator,
@@ -34,10 +35,11 @@ class FastPassAcceptedStatusGenerator @Inject() (val previousStatusGenerator: Su
                                                  fastPassService: FastPassService,
                                                  schemePreferencesService: SchemePreferencesService,
                                                  csedRepository: CivilServiceExperienceDetailsRepository
-                                                )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                ) extends ConstructiveGenerator {
 
 //scalastyle:off
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository

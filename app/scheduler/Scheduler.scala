@@ -19,7 +19,7 @@ package scheduler
 import play.api.Application
 import play.api.inject.ApplicationLifecycle
 import scheduler.assessment.{EvaluateAssessmentCentreJobConfig, EvaluateAssessmentCentreJobImpl}
-import scheduler.fixer.FixerJobImpl
+//import scheduler.fixer.FixerJobImpl
 import scheduler.fsb.{EvaluateFsbJobConfig, EvaluateFsbJobImpl}
 import scheduler.onlinetesting.*
 import scheduler.scheduling.{RunningOfScheduledJobs, ScheduledJob}
@@ -53,7 +53,7 @@ class Scheduler @Inject()(
 //                           evaluatePhase2ResultJob: EvaluatePhase2ResultJob,
 //                           evaluatePhase3ResultJob: EvaluatePhase3ResultJob,
                            evaluateAssessmentCentreJob: EvaluateAssessmentCentreJobImpl,
-                           fixerJob: FixerJobImpl,
+//                           fixerJob: FixerJobImpl,
                            skipPhasesJob: SkipPhasesJobImpl,
 //                           skipPhase3Job: SkipPhase3JobImpl,
 //                           fixSdipFsP3SkippedCandidatesJob: FixSdipFsP3SkippedCandidatesJobImpl,
@@ -100,7 +100,7 @@ class Scheduler @Inject()(
                            skipPhasesJobConfig: SkipPhasesJobConfig,
 //                           skipPhase3JobConfig: SkipPhase3JobConfig,
 //                           fixSdipFsP3SkippedCandidatesConfig: FixSdipFsP3SkippedCandidatesConfig,
-                           progressSdipForFaststreamCandidateJobConfig: ProgressSdipForFaststreamCandidateJobConfig,
+//                           progressSdipForFaststreamCandidateJobConfig: ProgressSdipForFaststreamCandidateJobConfig,
                            progressToSiftJobConfig: ProgressToSiftJobConfig,
 //                           siftNumericalTestInvitationConfig: SiftNumericalTestInvitationConfig,
 //                           processSiftNumericalResultsReceivedJobConfig: ProcessSiftNumericalResultsReceivedJobConfig,
@@ -116,10 +116,10 @@ class Scheduler @Inject()(
                            notifyOnFinalSuccessJobConfig: NotifyOnFinalSuccessJobConfig,
                            evaluateFsbJobConfig: EvaluateFsbJobConfig,
                            fsbOverallFailureJobConfig: FsbOverallFailureJobConfig,
-                           override val application: Application,
-                           override val applicationLifecycle: ApplicationLifecycle
+                           val myApplication: Application,
+                           val myApplicationLifecycle: ApplicationLifecycle
                          )
-                         (override implicit val ec: ExecutionContext) extends RunningOfScheduledJobs(application, applicationLifecycle) {
+                         (implicit val ec: ExecutionContext) extends RunningOfScheduledJobs(myApplication, myApplicationLifecycle) {
   logger.info("Scheduler created")
 
   private def maybeInitScheduler(config: BasicJobConfig[_], scheduler: => ScheduledJob): Option[ScheduledJob] = {

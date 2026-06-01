@@ -21,7 +21,6 @@ import model.Exceptions.CannotUpdateCivilServiceExperienceDetails
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.model.{Filters, Projections}
-import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}

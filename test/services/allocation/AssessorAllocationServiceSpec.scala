@@ -27,7 +27,6 @@ import org.mockito.ArgumentMatchers.{eq as eqTo, *}
 import org.mockito.Mockito.{when, *}
 import org.mockito.stubbing.OngoingStubbing
 import repositories.AssessorAllocationRepository
-import repositories.application.GeneralApplicationRepository
 import services.BaseServiceSpec
 import services.assessor.AssessorService
 import services.events.EventsService
@@ -169,8 +168,9 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
       val allocations = command.AssessorAllocations(
         version = "version1",
         eventId = "eventId1",
-        allocations = command.AssessorAllocation("userId1", AllocationStatuses.CONFIRMED,
-          allocatedAs = AssessorSkill(SkillType.ASSESSOR, "Assessor")) :: Nil
+        allocations = command.AssessorAllocation(
+          "userId1", AllocationStatuses.CONFIRMED, allocatedAs = AssessorSkill(SkillType.ASSESSOR, "Assessor")
+        ) :: Nil
       )
       val result = service.allocate(allocations).futureValue
 
@@ -184,14 +184,15 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
     }
 
     "throw an optimistic lock exception if data has changed before saving" in new TestFixture {
-       when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturnAsync(
+      when(mockAllocationRepository.allocationsForEvent(any[String])).thenReturnAsync(
         persisted.AssessorAllocation("id", "eventId1", AllocationStatuses.CONFIRMED, SkillType.CHAIR, "version5") :: Nil
       )
       val allocations = command.AssessorAllocations(
         version = "version1",
         eventId = "eventId1",
-        allocations = command.AssessorAllocation("id", AllocationStatuses.CONFIRMED,
-          allocatedAs = AssessorSkill(SkillType.ASSESSOR, "Assessor")) :: Nil
+        allocations = command.AssessorAllocation(
+          "id", AllocationStatuses.CONFIRMED, allocatedAs = AssessorSkill(SkillType.ASSESSOR, "Assessor")
+        ) :: Nil
       )
       val result = service.allocate(allocations).failed.futureValue
       result mustBe an[OptimisticLockException]
@@ -200,7 +201,6 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
 
   trait TestFixture {
     val mockAllocationRepository = mock[AssessorAllocationRepository]
-    val mockAppRepo = mock[GeneralApplicationRepository]
     val mockEventsService = mock[EventsService]
     val mockAllocationServiceCommon = mock[AllocationServiceCommon]
     val mockAssessorService = mock[AssessorService]
@@ -210,7 +210,6 @@ class AssessorAllocationServiceSpec extends BaseServiceSpec with ExtendedTimeout
 
     val service = new AssessorAllocationService(
       mockAllocationRepository,
-      mockAppRepo,
       mockEventsService,
       mockAllocationServiceCommon,
       mockAssessorService,

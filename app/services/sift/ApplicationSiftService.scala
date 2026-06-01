@@ -96,9 +96,9 @@ class ApplicationSiftService @Inject() (applicationSiftRepo: ApplicationSiftRepo
     applicationRepo.addProgressStatusAndUpdateAppStatus(application.applicationId, ProgressStatuses.FAILED_AT_SIFT)
   }.getOrElse(Future.successful(())))
 
-  private def requiresForms(schemeIds: Seq[SchemeId]) = {
-    schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
-  }
+//  private def requiresForms(schemeIds: Seq[SchemeId]) = {
+//    schemeRepo.getSchemesForIds(schemeIds).exists(_.siftRequirement.contains(SiftRequirement.FORM))
+//  }
 
   def progressStatusForSiftStage(schemeList: Seq[SchemeId]): ProgressStatuses.ProgressStatus = ProgressStatuses.SIFT_ENTERED
 

@@ -20,7 +20,7 @@ import model.Exceptions.ApplicationNotFound
 import org.apache.pekko.stream.scaladsl.Source
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{MongoCollection, MongoException, ObservableFuture, SingleObservableFuture}
+import org.mongodb.scala.{MongoCollection, ObservableFuture}
 import play.api.libs.json.{JsValue, Json}
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent

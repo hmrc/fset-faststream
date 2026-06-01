@@ -26,7 +26,7 @@ import model.{SchemeId, UniqueIdentifier}
 import play.api.Logging
 import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
 import repositories.SchemeRepository
-import services.application.ApplicationService.{InvalidSchemeException, NoChangeInCurrentSchemeStatusException}
+import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
 import services.application.{ApplicationService, FsbService}
 import services.assessmentcentre.AssessmentCentreService.CandidateHasNoAssessmentScoreEvaluationException
 import services.assessmentcentre.{AssessmentCentreService, ProgressionToFsbOrOfferService}
@@ -327,8 +327,8 @@ class FixDataConsistencyController @Inject()(cc: ControllerComponents,
               s"${schemeResult.schemeId.toString} -> ${schemeResult.result}"
             ).mkString(", ") + "]\""
 
-          s"${contactDetails.email},${user.preferredName.getOrElse(user.firstName)},${user.applicationId.get}," +
-            s"$failedAtStage,${latestProgressStatus.toString},$onlineTestResultsAsString,$eTrayResultsAsString"
+            s"${contactDetails.email},${user.preferredName.getOrElse(user.firstName)},${user.applicationId.get}," +
+              s"$failedAtStage,${latestProgressStatus.toString},$onlineTestResultsAsString,$eTrayResultsAsString"
         }).mkString("\n"))
       }
     }

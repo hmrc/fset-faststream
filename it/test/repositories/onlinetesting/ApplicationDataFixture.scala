@@ -103,32 +103,32 @@ trait ApplicationDataFixture extends Schemes {
   // TODO: mongo - no usages
   def createOnlineTestApplication(appId: String, applicationStatus: String, xmlReportSavedOpt: Option[Boolean] = None,
                                   alreadyEvaluatedAgainstPassmarkVersionOpt: Option[String] = None): String = {
-    val result = (xmlReportSavedOpt, alreadyEvaluatedAgainstPassmarkVersionOpt) match {
-      case (None, None) =>
+//    val result = (xmlReportSavedOpt, alreadyEvaluatedAgainstPassmarkVersionOpt) match {
+//      case (None, None) =>
 //        helperRepo.collection.insert(ordered = false).one(BSONDocument(
 //          "applicationId" -> appId,
 //          "applicationStatus" -> applicationStatus
 //        ))
-      case (Some(xmlReportSaved), None) =>
+//      case (Some(xmlReportSaved), None) =>
 //        helperRepo.collection.insert(ordered = false).one(BSONDocument(
 //          "applicationId" -> appId,
 //          "applicationStatus" -> applicationStatus,
 //          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved)
 //        ))
-      case (None, Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
+//      case (None, Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
 //        helperRepo.collection.insert(ordered = false).one(BSONDocument(
 //          "applicationId" -> appId,
 //          "applicationStatus" -> applicationStatus,
 //          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
 //        ))
-      case (Some(xmlReportSaved), Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
+//      case (Some(xmlReportSaved), Some(alreadyEvaluatedAgainstPassmarkVersion)) =>
 //        helperRepo.collection.insert(ordered = false).one(BSONDocument(
 //          "applicationId" -> appId,
 //          "applicationStatus" -> applicationStatus,
 //          "online-tests" -> BSONDocument("xmlReportSaved" -> xmlReportSaved),
 //          "passmarkEvaluation" -> BSONDocument("passmarkVersion" -> alreadyEvaluatedAgainstPassmarkVersion)
 //        ))
-    }
+//    }
 
 //    result.futureValue
     appId

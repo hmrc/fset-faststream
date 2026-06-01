@@ -20,7 +20,7 @@ import model.Phase1TestExamples.{firstPsiTest, secondPsiTest}
 import model.command.{Phase1ScoreUpdateRequest, Phase1ScoreUpdateResponse}
 import model.persisted.Phase1TestProfile
 import model.{ApplicationRoute, ApplicationStatus, Candidate}
-import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.ArgumentMatchers.*
 import org.mockito.Mockito.*
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository

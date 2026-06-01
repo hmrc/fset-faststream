@@ -20,6 +20,7 @@ import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig}
 
 import javax.inject.{Inject, Singleton}
 import model.Adjustments
+import model.exchange.testdata.CreateCandidateResponse
 import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
 import model.persisted.{Phase2TestGroup, PsiTest}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
@@ -31,19 +32,20 @@ import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.OffsetDateTime
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class Phase2TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsPassedStatusGenerator,
                                                    otRepository: Phase2TestRepository,
                                                    appConfig: MicroserviceAppConfig,
                                                    dataFaker: DataFaker
-                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                  ) extends ConstructiveGenerator {
 
   val onlineTestsGatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 
   //scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
 
     val psiTests = onlineTestsGatewayConfig.phase2Tests.standard.map { testName =>
       (

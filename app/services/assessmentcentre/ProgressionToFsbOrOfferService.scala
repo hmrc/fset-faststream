@@ -46,7 +46,7 @@ class ProgressionToFsbOrOfferService @Inject() (schemeRepository: SchemeReposito
                                                  @Named("CSREmailClient") val emailClient: OnlineTestEmailClient //TODO:fix change type
                                                 )(implicit ec: ExecutionContext) extends CurrentSchemeStatusHelper with Logging {
 
-  def fsbRequiredSchemeIds: Seq[SchemeId] = schemeRepository.fsbSchemeIds
+  private def fsbRequiredSchemeIds: Seq[SchemeId] = schemeRepository.fsbSchemeIds
 
   def nextApplicationsForFsbOrJobOffer(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     fsbRepo.nextApplicationForFsbOrJobOfferProgression(batchSize)
@@ -144,7 +144,7 @@ class ProgressionToFsbOrOfferService @Inject() (schemeRepository: SchemeReposito
   }
   // scalastyle:on
 
-  private def retrieveCandidateDetails(applicationId: String)(implicit hc: HeaderCarrier) = {
+  private def retrieveCandidateDetails(applicationId: String) = {
     applicationRepo.find(applicationId).flatMap {
       case Some(app) => contactDetailsRepo.find(app.userId).map {cd => (app, cd)}
       case None => sys.error(s"Can't find application $applicationId")

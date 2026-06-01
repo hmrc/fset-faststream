@@ -23,13 +23,7 @@ import model.{ProgressStatuses, SchemeId}
 
 import java.time.OffsetDateTime
 
-abstract class PhaseXTestData(
-  start: Option[OffsetDateTime] = None,
-  expiry: Option[OffsetDateTime] = None,
-  completion: Option[OffsetDateTime] = None,
-  scores: List[Double] = Nil,
-  passmarkEvaluation: Option[PassmarkEvaluation] = None) extends TestDates {
-}
+trait PhaseXTestData extends TestDates {}
 
 case class Phase1TestData(
   start: Option[OffsetDateTime] = None,
@@ -37,7 +31,7 @@ case class Phase1TestData(
   completion: Option[OffsetDateTime] = None,
   scores: List[Double] = Nil,
   passmarkEvaluation: Option[PassmarkEvaluation] = None
-) extends PhaseXTestData(start, expiry, completion, scores, passmarkEvaluation)
+) extends PhaseXTestData
 
 case class Phase2TestData(
   start: Option[OffsetDateTime] = None,
@@ -45,7 +39,7 @@ case class Phase2TestData(
   completion: Option[OffsetDateTime] = None,
   scores: List[Double] = Nil,
   passmarkEvaluation: Option[PassmarkEvaluation] = None
-) extends PhaseXTestData(start, expiry, completion, scores, passmarkEvaluation)
+) extends PhaseXTestData
 
 case class Phase3TestData(
   start: Option[OffsetDateTime] = None,
@@ -55,8 +49,7 @@ case class Phase3TestData(
   generateNullScoresForFewQuestions: Option[Boolean] = None,
   receivedBeforeInHours: Option[Int] = None,
   passmarkEvaluation: Option[PassmarkEvaluation] = None
-) extends PhaseXTestData(start, expiry, completion, scores, passmarkEvaluation)
-
+) extends PhaseXTestData
 
 abstract class PhaseXTestDataFactory {
 
@@ -73,14 +66,16 @@ abstract class PhaseXTestDataFactory {
     scores: List[Double],
     passmarkEvaluation: Option[PassmarkEvaluation])
 
-  def getConfig(): PhaseXTestDataConfig
+  def getConfig: PhaseXTestDataConfig
 
-  def build(candidateRequest: CreateCandidateRequest, phaseXTestDataRequest: Option[PhaseXTestDataRequest], schemeTypes: List[SchemeId]) = {
+  def build(candidateRequest: CreateCandidateRequest,
+            phaseXTestDataRequest: Option[PhaseXTestDataRequest],
+            schemeTypes: List[SchemeId]): Option[PhaseXTestDataComponents] = {
 
     val progressStatusMaybe = candidateRequest.statusData.progressStatus.map(ProgressStatuses.nameToProgressStatus)
     progressStatusMaybe.flatMap { progressStatus =>
       if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
-        getConfig().invitedStatus).getOrElse(false)) {
+        getConfig.invitedStatus).getOrElse(false)) {
         Some(PhaseXTestDataComponents(
           start = getStart(phaseXTestDataRequest, progressStatus),
           expiry = getExpiry(phaseXTestDataRequest, progressStatus),
@@ -96,7 +91,7 @@ abstract class PhaseXTestDataFactory {
 
   private def getStart(testDataRequest: Option[PhaseXTestDataRequest], progressStatus: ProgressStatus) = {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
-      getConfig().startedStatus).getOrElse(false)) {
+      getConfig.startedStatus).getOrElse(false)) {
       testDataRequest.flatMap(_.start.map(OffsetDateTime.parse)) //.getOrElse(DateTime.now()))
     } else {
       None
@@ -105,7 +100,7 @@ abstract class PhaseXTestDataFactory {
 
   private def getExpiry(testDataRequest: Option[PhaseXTestDataRequest], progressStatus: ProgressStatus) = {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
-      getConfig().invitedStatus).getOrElse(false)) {
+      getConfig.invitedStatus).getOrElse(false)) {
       testDataRequest.map(_.expiry.map(OffsetDateTime.parse).getOrElse(OffsetDateTime.now.plusDays(7)))
     } else {
       None
@@ -114,7 +109,7 @@ abstract class PhaseXTestDataFactory {
 
   private def getCompletion(testDataRequest: Option[PhaseXTestDataRequest], progressStatus: ProgressStatus) = {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
-      getConfig().completedStatus).getOrElse(false)) {
+      getConfig.completedStatus).getOrElse(false)) {
       testDataRequest.flatMap(_.completion.map(OffsetDateTime.parse)) //.getOrElse(DateTime.now()))
     } else {
       None
@@ -127,7 +122,7 @@ abstract class PhaseXTestDataFactory {
   private def getPassmarkEvaluation(testDataRequest: Option[PhaseXTestDataRequest], schemeTypes: List[SchemeId],
     progressStatus: ProgressStatus) = {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
-      getConfig().resultsReceived).getOrElse(false)) {
+      getConfig.resultsReceived).getOrElse(false)) {
       testDataRequest.flatMap(_.passmarkEvaluation).orElse(
         Some(PassmarkEvaluation(passmarkVersion = "2", previousPhasePassMarkVersion = Some("1"),
           schemeTypes.map { schemeId => SchemeEvaluationResult(schemeId.value, "Green") },
@@ -140,8 +135,11 @@ abstract class PhaseXTestDataFactory {
 }
 
 case class Phase1TestDataFactory[T <: PhaseXTestData]() extends PhaseXTestDataFactory {
-  override def getConfig() = PhaseXTestDataConfig(ProgressStatuses.PHASE1_TESTS_INVITED, ProgressStatuses.PHASE1_TESTS_STARTED,
-    ProgressStatuses.PHASE1_TESTS_COMPLETED, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
+  override def getConfig: PhaseXTestDataConfig =
+    PhaseXTestDataConfig(
+      ProgressStatuses.PHASE1_TESTS_INVITED, ProgressStatuses.PHASE1_TESTS_STARTED,
+      ProgressStatuses.PHASE1_TESTS_COMPLETED, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED
+    )
 
   def build(candidateRequest: CreateCandidateRequest, schemeTypes: List[SchemeId]): Option[Phase1TestData] = {
     val componentsMaybe = build(candidateRequest, candidateRequest.phase1TestData, schemeTypes)
@@ -157,9 +155,9 @@ case class Phase1TestDataFactory[T <: PhaseXTestData]() extends PhaseXTestDataFa
   }
 
   override def getScores(testDataRequest: Option[PhaseXTestDataRequest], candidateRequest: CreateCandidateRequest,
-    progressStatus: ProgressStatus) = {
+    progressStatus: ProgressStatus): List[Double] = {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
-      getConfig().completedStatus).getOrElse(false)) {
+      getConfig.completedStatus).getOrElse(false)) {
       testDataRequest.map(_.scores.map(_.toDouble)).getOrElse(
         if (candidateRequest.assistanceDetails.flatMap(_.setGis).getOrElse(false)) {
           List(20.0, 21.00)
@@ -180,8 +178,11 @@ object Phase1TestData extends Phase1TestDataFactory {
 }
 
 case class Phase2TestDataFactory() extends PhaseXTestDataFactory {
-  override def getConfig() = PhaseXTestDataConfig(ProgressStatuses.PHASE2_TESTS_INVITED, ProgressStatuses.PHASE2_TESTS_STARTED,
-    ProgressStatuses.PHASE2_TESTS_COMPLETED, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED)
+  override def getConfig: PhaseXTestDataConfig =
+    PhaseXTestDataConfig(
+      ProgressStatuses.PHASE2_TESTS_INVITED, ProgressStatuses.PHASE2_TESTS_STARTED,
+      ProgressStatuses.PHASE2_TESTS_COMPLETED, ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED
+    )
 
   def build(candidateRequest: CreateCandidateRequest, schemeTypes: List[SchemeId]): Option[Phase2TestData] = {
     val componentsMaybe = build(candidateRequest, candidateRequest.phase2TestData, schemeTypes)
@@ -197,9 +198,9 @@ case class Phase2TestDataFactory() extends PhaseXTestDataFactory {
   }
 
   override def getScores(testDataRequest: Option[PhaseXTestDataRequest], candidateRequest: CreateCandidateRequest,
-    progressStatus: ProgressStatus) = {
+    progressStatus: ProgressStatus): List[Double] = {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
-      getConfig().completedStatus).getOrElse(false)) {
+      getConfig.completedStatus).getOrElse(false)) {
       testDataRequest.map(_.scores.map(_.toDouble)).getOrElse(
         List(20.0, 21.00)
       )
@@ -216,8 +217,11 @@ object Phase2TestData extends Phase2TestDataFactory {
 }
 
 case class Phase3TestDataFactory() extends PhaseXTestDataFactory {
-  override def getConfig() = PhaseXTestDataConfig(ProgressStatuses.PHASE3_TESTS_INVITED, ProgressStatuses.PHASE3_TESTS_STARTED,
-    ProgressStatuses.PHASE3_TESTS_COMPLETED, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED)
+  override def getConfig: PhaseXTestDataConfig =
+    PhaseXTestDataConfig(
+      ProgressStatuses.PHASE3_TESTS_INVITED, ProgressStatuses.PHASE3_TESTS_STARTED,
+      ProgressStatuses.PHASE3_TESTS_COMPLETED, ProgressStatuses.PHASE3_TESTS_RESULTS_RECEIVED
+    )
 
   def build(candidateRequest: CreateCandidateRequest, schemeTypes: List[SchemeId]): Option[Phase3TestData] = {
     val componentsMaybe = build(candidateRequest, candidateRequest.phase3TestData, schemeTypes)
@@ -235,9 +239,9 @@ case class Phase3TestDataFactory() extends PhaseXTestDataFactory {
   }
 
   override def getScores(testDataRequest: Option[PhaseXTestDataRequest], candidateRequest: CreateCandidateRequest,
-    progressStatus: ProgressStatus) = {
+    progressStatus: ProgressStatus): List[Double] = {
     if (ProgressStatuses.ProgressStatusOrder.isEqualOrAfter(progressStatus,
-      getConfig().completedStatus).getOrElse(false)) {
+      getConfig.completedStatus).getOrElse(false)) {
       testDataRequest.map(_.scores.map(_.toDouble)).getOrElse(
         List(20.0)
       )

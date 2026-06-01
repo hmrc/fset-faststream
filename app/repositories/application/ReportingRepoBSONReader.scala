@@ -394,12 +394,12 @@ trait ReportingRepoBSONReader extends CommonBSONDocuments with BaseBSONReader {
 
   private[application] def toPhaseXTestResults(activeTests: Seq[PsiTest],
                                                allTestIds: Seq[PsiTestIds]): Seq[Option[PsiTestResult]] = {
-      def getTestResult(inventoryId: String): Option[PsiTestResult] = {
-        activeTests.find(_.inventoryId == inventoryId).flatMap { psiTest =>
-          // TODO: What is status?
-          psiTest.testResult.map { tr => PsiTestResult(status = "", tScore = tr.tScore, raw = tr.rawScore) }
-        }
+    def getTestResult(inventoryId: String): Option[PsiTestResult] = {
+      activeTests.find(_.inventoryId == inventoryId).flatMap { psiTest =>
+        // TODO: What is status?
+        psiTest.testResult.map { tr => PsiTestResult(status = "", tScore = tr.tScore, raw = tr.rawScore) }
       }
+    }
     allTestIds.map{ testIds => getTestResult(testIds.inventoryId) }
   }
 

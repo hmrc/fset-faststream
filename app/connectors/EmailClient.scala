@@ -33,8 +33,7 @@ import java.time.{LocalDate, LocalDateTime, OffsetDateTime, ZoneId}
 import java.time.format.DateTimeFormatter
 
 @Singleton
-class CSREmailClientImpl @Inject() (val http: HttpClientV2, val appConfig: MicroserviceAppConfig)(
-  implicit ec: ExecutionContext) extends CSREmailClient {
+class CSREmailClientImpl @Inject() (val http: HttpClientV2, val appConfig: MicroserviceAppConfig) extends CSREmailClient {
   override val emailConfig: EmailConfig = appConfig.emailConfig
 }
 
@@ -63,7 +62,7 @@ class Phase2OnlineTestEmailClient @Inject() (val http: HttpClientV2, val appConf
 }
 
 @Singleton
-class Phase3OnlineTestEmailClient @Inject() (val http: HttpClientV2, val appConfig: MicroserviceAppConfig)(implicit ec: ExecutionContext)
+class Phase3OnlineTestEmailClient @Inject() (val http: HttpClientV2, val appConfig: MicroserviceAppConfig)
   extends OnlineTestEmailClient with EmailClient {
   override val emailConfig: EmailConfig = appConfig.emailConfig
 
@@ -346,7 +345,7 @@ object EmailDateFormatter {
 
   def toDate(date: LocalDate): String = DateTimeFormatter.ofPattern("d MMMM yyyy").format(date)
 
-  protected def toLondonLocalDateTime(dateTime: OffsetDateTime): LocalDateTime =
+  private def toLondonLocalDateTime(dateTime: OffsetDateTime): LocalDateTime =
     dateTime.atZoneSameInstant(ZoneId.of("Europe/London")).toLocalDateTime
 
   def toExpiryTime(dateTime: OffsetDateTime): String = {

@@ -21,7 +21,6 @@ import model.Exceptions.FSACCSVIndicatorNotFound
 import model.FSACIndicator
 import model.command.GeneralDetails
 import model.persisted.{ContactDetails, PersonalDetails}
-import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.csv.FSACIndicatorCSVRepository

@@ -42,7 +42,7 @@ trait Phase1TestEvaluation extends OnlineTestResultsCalculator {
     } yield {
       val t1Result = evaluateTestResult(schemePassmark.schemeThresholds.test1)(test1Result.tScore)
       val t2Result = test2ResultOpt.map(_.tScore).map(evaluateTestResult(schemePassmark.schemeThresholds.test2)).getOrElse(Green)
-      logger.warn(s"PHASE1 - appId $applicationId processing scheme $schemeToEvaluate, " +
+      logger.warn(s"PHASE1 - appId $applicationId, isGis=$isGis processing scheme $schemeToEvaluate, " +
         s"p1 test1 score = ${test1Result.tScore}, " +
         s"p1 test1 fail = ${schemePassmark.schemeThresholds.test1.failThreshold}, " +
         s"p1 test1 pass = ${schemePassmark.schemeThresholds.test1.passThreshold}, " +

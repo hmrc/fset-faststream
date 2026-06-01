@@ -138,8 +138,8 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
                                        invitationDate: OffsetDateTime, expirationDate: OffsetDateTime
                                       )(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] = {
     val preferredName = application.preferredName
-    emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ =>
-      audit("OnlineTestInvitationEmailSent", application.userId, Some(emailAddress))
+    emailClient.sendOnlineTestInvitation(emailAddress, preferredName, expirationDate).map { _ => ()
+//      audit("OnlineTestInvitationEmailSent", application.userId, Some(emailAddress))
     }
   }
 
@@ -228,13 +228,12 @@ trait OnlineTestService extends TimeExtension with EventSink with Logging {
                                 reminder: ReminderNotice)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[Unit] =
     for {
       emailAddress <- candidateEmailAddress(expiringTest.userId)
-      _ <- commitNotificationExpiringTestProgressStatus(expiringTest, reminder, emailAddress)
+      _ <- commitNotificationExpiringTestProgressStatus(expiringTest, reminder)
       _ <- emailCandidateForExpiringTestReminder(expiringTest, emailAddress, reminder)
     } yield ()
 
   private def commitNotificationExpiringTestProgressStatus(expiringTest: NotificationExpiringOnlineTest,
-                                                           reminder: ReminderNotice,
-                                                           email: String)(
+                                                           reminder: ReminderNotice)(
                                                           implicit hc: HeaderCarrier, rh: RequestHeader,
                                                           ec: ExecutionContext): Future[Unit] = eventSink {
     appRepository.addProgressStatusAndUpdateAppStatus(expiringTest.applicationId, reminder.progressStatus).map { _ =>

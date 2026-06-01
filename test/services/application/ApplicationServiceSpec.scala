@@ -474,7 +474,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 
     val underTest = new ApplicationService(
       appRepositoryMock,
-      pdRepositoryMock,
+//      pdRepositoryMock,
       cdRepositoryMock,
       schemePreferencesRepoMock,
       mediaRepoMock,
@@ -488,7 +488,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
 //      phase2TestRepository2Mock,
       siftServiceMock,
       siftAnswersServiceMock,
-      schemeRepoMock,
+//      schemeRepoMock,
       phase1TestRepositoryMock,
       phase2TestRepositoryMock,
       phase3TestRepositoryMock,

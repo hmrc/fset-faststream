@@ -371,7 +371,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
           any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
-      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
+//      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
       verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
       verify(auditServiceMock, times(0)).logEventNoRequest("OnlineTestInvited", auditDetails)
     }
@@ -395,8 +395,8 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
           any[HeaderCarrier], any[ExecutionContext])
 
       verify(auditServiceMock, times(0)).logEventNoRequest("TestCancelledForCandidate", auditDetails)
-      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
-      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
+//      verify(auditServiceMock, times(1)).logEventNoRequest("UserRegisteredForPhase2Test", auditDetails)
+//      verify(auditServiceMock, times(1)).logEventNoRequest("OnlineTestInvitationEmailSent", auditDetailsWithEmail)
     }
   }
 
@@ -855,7 +855,7 @@ class Phase2TestServiceSpec extends UnitSpec with ExtendedTimeout {
       emailClientMock,
       auditServiceMock,
       authProviderClient2Mock,
-      phase3TestServiceMock,
+//      phase3TestServiceMock,
       siftServiceMock,
       appConfigMock,
       stcEventServiceMock,

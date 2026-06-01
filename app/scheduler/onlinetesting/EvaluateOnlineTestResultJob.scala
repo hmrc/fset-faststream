@@ -19,18 +19,17 @@ package scheduler.onlinetesting
 import com.google.inject.name.Named
 import common.FutureEx
 import config.ScheduledJobConfig
-
-import javax.inject.{Inject, Singleton}
 import model.Phase
 import model.Phase.Phase
-import model.exchange.passmarksettings.{PassMarkSettings, PassMarkSettingsPersistence, Phase1PassMarkSettings, Phase1PassMarkSettingsPersistence, Phase2PassMarkSettings, Phase2PassMarkSettingsPersistence, Phase3PassMarkSettings, Phase3PassMarkSettingsPersistence}
+import model.exchange.passmarksettings.{PassMarkSettingsPersistence, Phase1PassMarkSettingsPersistence, Phase2PassMarkSettingsPersistence, Phase3PassMarkSettingsPersistence}
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.libs.json.Format
 import play.api.{Configuration, Logging}
-import uk.gov.hmrc.mongo.MongoComponent
 import scheduler.BasicJobConfig
 import scheduler.clustering.SingleInstanceScheduledJob
+import uk.gov.hmrc.mongo.MongoComponent
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 

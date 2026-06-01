@@ -17,19 +17,22 @@
 package services.testdata.candidate
 
 import javax.inject.{Inject, Provider, Singleton}
-import model.ApplicationStatus._
+import model.ApplicationStatus.*
+import model.exchange.testdata.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class WithdrawnStatusGenerator @Inject() (appRepository: GeneralApplicationRepository,
                                           candidateStatusGeneratorFactory: Provider[CandidateStatusGeneratorFactory]
-                                         )(implicit ec: ExecutionContext) extends BaseGenerator {
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
+                                         ) extends BaseGenerator {
+
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
 
     val previousStatusGenerator = candidateStatusGeneratorFactory.get().getGenerator(
       generatorConfig.copy(

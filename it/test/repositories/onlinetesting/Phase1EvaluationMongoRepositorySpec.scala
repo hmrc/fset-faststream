@@ -16,10 +16,10 @@
 
 package repositories.onlinetesting
 
-import model.ApplicationStatus.{ApplicationStatus, WITHDRAWN}
+import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
 import model.persisted._
-import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses, SelectedSchemesExamples}
+import model.{ApplicationRoute, ApplicationStatus, ProgressStatuses}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.scalatestplus.mockito.MockitoSugar
 import uk.gov.hmrc.mongo.play.json.Codecs

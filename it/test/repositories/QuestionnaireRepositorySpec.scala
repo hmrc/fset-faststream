@@ -41,7 +41,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     }
 
     "create collection, append questions to the application and overwrite existing questions" in new TestFixture {
-      val applicationId = System.currentTimeMillis() + ""
+      val applicationId = s"${System.currentTimeMillis()}"
       questionnaireRepo.addQuestions(applicationId, List(QuestionnaireQuestion("what?",
         QuestionnaireAnswer(answer = Some("answer1"), otherDetails = None, unknown = None)))).futureValue
       val result = questionnaireRepo.find(applicationId).futureValue
@@ -63,7 +63,7 @@ class QuestionnaireRepositorySpec extends MongoRepositorySpec with MockitoSugar 
     }
 
     "find questions should return a map of questions/answers ignoring the non answered ones" in new TestFixture {
-      val applicationId = System.currentTimeMillis() + ""
+      val applicationId = s"${System.currentTimeMillis()}"
 
       val emptyAnswer = QuestionnaireAnswer(answer = None, otherDetails = None, unknown = Some(true))
 

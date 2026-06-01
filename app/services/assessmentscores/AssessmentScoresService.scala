@@ -217,7 +217,7 @@ trait AssessmentScoresService {
 }
 
 abstract class AssessorAssessmentScoresService extends AssessmentScoresService {
-  override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED
+  override val statusToUpdateTheApplicationTo: ProgressStatuses.ProgressStatus = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED
 
   override def shouldUpdateStatus(allExercisesScores: AssessmentScoresAllExercises): Boolean = {
     allExercisesScores.exercise1.exists(_.isSubmitted) &&
@@ -234,7 +234,7 @@ class AssessorAssessmentScoresServiceImpl @Inject() (val applicationRepository: 
                                                      val eventsRepository: EventsRepository,
                                                      val personalDetailsRepository: PersonalDetailsRepository,
                                                      val dateTimeFactory: DateTimeFactory
-                                                    )(implicit ec: ExecutionContext) extends AssessorAssessmentScoresService {
+                                                    ) extends AssessorAssessmentScoresService {
   //  override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
   //  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.assessorAssessmentScoresRepository
   //  override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository
@@ -244,7 +244,7 @@ class AssessorAssessmentScoresServiceImpl @Inject() (val applicationRepository: 
 }
 
 abstract class ReviewerAssessmentScoresService extends AssessmentScoresService {
-  override val statusToUpdateTheApplicationTo = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
+  override val statusToUpdateTheApplicationTo: ProgressStatuses.ProgressStatus = ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED
 
   override def shouldUpdateStatus(allExercisesScores: AssessmentScoresAllExercises): Boolean = {
     allExercisesScores.exercise1.exists(_.isSubmitted) &&
@@ -262,7 +262,7 @@ class ReviewerAssessmentScoresServiceImpl @Inject() (val applicationRepository: 
                                                      val eventsRepository: EventsRepository,
                                                      val personalDetailsRepository: PersonalDetailsRepository,
                                                      val dateTimeFactory: DateTimeFactory
-                                                    )(implicit ec: ExecutionContext) extends ReviewerAssessmentScoresService {
+                                                    ) extends ReviewerAssessmentScoresService {
   //  override val applicationRepository: GeneralApplicationRepository = repositories.applicationRepository
   //  override val assessmentScoresRepository: AssessmentScoresRepository = repositories.reviewerAssessmentScoresRepository
   //  override val candidateAllocationRepository: CandidateAllocationMongoRepository = repositories.candidateAllocationRepository

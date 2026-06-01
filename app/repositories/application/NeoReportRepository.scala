@@ -17,30 +17,26 @@
 package repositories.application
 
 import config.{MicroserviceAppConfig, PsiTestIds}
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.*
 import factories.DateTimeFactory
 import model.*
 import model.ApplicationRoute.ApplicationRoute
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.Withdrawn
 import model.assessmentscores.{AdaptsScores, RelatesScores, StrivesScores, ThinksScores}
-import model.command.{CandidateDetailsReportItem, CsvExtract, WithdrawApplication}
-import model.persisted.fsb.ScoresAndFeedback
-import model.persisted.{FSACIndicator, SchemeEvaluationResult}
+import model.command.{CandidateDetailsReportItem, CsvExtract}
+import model.persisted.SchemeEvaluationResult
 import org.apache.pekko.stream.Materializer
 import org.apache.pekko.stream.scaladsl.Source
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.conversions.Bson
-import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonRegularExpression}
+import org.mongodb.scala.bson.{BsonArray, BsonDocument}
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
+import org.mongodb.scala.{ObservableFuture, bsonDocumentToDocument}
 import play.api.Logging
 import repositories.*
-import services.reporting.SocioEconomicCalculator
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.Codecs
 
-import java.time.{OffsetDateTime, ZoneOffset}
+import java.time.OffsetDateTime
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
@@ -141,7 +137,6 @@ trait NeoReportRepository extends Schemes {
 @Singleton
 class NeoReportMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
                                           appConfig: MicroserviceAppConfig,
-                                          schemeRepository: SchemeRepository,
                                           mongoComponent: MongoComponent)(implicit ec: ExecutionContext)
   extends NeoReportRepository with CommonBSONDocuments with DiversityQuestionsText with Logging with Schemes {
 
@@ -412,37 +407,38 @@ class NeoReportMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
     }
   }//scalastyle:on
 
-  private def isOxbridge(code: Option[String]): Option[String] = {
-    code match {
-      case Some("O33-OXF") | Some("C05-CAM") => Y
-      case Some(_) => N
-      case None => None
-    }
-  }
+//  private def isOxbridge(code: Option[String]): Option[String] = {
+//    code match {
+//      case Some("O33-OXF") | Some("C05-CAM") => Y
+//      case Some(_) => N
+//      case None => None
+//    }
+//  }
 
-  private def isRussellGroup(code: Option[String]): Option[String] = {
-    val russellGroupUnis = List(
-      "B32-BIRM", "B78-BRISL", "C05-CAM", "C15-CARDF", "D86-DUR", "E56-EDINB", "E84-EXETR", "G28-GLASG", "I50-IMP", "K60-KCL",
-      "L23-LEEDS", "L41-LVRPL", "L72-LSE", "M20-MANU", "N21-NEWC", "N84-NOTTM", "O33-OXF", "Q75-QBELF", "S18-SHEFD",
-      "S27-SOTON", "Q50-QMUL", "U80-UCL", "W20-WARWK", "Y50-YORK"
-    )
-    code.flatMap(c => if (russellGroupUnis.contains(c)) Y else N)
-  }
+//  private def isRussellGroup(code: Option[String]): Option[String] = {
+//    val russellGroupUnis = List(
+//      "B32-BIRM", "B78-BRISL", "C05-CAM", "C15-CARDF", "D86-DUR", "E56-EDINB", "E84-EXETR", "G28-GLASG", "I50-IMP", "K60-KCL",
+//      "L23-LEEDS", "L41-LVRPL", "L72-LSE", "M20-MANU", "N21-NEWC", "N84-NOTTM", "O33-OXF", "Q75-QBELF", "S18-SHEFD",
+//      "S27-SOTON", "Q50-QMUL", "U80-UCL", "W20-WARWK", "Y50-YORK"
+//    )
+//    code.flatMap(c => if (russellGroupUnis.contains(c)) Y else N)
+//  }
 
-  private def fsbScoresAndFeedback(doc: Document): List[Option[String]] = {
-    val scoresAndFeedbackOpt = (for {
-      fsb <- subDocRoot("testGroups")(doc).map(_.get("FSB"))
-    } yield {
-      Try(Codecs.fromBson[ScoresAndFeedback](fsb.asDocument().get("scoresAndFeedback"))).toOption
-    }).flatten
-    scoresAndFeedbackOpt.map { saf =>
-      List(Some(saf.overallScore.toString), Some(saf.feedback))
-    }.getOrElse( List(None, None) )
-  }
+//  private def fsbScoresAndFeedback(doc: Document): List[Option[String]] = {
+//    val scoresAndFeedbackOpt = (for {
+//      fsb <- subDocRoot("testGroups")(doc).map(_.get("FSB"))
+//    } yield {
+//      Try(Codecs.fromBson[ScoresAndFeedback](fsb.asDocument().get("scoresAndFeedback"))).toOption
+//    }).flatten
+//    scoresAndFeedbackOpt.map { saf =>
+//      List(Some(saf.overallScore.toString), Some(saf.feedback))
+//    }.getOrElse( List(None, None) )
+//  }
 
-  private def getSchemeResults(results: List[BsonDocument]) = results.map {
-    result => Try(result.get("schemeId").asString().getValue).getOrElse("") + ": " + Try(result.get("result").asString().getValue).getOrElse("")
-  }
+//  private def getSchemeResults(results: List[BsonDocument]) = results.map {
+//    result => Try(result.get("schemeId").asString().getValue).getOrElse("")
+//      + ": " + Try(result.get("result").asString().getValue).getOrElse("")
+//  }
 
   private def currentFirstPreference(doc: Document): Option[SchemeEvaluationResult] = {
     val testEvalResults = doc.get("currentSchemeStatus").map( bsonValue => Codecs.fromBson[List[SchemeEvaluationResult]](bsonValue))
@@ -466,10 +462,10 @@ class NeoReportMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
     ).map(key => exerciseAvgOpt.getDoubleOpt(key) )
   }
 
-  private def extractDateTime(doc: BsonDocument, key: String) = {
-    import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
-    Codecs.fromBson[OffsetDateTime](doc.get(key).asDateTime())
-  }
+//  private def extractDateTime(doc: BsonDocument, key: String) = {
+//    import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
+//    Codecs.fromBson[OffsetDateTime](doc.get(key).asDateTime())
+//  }
 
   private def onlineTests(doc: Document): Map[String, List[Option[String]]] = {
 

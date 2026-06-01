@@ -18,7 +18,7 @@ package controllers.upscan
 
 import config.TestFixtureBase
 import model.exchange.upscan.{Reference, UploadId, UploadStatusWithAppId, UploadStatuses}
-import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.ArgumentMatchers.*
 import org.mockito.Mockito.*
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.*
@@ -27,7 +27,6 @@ import play.api.test.{FakeHeaders, FakeRequest, Helpers}
 import services.upscan.UpscanService
 import testkit.MockitoImplicits.*
 import testkit.UnitWithAppSpec
-import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 

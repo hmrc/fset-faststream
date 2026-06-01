@@ -17,7 +17,7 @@
 package services.testdata.candidate.onlinetests
 
 import javax.inject.{Inject, Singleton}
-import model.ProgressStatuses.{PHASE1_TESTS_PASSED_NOTIFIED, PHASE3_TESTS_PASSED_NOTIFIED, ProgressStatus}
+import model.ProgressStatuses.{PHASE1_TESTS_PASSED_NOTIFIED, ProgressStatus}
 import model.command.ApplicationForSkippingPhases
 import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, TestGroupResponse}
 import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
@@ -33,15 +33,15 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class Phase1TestsPassedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsPassedStatusGenerator,
                                                           val appRepository: GeneralApplicationRepository
-                                                        )(implicit ec: ExecutionContext) extends TestsPassedNotifiedStatusGenerator {
-  val notifiedStatus = PHASE1_TESTS_PASSED_NOTIFIED
+                                                        ) extends TestsPassedNotifiedStatusGenerator {
+  val notifiedStatus: ProgressStatus = PHASE1_TESTS_PASSED_NOTIFIED
 }
 
 @Singleton
 class Phase3TestsPassedNotifiedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsPassedStatusGenerator,
                                                           val appRepository: GeneralApplicationRepository,
                                                           val phase3TestRepository: Phase3TestRepository
-                                                         )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                         ) extends ConstructiveGenerator {
   override def generate(generationId: Int,
                         generatorConfig:
                         CreateCandidateData)(

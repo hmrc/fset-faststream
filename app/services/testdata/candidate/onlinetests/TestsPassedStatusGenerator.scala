@@ -57,10 +57,10 @@ class Phase1TestsPassedStatusGenerator @Inject() (val previousStatusGenerator: P
                                                   @Named("Phase1EvaluationRepository")
                                                   val evaluationRepository: OnlineTestEvaluationRepository,
                                                   val uuidFactory: UUIDFactory
-                                                 )(implicit ec: ExecutionContext) extends TestsPassedStatusGenerator {
+                                                 ) extends TestsPassedStatusGenerator {
 //  val previousStatusGenerator = Phase1TestsResultsReceivedStatusGenerator
 //  val evaluationRepository: Phase1EvaluationMongoRepository = faststreamPhase1EvaluationRepository
-  override val passedStatus = PHASE1_TESTS_PASSED
+  override val passedStatus: ProgressStatus = PHASE1_TESTS_PASSED
 
   def passmarkEvaluation(generatorConfig: CreateCandidateData, candidateResponse: CreateCandidateResponse): PassmarkEvaluation = {
     generatorConfig.phase1TestData.flatMap(_.passmarkEvaluation)
@@ -84,10 +84,10 @@ class Phase2TestsPassedStatusGenerator @Inject() (val previousStatusGenerator: P
                                                   @Named("Phase2EvaluationRepository")
                                                   val evaluationRepository: OnlineTestEvaluationRepository,
                                                   val uuidFactory: UUIDFactory
-                                                 )(implicit ec: ExecutionContext) extends TestsPassedStatusGenerator {
+                                                 ) extends TestsPassedStatusGenerator {
 //  val previousStatusGenerator = Phase2TestsResultsReceivedStatusGenerator
 //  val evaluationRepository: Phase2EvaluationMongoRepository = faststreamPhase2EvaluationRepository
-  val passedStatus = PHASE2_TESTS_PASSED
+  val passedStatus: ProgressStatus = PHASE2_TESTS_PASSED
 
   def passmarkEvaluation(generatorConfig: CreateCandidateData, candidateResponse: CreateCandidateResponse): PassmarkEvaluation =
     generatorConfig.phase2TestData.flatMap(_.passmarkEvaluation)
@@ -111,11 +111,11 @@ class Phase3TestsPassedStatusGenerator @Inject() (val previousStatusGenerator: P
                                                   @Named("Phase3EvaluationRepository")
                                                   val evaluationRepository: OnlineTestEvaluationRepository,
                                                   val uuidFactory: UUIDFactory
-                                                 )(implicit ec: ExecutionContext) extends TestsPassedStatusGenerator {
+                                                 ) extends TestsPassedStatusGenerator {
 //  val previousStatusGenerator = Phase3TestsResultsReceivedStatusGenerator
 //  val evaluationRepository: Phase3EvaluationMongoRepository = faststreamPhase3EvaluationRepository
 //  val appRepository: GeneralApplicationMongoRepository = applicationRepository
-  val passedStatus = PHASE3_TESTS_PASSED
+  val passedStatus: ProgressStatus = PHASE3_TESTS_PASSED
 
   def passmarkEvaluation(generatorConfig: CreateCandidateData, candidateResponse: CreateCandidateResponse): PassmarkEvaluation =
     generatorConfig.phase3TestData.flatMap(_.passmarkEvaluation)

@@ -17,7 +17,6 @@
 package model
 
 import model.ApplicationStatus._
-import model.ProgressStatuses.ALL_FSBS_AND_FSACS_FAILED
 import play.api.libs.json.{Format, JsString, JsSuccess, JsValue}
 
 import scala.language.implicitConversions
@@ -407,7 +406,7 @@ object ProgressStatuses {
 
   @deprecated("This is not exhaustive, do not use please.", "July 2017")
   def progressesByApplicationStatus(applicationStatuses: ApplicationStatus*): Seq[ProgressStatus] = {
-    allStatuses.filter(st => applicationStatuses.contains(st.applicationStatus))
+    allStatuses.filter(ps => applicationStatuses.contains(ps.applicationStatus))
   }
 
   object EventProgressStatuses {

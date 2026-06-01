@@ -41,7 +41,7 @@ class AssessmentCentreAllocationConfirmedStatusGenerator @Inject() (val previous
                                                                     candidateAllocationService: CandidateAllocationService,
                                                                     eventGenerator: EventGenerator,
                                                                     uuidFactory: UUIDFactory
-                                                                   )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                                   ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, createCandidateData: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec : ExecutionContext): Future[CreateCandidateResponse] = {

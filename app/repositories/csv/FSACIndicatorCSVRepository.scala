@@ -68,12 +68,12 @@ class FSACIndicatorCSVRepositoryImpl @Inject() (application: Application) extend
     }
   }
 
-  private def find(postcode: Option[String]): Option[FSACIndicator] = {
-    postcode.flatMap(postCodeVal => {
-      val postCodeUpperCase = postCodeVal.takeWhile(!_.isDigit).toUpperCase
-      indicators.get(postCodeUpperCase).fold[Option[FSACIndicator]](Some(DefaultIndicator))(indicator => Some(indicator))
-    })
-  }
+//  private def find(postcode: Option[String]): Option[FSACIndicator] = {
+//    postcode.flatMap(postCodeVal => {
+//      val postCodeUpperCase = postCodeVal.takeWhile(!_.isDigit).toUpperCase
+//      indicators.get(postCodeUpperCase).fold[Option[FSACIndicator]](Some(DefaultIndicator))(indicator => Some(indicator))
+//    })
+//  }
 
   override def getAssessmentCentres: Seq[String] =
     indicators.values.groupBy( fsacIndicator => fsacIndicator.assessmentCentre).keys.toSeq

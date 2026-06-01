@@ -17,7 +17,7 @@
 package services.testdata.candidate
 
 import model.EvaluationResults.Green
-import model.ProgressStatuses
+import model.exchange.testdata.CreateCandidateResponse
 import model.persisted.SchemeEvaluationResult
 
 import javax.inject.{Inject, Singleton}
@@ -26,14 +26,15 @@ import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SubmittedStatusGenerator @Inject() (val previousStatusGenerator: InProgressPreviewStatusGenerator,
                                           appRepository: GeneralApplicationRepository
-                                         )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                         ) extends ConstructiveGenerator {
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
     for {
       candidateInPreviousStatus <- previousStatusGenerator.generate(generationId, generatorConfig)
       _ <- appRepository.submit(candidateInPreviousStatus.applicationId.get)

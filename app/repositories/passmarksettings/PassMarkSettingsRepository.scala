@@ -18,10 +18,10 @@ package repositories.passmarksettings
 
 import model.PassMarkSettingsCreateResponse
 import model.exchange.passmarksettings.*
+import org.mongodb.scala.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.Sorts.descending
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections}
-import org.mongodb.scala.{Document, ObservableFuture, SingleObservableFuture}
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
