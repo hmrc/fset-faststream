@@ -17,7 +17,7 @@
 package connectors
 
 import config.MicroserviceAppConfig
-import connectors.ExchangeObjects.{Candidate, UserAuthInfo}
+import connectors.ExchangeObjects.Candidate
 import model.Exceptions.ConnectorException
 import model.exchange.SimpleTokenResponse
 import play.api.libs.json.Json

@@ -18,17 +18,15 @@ package services.assessmentcentre
 
 import com.google.inject.name.Named
 import common.FutureEx
+import model.*
 import model.ApplicationStatus.ApplicationStatus
-
-import javax.inject.{Inject, Singleton}
-import model.EvaluationResults.{AssessmentEvaluationResult, ExerciseAverageResult, Green, Red, Withdrawn}
+import model.EvaluationResults.*
 import model.Exceptions.NoResultsReturned
-import model.ProgressStatuses._
-import model._
+import model.ProgressStatuses.*
 import model.assessmentscores.{AssessmentScoresExercise, FixUserStuckInScoresAccepted}
 import model.command.ApplicationForProgression
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
-import model.exchange.passmarksettings.{AssessmentCentrePassMarkSettings, AssessmentCentrePassMarkSettingsPersistence}
+import model.exchange.passmarksettings.AssessmentCentrePassMarkSettingsPersistence
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.{AnalysisExercise, AssessmentCentreTests}
 import play.api.Logging
@@ -39,6 +37,7 @@ import services.assessmentcentre.AssessmentCentreService.CandidateAlreadyHasAnAn
 import services.evaluation.AssessmentCentreEvaluationEngine
 import services.passmarksettings.AssessmentCentrePassMarkSettingsService
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 object AssessmentCentreService {

@@ -28,6 +28,8 @@ package config
 //import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 //import uk.gov.hmrc.play.http.ws._
 
+object microserviceWiring {}
+
 //@ImplementedBy(classOf[HttpVerbs])
 //trait WSHttpT extends HttpGet with HttpPut with HttpPost with HttpDelete with HttpPatch with WSHttp
 

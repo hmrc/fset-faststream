@@ -69,8 +69,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
     registerAndInvite(applications, inventoryId)
   }
 
-  private def registerAndInvite(applications: List[NumericalTestApplication], testIds: PsiTestIds)
-                               (implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
+  private def registerAndInvite(applications: List[NumericalTestApplication], testIds: PsiTestIds): Future[Unit] = {
 
     applications match {
       case Nil => Future.successful(())
@@ -90,8 +89,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
     }
   }
 
-  private def registerPsiApplicant(application: NumericalTestApplication, testIds: PsiTestIds)
-                                  (implicit hc: HeaderCarrier): Future[PsiTest] = {
+  private def registerPsiApplicant(application: NumericalTestApplication, testIds: PsiTestIds): Future[PsiTest] = {
     for {
       aoa <- registerApplicant(application, testIds)
     } yield {
@@ -115,8 +113,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
     }
   }
 
-  private def registerApplicant(application: NumericalTestApplication, testIds: PsiTestIds)
-                               (implicit hc: HeaderCarrier): Future[AssessmentOrderAcknowledgement] = {
+  private def registerApplicant(application: NumericalTestApplication, testIds: PsiTestIds): Future[AssessmentOrderAcknowledgement] = {
 
     val orderId = tokenFactory.generateUUID()
     val preferredName = TextSanitizer.sanitizeFreeText(application.preferredName)
@@ -129,7 +126,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
       preferredName = preferredName,
       lastName = lastName,
       // The url psi will redirect to when the candidate completes the test
-      redirectionUrl = buildRedirectionUrl(orderId, testIds.inventoryId),
+      redirectionUrl = buildRedirectionUrl(orderId),
       assessmentId = testIds.assessmentId,
       reportId = testIds.reportId,
       normId = testIds.normId
@@ -138,7 +135,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
     onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest)
   }
 
-  private def buildRedirectionUrl(orderId: String, inventoryId: String): String = {
+  private def buildRedirectionUrl(orderId: String): String = {
     val completionBaseUrl = s"${gatewayConfig.candidateAppUrl}/fset-fast-stream/psi/sift-test"
     s"$completionBaseUrl/complete/$orderId"
   }
@@ -158,6 +155,8 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
           throw new NotImplementedError("Test may have been reset, change the active test here")
         case None =>
           throw UnexpectedException(s"Application ${application.applicationId} should have a SIFT_PHASE testGroup at this point")
+        case _ =>
+          throw UnexpectedException(s"Application ${application.applicationId} has errored while inserting sift tests")
       }
     }
     for {
@@ -178,7 +177,7 @@ class NumericalTestService @Inject() (applicationRepo: GeneralApplicationReposit
       emailAddress <- contactDetailsRepo.find(application.userId).map(_.email)
       notificationExpiringSiftOpt <- applicationSiftRepo.getNotificationExpiringSift(application.applicationId)
     } yield {
-      implicit val hc = HeaderCarrier()
+      implicit val hc: HeaderCarrier = HeaderCarrier()
       val msg = s"Sending sift numeric test invite email to candidate ${application.applicationId}..."
       logger.info(msg)
       notificationExpiringSiftOpt.map { notification =>

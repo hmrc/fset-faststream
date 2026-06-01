@@ -16,8 +16,7 @@
 
 package services.testdata.candidate
 
-import javax.inject.{Inject, Provider, Singleton}
-import model.ApplicationStatus._
+import model.ApplicationStatus.*
 import model.Exceptions.InvalidApplicationStatusAndProgressStatusException
 import model.ProgressStatuses
 import model.ProgressStatuses.{ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMENT_CENTRE_AWAITING_ALLOCATION,
@@ -26,13 +25,13 @@ import model.ProgressStatuses.{ASSESSMENT_CENTRE_ALLOCATION_CONFIRMED, ASSESSMEN
 import model.testdata.CreateAdminData.CreateAdminData
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import services.testdata.admin.{AdminCreatedStatusGenerator, AdminUserBaseGenerator, AssessorCreatedStatusGenerator}
-import services.testdata.candidate.assessmentcentre._
-import services.testdata.candidate.fsb._
-import services.testdata.candidate.onlinetests._
-import services.testdata.candidate.onlinetests.phase1._
-import services.testdata.candidate.onlinetests.phase2._
-import services.testdata.candidate.onlinetests.phase3._
-import services.testdata.candidate.sift._
+import services.testdata.candidate.assessmentcentre.*
+import services.testdata.candidate.fsb.*
+import services.testdata.candidate.onlinetests.*
+import services.testdata.candidate.onlinetests.phase1.*
+import services.testdata.candidate.sift.*
+
+import javax.inject.{Inject, Singleton}
 
 @Singleton
 class AdminStatusGeneratorFactory @Inject() (assessorCreatedStatusGenerator: AssessorCreatedStatusGenerator,
@@ -116,8 +115,8 @@ class CandidateStatusGeneratorFactory @Inject() (registeredStatusGenerator: Regi
   def getGenerator(generatorConfig: CreateCandidateData): BaseGenerator = {
 
     val phase1StartTime = generatorConfig.phase1TestData.flatMap(_.start)
-    val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)
-    val phase3StartTime = generatorConfig.phase3TestData.flatMap(_.start)
+//    val phase2StartTime = generatorConfig.phase2TestData.flatMap(_.start)
+//    val phase3StartTime = generatorConfig.phase3TestData.flatMap(_.start)
 
     (generatorConfig.statusData.applicationStatus, generatorConfig.statusData.progressStatus) match {
       case (appStatus, None) => appStatus match {

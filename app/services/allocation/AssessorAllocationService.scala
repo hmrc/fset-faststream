@@ -25,7 +25,6 @@ import model.command.{AssessorAllocation, AssessorAllocations}
 import model.persisted.eventschedules.Event
 import model.{command, exchange, persisted, *}
 import repositories.AssessorAllocationRepository
-import repositories.application.GeneralApplicationRepository
 import services.allocation.AssessorAllocationService.CouldNotFindAssessorContactDetails
 import services.assessor.AssessorService
 import services.events.EventsService
@@ -41,7 +40,6 @@ object AssessorAllocationService {
 
 @Singleton
 class AssessorAllocationService @Inject() (assessorAllocationRepo: AssessorAllocationRepository,
-                                           applicationRepo: GeneralApplicationRepository,
                                            eventsService: EventsService,
                                            allocationServiceCommon: AllocationServiceCommon, // Breaks circular dependencies
                                            assessorService: AssessorService,

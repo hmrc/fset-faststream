@@ -16,22 +16,21 @@
 
 package services.onlinetesting.phase3
 
-import config._
-import connectors.{CSREmailClient, OnlineTestEmailClient}
+import config.*
+import connectors.OnlineTestEmailClient
 import connectors.launchpadgateway.LaunchpadGatewayClient
-import connectors.launchpadgateway.exchangeobjects.out._
+import connectors.launchpadgateway.exchangeobjects.out.*
 import factories.{DateTimeFactory, UUIDFactory}
+import model.*
 import model.Commands.PostCode
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{PHASE3_TESTS_EXPIRED, SIFT_ENTERED}
-import model._
 import model.command.{Phase3ProgressResponse, ProgressResponse}
+import model.persisted.*
 import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
-import model.persisted._
 import org.mockito.ArgumentCaptor
-import org.mockito.ArgumentMatchers.{eq => eqTo, _}
-import org.mockito.Mockito._
-import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers.{eq as eqTo, *}
+import org.mockito.Mockito.*
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
@@ -41,12 +40,11 @@ import services.adjustmentsmanagement.AdjustmentsManagementService
 import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
 import testkit.{ExtendedTimeout, UnitSpec}
-
-import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 class Phase3TestServiceSpec extends UnitSpec with ExtendedTimeout {
 

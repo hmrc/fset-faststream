@@ -50,7 +50,7 @@ trait FrameworkRepository {
 }
 
 @Singleton
-class FrameworkYamlRepository @Inject() (implicit application: Application, appConfig: MicroserviceAppConfig, ec: ExecutionContext)
+class FrameworkYamlRepository @Inject() (implicit application: Application, appConfig: MicroserviceAppConfig)
   extends FrameworkRepository {
 
   // Scala 3 - with this included in the top level imports, it results in a cyclic dependency error so keep it here

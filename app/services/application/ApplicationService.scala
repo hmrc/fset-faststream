@@ -18,22 +18,20 @@ package services.application
 
 import common.FutureEx
 import connectors.ExchangeObjects
+import model.*
 import model.ApplicationStatus.ApplicationStatus
-import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
+import model.EvaluationResults.{Green, Red}
 import model.Exceptions.*
 import model.ProgressStatuses.*
+import model.command.*
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType
 import model.command.AssessmentScoresCommands.AssessmentScoresSectionType.*
-import model.command.*
 import model.exchange.SchemeEvaluationResultWithFailureDetails
 import model.exchange.passmarksettings.{Phase1PassMarkSettingsPersistence, Phase2PassMarkSettingsPersistence, Phase3PassMarkSettingsPersistence}
-import model.exchange.sift.SiftAnswersStatus
 import model.persisted.*
 import model.persisted.eventschedules.EventType
 import model.stc.StcEventTypes.*
-import model.stc.{AuditEvents, DataStoreEvents, EmailEvents}
-import model.*
-import model.AllocationStatuses.AllocationStatus
+import model.stc.{AuditEvents, EmailEvents}
 import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.*
@@ -44,13 +42,12 @@ import repositories.civilserviceexperiencedetails.CivilServiceExperienceDetailsR
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.fsb.FsbRepository
 import repositories.onlinetesting.*
-import repositories.personaldetails.PersonalDetailsRepository
 import repositories.schemepreferences.SchemePreferencesRepository
 import repositories.sift.ApplicationSiftRepository
 import scheduler.fixer.FixBatch
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.allocation.CandidateAllocationService
-import services.application.ApplicationService.{InvalidSchemeException, NoChangeInCurrentSchemeStatusException}
+import services.application.ApplicationService.NoChangeInCurrentSchemeStatusException
 import services.events.EventsService
 import services.sift.{ApplicationSiftService, SiftAnswersService}
 import services.stc.{EventSink, StcEventService}
@@ -75,7 +72,6 @@ object ApplicationService {
 // scalastyle:off number.of.methods file.size.limit
 @Singleton
 class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
-                                    pdRepository: PersonalDetailsRepository,
                                     cdRepository: ContactDetailsRepository,
                                     schemePrefsRepository: SchemePreferencesRepository,
                                     mediaRepo: MediaRepository,
@@ -93,7 +89,6 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
 
                                     siftService: ApplicationSiftService,
                                     siftAnswersService: SiftAnswersService,
-                                    schemesRepo: SchemeRepository,
                                     phase1TestRepository: Phase1TestRepository,
                                     phase2TestRepository: Phase2TestRepository,
                                     phase3TestRepository: Phase3TestRepository,
@@ -117,12 +112,12 @@ class ApplicationService @Inject() (appRepository: GeneralApplicationRepository,
     appRepository.addProgressStatusAndUpdateAppStatus(applicationId, progressStatus)
   }
 
-  private def removeFromAllEvents(applicationId: String, eligibleForReallocation: Boolean)
-                                 (implicit hc: HeaderCarrier): Future[Unit] = {
-    candidateAllocationService.allocationsForApplication(applicationId).flatMap { allocations =>
-      candidateAllocationService.unAllocateCandidates(allocations.toList, eligibleForReallocation).map(_ => ())
-    }
-  }
+//  private def removeFromAllEvents(applicationId: String, eligibleForReallocation: Boolean)
+//                                 (implicit hc: HeaderCarrier): Future[Unit] = {
+//    candidateAllocationService.allocationsForApplication(applicationId).flatMap { allocations =>
+//      candidateAllocationService.unAllocateCandidates(allocations.toList, eligibleForReallocation).map(_ => ())
+//    }
+//  }
 
   def considerForSdip(applicationId: String)(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = eventSink {
     for {

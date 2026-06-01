@@ -756,10 +756,10 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     applicationRepository.addProgressStatusAndUpdateAppStatus(appAndUserId, ProgressStatuses.SIFT_READY).futureValue
   }
 
-  private def createSdipSiftCandidates(appId: String) = createXdipSiftCandidates(ApplicationRoute.Sdip)(appId)
+//  private def createSdipSiftCandidates(appId: String) = createXdipSiftCandidates(ApplicationRoute.Sdip)(appId)
 
-  private def createEdipSiftCandidates(appId: String) = createXdipSiftCandidates(ApplicationRoute.Edip)(appId)
-
+//  private def createEdipSiftCandidates(appId: String) = createXdipSiftCandidates(ApplicationRoute.Edip)(appId)
+/*
   private def createXdipSiftCandidates(route: ApplicationRoute)(appId: String) = {
     val resultToSave = (if (route == ApplicationRoute.Sdip) {
       SchemeEvaluationResult(Sdip, Green.toString)
@@ -770,4 +770,5 @@ class ApplicationSiftRepositorySpec extends MongoRepositorySpec with ScalaFuture
     insertApplicationWithPhase1TestNotifiedResults(appId, resultToSave, appRoute = route).futureValue
     applicationRepository.addProgressStatusAndUpdateAppStatus(appId, ProgressStatuses.SIFT_READY).futureValue
   }
+*/
 }

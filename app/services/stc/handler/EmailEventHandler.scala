@@ -17,7 +17,7 @@
 package services.stc.handler
 
 import com.google.inject.ImplementedBy
-import connectors.{CSREmailClient, EmailClient, OnlineTestEmailClient}
+import connectors.{EmailClient, OnlineTestEmailClient}
 
 import javax.inject.{Inject, Named, Singleton}
 import model.stc.{EmailEvent, EmailEvents}
@@ -28,8 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
 
 @Singleton
-class EmailEventHandlerImpl @Inject() (@Named("CSREmailClient") val emailClient: OnlineTestEmailClient)(
-  implicit ec: ExecutionContext) extends EmailEventHandler {
+class EmailEventHandlerImpl @Inject() (@Named("CSREmailClient") val emailClient: OnlineTestEmailClient) extends EmailEventHandler {
   //  val emailClient: EmailClient = CSREmailClient //TODO:fix changed the type
 }
 

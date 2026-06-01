@@ -22,7 +22,7 @@ import model.EvaluationResults.Green
 import model.Phase1TestExamples._
 import model.ProgressStatuses.ProgressStatus
 import model._
-import model.exchange.passmarksettings.{Phase1PassMarkSettings, Phase1PassMarkSettingsExamples, Phase1PassMarkSettingsPersistence}
+import model.exchange.passmarksettings.{Phase1PassMarkSettingsExamples, Phase1PassMarkSettingsPersistence}
 import model.persisted._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{eq => eqTo, _}

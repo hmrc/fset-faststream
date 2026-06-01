@@ -27,9 +27,7 @@ import model.report.*
 import model.{ApplicationStatus, *}
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument}
-import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import repositories.*
-import services.TimeZoneService
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 
@@ -64,8 +62,7 @@ trait ReportingRepository {
 
 //scalastyle:off number.of.methods
 @Singleton
-class ReportingMongoRepository @Inject() (timeZoneService: TimeZoneService,
-                                          val dateTimeFactory: DateTimeFactory,
+class ReportingMongoRepository @Inject() (val dateTimeFactory: DateTimeFactory,
                                           mongo: MongoComponent,
                                           val appConfig: MicroserviceAppConfig
                                          )(implicit ec: ExecutionContext)

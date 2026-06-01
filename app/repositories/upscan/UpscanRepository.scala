@@ -18,10 +18,10 @@ package repositories.upscan
 
 import model.exchange.upscan.{Reference, UploadDetails, UploadId, UploadStatuses}
 import org.bson.types.ObjectId
+import org.mongodb.scala.Document
 import org.mongodb.scala.model.Filters.equal
 import org.mongodb.scala.model.Updates.set
 import org.mongodb.scala.model.{FindOneAndUpdateOptions, IndexModel, IndexOptions, Indexes}
-import org.mongodb.scala.{Document, SingleObservableFuture}
 import play.api.libs.functional.syntax.*
 import play.api.libs.json.*
 import repositories.CollectionNames

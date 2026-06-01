@@ -27,7 +27,6 @@ import model.persisted.{NotificationExpiringOnlineTest, Phase1TestGroupWithUserI
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import repositories.CollectionNames
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}

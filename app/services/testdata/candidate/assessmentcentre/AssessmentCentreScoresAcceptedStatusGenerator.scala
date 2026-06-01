@@ -35,9 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class AssessmentCentreScoresAcceptedStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentreScoresEnteredStatusGenerator,
                                                                @Named("ReviewerAssessmentScoresService")
                                                                reviewerAssessmentScoresService: AssessmentScoresService
-                                                              )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
-
-  val updatedBy = UniqueIdentifier.randomUniqueIdentifier
+                                                              ) extends ConstructiveGenerator {
 
   private val now = OffsetDateTime.now(ZoneId.of("UTC"))
 

@@ -18,7 +18,7 @@ package repositories
 
 import model.Exceptions.{CannotUpdateRecord, NotFoundException}
 import org.mongodb.scala.bson.collection.immutable.Document
-import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
+import org.mongodb.scala.MongoCollection
 import play.api.libs.json.{Json, OFormat}
 import testkit.MongoRepositorySpec
 import uk.gov.hmrc.mongo.MongoComponent

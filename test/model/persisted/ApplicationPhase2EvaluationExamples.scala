@@ -17,7 +17,7 @@
 package model.persisted
 
 import model.EvaluationResults.Green
-import model.{ApplicationStatus, Phase1TestProfileExamples, SelectedSchemesExamples, _}
+import model.*
 
 import java.time.OffsetDateTime
 

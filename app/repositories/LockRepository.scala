@@ -19,7 +19,7 @@ package repositories
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
-import org.mongodb.scala.{MongoCollection, MongoException, ObservableFuture, SingleObservableFuture}
+import org.mongodb.scala.{MongoCollection, MongoException}
 import play.api.Logging
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.mongo.MongoComponent

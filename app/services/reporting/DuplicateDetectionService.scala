@@ -47,7 +47,7 @@ class DuplicateDetectionService @Inject() (reportingRepository: ReportingReposit
     } yield {
       logger.debug(s"Detect duplications from ${source.length} candidates")
       logger.debug(s"Detect duplications in ${population.length} candidates")
-      findDuplicates(source, population, userIdToEmailReference).groupBy(_.candidates).mapValues(_.head).values.toList
+      findDuplicates(source, population, userIdToEmailReference).groupBy(_.candidates).view.mapValues(_.head).values.toList
     }
   }
 

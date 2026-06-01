@@ -34,7 +34,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class AssessmentCentreAwaitingAllocationStatusGenerator @Inject() (val previousStatusGenerator: SiftCompleteStatusGenerator,
                                                                    assessmentCentreService: AssessmentCentreService
-                                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                                  ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {

@@ -18,7 +18,7 @@ package services.allocation
 
 import config.{EventsConfig, MicroserviceAppConfig}
 import connectors.ExchangeObjects.Candidate
-import connectors.{AuthProviderClient, OnlineTestEmailClient}
+import connectors.OnlineTestEmailClient
 import model.ApplicationStatus.ApplicationStatus
 import model.EvaluationResults.{Amber, Green, Red, Withdrawn}
 import model.Exceptions.CandidateAlreadyAssignedToOtherEventException

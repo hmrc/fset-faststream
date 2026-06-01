@@ -25,7 +25,6 @@ import model.{command, exchange}
 import play.api.Logging
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import repositories.application.GeneralApplicationRepository
 import repositories.events.{LocationsWithVenuesRepository, UnknownVenueException}
 import services.allocation.AssessorAllocationService
 import services.events.EventsService
@@ -37,8 +36,7 @@ import scala.concurrent.ExecutionContext
 class EventsController @Inject() (cc: ControllerComponents,
                                   eventsService: EventsService,
                                   locationsAndVenuesRepository: LocationsWithVenuesRepository,
-                                  assessorAllocationService: AssessorAllocationService,
-                                  applicationRepository: GeneralApplicationRepository
+                                  assessorAllocationService: AssessorAllocationService
                                  ) extends BackendController(cc) with Logging {
 
   implicit val ec: ExecutionContext = cc.executionContext
@@ -57,7 +55,7 @@ class EventsController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def updateEvent(eventId: String) = Action.async(parse.json) { implicit request =>
+  def updateEvent(eventId: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[UpdateEvent] { eventUpdate =>
       eventsService.update(eventUpdate).map { _ => Ok }
     }
@@ -71,7 +69,7 @@ class EventsController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getEvents(eventTypeParam: String, venueParam: String, description: Option[String] = None) = Action.async {
+  def getEvents(eventTypeParam: String, venueParam: String, description: Option[String] = None): Action[AnyContent] = Action.async {
     locationsAndVenuesRepository.venue(venueParam).flatMap { venue =>
       eventsService.getEvents(EventType.withName(eventTypeParam.toUpperCase), venue, description).map { events =>
         if (events.isEmpty) {
@@ -131,16 +129,16 @@ class EventsController @Inject() (cc: ControllerComponents,
     }
   }
 
-  def getEventsWithAllocationsSummaryWithDescription(venueName: String, eventType: EventType, description: String) =
+  def getEventsWithAllocationsSummaryWithDescription(venueName: String, eventType: EventType, description: String): Action[AnyContent] =
     getEventsWithAllocationsSummary(venueName, eventType, Some(description))
 
-  def addNewAttributes() = Action.async {
+  def addNewAttributes(): Action[AnyContent] = Action.async {
     eventsService.updateStructure().map(_ => Ok)
   }
 
   def deleteOneAllocation(eventId: String, assessorId: String): Action[AnyContent] = Action.async { implicit request =>
     assessorAllocationService.deleteOneAllocation(eventId, assessorId).map(_ => Ok)
-   .recover {
+    .recover {
      case ex @ (_: NotFoundException | _: TooManyEntries) =>
        val message = s"Error occurred: ${ex.getMessage}"
        logger.warn(s"Error occurred: $message")

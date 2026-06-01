@@ -28,6 +28,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import java.time.OffsetDateTime
 import scala.concurrent.ExecutionContext
+import scala.reflect.ClassTag
 
 @Singleton
 class Phase1PassMarkSettingsController @Inject()(val cc: ControllerComponents,
@@ -86,7 +87,7 @@ class AssessmentCentrePassMarkSettingsController @Inject()(val cc: ControllerCom
 }
 
 abstract class PassMarkSettingsController[T <: PassMarkSettings, U <: PassMarkSettingsPersistence] @Inject()(cc: ControllerComponents)(
-  implicit manifest: Manifest[T], exchangeJsonFormat: Format[T], persistentJsonFormat: Format[U]) extends BackendController(cc) {
+  implicit classTag: ClassTag[T], exchangeJsonFormat: Format[T], persistentJsonFormat: Format[U]) extends BackendController(cc) {
 
   implicit val ec: ExecutionContext = cc.executionContext
   val passMarkService: PassMarkSettingsService[U]

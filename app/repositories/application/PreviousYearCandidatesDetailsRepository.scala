@@ -17,7 +17,6 @@
 package repositories.application
 
 import config.{MicroserviceAppConfig, PsiTestIds}
-import connectors.launchpadgateway.exchangeobjects.in.reviewed.*
 import factories.DateTimeFactory
 import model.*
 import model.ApplicationRoute.ApplicationRoute
@@ -33,7 +32,7 @@ import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonRegularExpression}
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
+import org.mongodb.scala.{MongoCollection, ObservableFuture, bsonDocumentToDocument}
 import play.api.Logging
 import repositories.*
 import services.reporting.SocioEconomicCalculator
@@ -734,7 +733,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       schemeWithdrawalInfo
   }
 
-  private def commonDataAnalystApplicationDetailsStream(numOfSchemes: Int, query: Document)(implicit mat: Materializer): Source[CandidateDetailsReportItem, _] = {
+  private def commonDataAnalystApplicationDetailsStream(numOfSchemes: Int, query: Document): Source[CandidateDetailsReportItem, _] = {
 
     def processDocument(doc: Document): CandidateDetailsReportItem = {
       try {
@@ -1437,6 +1436,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     }.getOrElse( List(None, None) )
   }
 
+/*
   private def videoInterview(doc: Document): List[Option[String]] = {
     val testGroupsOpt = subDocRoot("testGroups")(doc)
     val videoTestSectionOpt = testGroupsOpt.flatMap(testGroups => subDocRoot("PHASE3")(testGroups))
@@ -1509,6 +1509,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       latestReviewerOpt.map(reviewer => totalForQuestions(reviewer).toString)
     )
   }
+ */
 
   private def getSchemeResults(results: List[BsonDocument]) = results.map {
     result => Try(result.get("schemeId").asString().getValue).getOrElse("") + ": " + Try(result.get("result").asString().getValue).getOrElse("")
@@ -1558,10 +1559,10 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
     ).map(key => exerciseAvgOpt.getDoubleOpt(key) )
   }
 
-  private def extractDateTime(doc: BsonDocument, key: String) = {
-    import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
-    Codecs.fromBson[OffsetDateTime](doc.get(key).asDateTime())
-  }
+//  private def extractDateTime(doc: BsonDocument, key: String) = {
+//    import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
+//    Codecs.fromBson[OffsetDateTime](doc.get(key).asDateTime())
+//  }
 
   private def onlineTests(doc: Document): Map[String, List[Option[String]]] = {
 
@@ -1702,16 +1703,17 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
   private def assistanceDetails(doc: Document): List[Option[String]] = {
     val assistanceDetailsOpt = subDocRoot("assistance-details")(doc)
-    val etrayAdjustmentsOpt = Try(assistanceDetailsOpt.map( doc => doc.get("etray").asDocument() )).toOption.flatten // Handle NPE
-    val videoAdjustmentsOpt = Try(assistanceDetailsOpt.map( doc => doc.get("video").asDocument() )).toOption.flatten // Handle NPE
+//    val etrayAdjustmentsOpt = Try(assistanceDetailsOpt.map( doc => doc.get("etray").asDocument() )).toOption.flatten // Handle NPE
+//    val videoAdjustmentsOpt = Try(assistanceDetailsOpt.map( doc => doc.get("video").asDocument() )).toOption.flatten // Handle NPE
+
+//    import scala.jdk.CollectionConverters.*
+//    val typeOfAdjustments = assistanceDetailsOpt.map { ad =>
+//      if (ad.containsKey("typeOfAdjustments"))
+//        ad.get("typeOfAdjustments").asArray().getValues.asScala.toList.map(_.asString().getValue)
+//      else Nil
+//    }.getOrElse(Nil)
 
     import scala.jdk.CollectionConverters.*
-    val typeOfAdjustments = assistanceDetailsOpt.map { ad =>
-      if (ad.containsKey("typeOfAdjustments"))
-        ad.get("typeOfAdjustments").asArray().getValues.asScala.toList.map(_.asString().getValue)
-      else Nil
-    }.getOrElse(Nil)
-
     val markedDisabilityCategories = markDisabilityCategories(
       assistanceDetailsOpt.map { ad =>
         if (ad.containsKey("disabilityCategories"))

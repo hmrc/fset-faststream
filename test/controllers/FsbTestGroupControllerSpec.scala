@@ -24,7 +24,6 @@ import org.mockito.Mockito._
 import play.api.http.Status.PRECONDITION_FAILED
 import play.api.test.Helpers._
 import services.application.FsbService
-import services.events.EventsService
 import testkit.MockitoImplicits._
 import testkit.UnitWithAppSpec
 
@@ -33,12 +32,10 @@ import scala.concurrent.Future
 class FsbTestGroupControllerSpec extends UnitWithAppSpec with Schemes {
 
   val mockFsbTestGroupService = mock[FsbService]
-  val mockEventsService = mock[EventsService]
 
   val controller = new FsbTestGroupController(
     stubControllerComponents(playBodyParsers = stubPlayBodyParsers(materializer)),
-    mockFsbTestGroupService,
-    mockEventsService
+    mockFsbTestGroupService
   )
 
   "save fsb event evaluation result" should {

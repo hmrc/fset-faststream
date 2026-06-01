@@ -17,7 +17,7 @@
 package services.testdata.candidate
 
 import javax.inject.{Inject, Singleton}
-import model._
+import model.*
 import model.exchange.testdata.CreateCandidateResponse.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.{CreateCandidateData, PersonalData}
 import play.api.mvc.RequestHeader
@@ -25,15 +25,16 @@ import services.personaldetails.PersonalDetailsService
 import services.testdata.faker.DataFaker
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class InProgressPersonalDetailsStatusGenerator @Inject() (val previousStatusGenerator: CreatedStatusGenerator,
                                                           pdService: PersonalDetailsService,
-                                                          dataFaker: DataFaker)(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                          dataFaker: DataFaker) extends ConstructiveGenerator {
 
   //scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
     def getPersonalDetails(candidateInformation: CreateCandidateResponse) = {
       def getEdipCompleted = {
         if (generatorConfig.statusData.applicationRoute == ApplicationRoute.Sdip) {

@@ -16,22 +16,21 @@
 
 package services.testdata.candidate.sift
 
-import javax.inject.{Inject, Provider, Singleton}
 import model.ApplicationStatus.ApplicationStatus
 import model.command.ApplicationForSift
 import model.exchange.testdata.CreateCandidateResponse.{CreateCandidateResponse, SiftForm}
 import model.persisted.SchemeEvaluationResult
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.{ApplicationRoute, ApplicationStatus, EvaluationResults}
-import play.api.{Logger, Logging}
+import play.api.Logging
 import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
-import repositories.application.GeneralApplicationRepository
 import services.sift.ApplicationSiftService
-import services.testdata.candidate._
+import services.testdata.candidate.*
 import services.testdata.candidate.onlinetests.{Phase1TestsPassedNotifiedStatusGenerator, Phase3TestsPassedNotifiedStatusGenerator}
 import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.{Inject, Provider, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 //object SiftEnteredStatusGenerator extends SiftEnteredStatusGenerator {
@@ -45,10 +44,9 @@ class SiftEnteredStatusGenerator @Inject() (val previousStatusGenerator: Phase3T
                                             phase1TestsPassedNotifiedStatusGenerator: Phase1TestsPassedNotifiedStatusGenerator,
                                             phase3TestsPassedNotifiedStatusGenerator2: Phase3TestsPassedNotifiedStatusGenerator,
                                             candidateStatusGeneratorFactory: Provider[CandidateStatusGeneratorFactory],
-                                            appRepo: GeneralApplicationRepository,
                                             schemeRepo: SchemeRepository,
                                             siftService: ApplicationSiftService
-                                           )(implicit ec: ExecutionContext) extends ConstructiveGenerator with Logging {
+                                           ) extends ConstructiveGenerator with Logging {
 //  val appRepo: GeneralApplicationRepository
 //  val siftService: ApplicationSiftService
 

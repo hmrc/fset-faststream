@@ -17,9 +17,9 @@
 package services.onlinetesting.phase2
 
 import model.EvaluationResults.Result
-import model.{Phase, SchemeId}
-import model.exchange.passmarksettings.{Phase2PassMarkSettings, Phase2PassMarkSettingsPersistence}
+import model.exchange.passmarksettings.Phase2PassMarkSettingsPersistence
 import model.persisted.{PsiTestResult, SchemeEvaluationResult}
+import model.{Phase, SchemeId}
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase2TestEvaluation extends OnlineTestResultsCalculator {

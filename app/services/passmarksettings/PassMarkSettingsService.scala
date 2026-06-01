@@ -25,7 +25,7 @@ import repositories.passmarksettings._
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class Phase1PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository)(implicit ec: ExecutionContext)
+class Phase1PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase1PassMarkSettingsMongoRepository)
   extends PassMarkSettingsService[Phase1PassMarkSettingsPersistence] {
 
   override def createPassMarkSettings(passMarkSettingsPersistence: Phase1PassMarkSettingsPersistence)(
@@ -49,8 +49,8 @@ class Phase3PassMarkSettingsService @Inject() (val passMarkSettingsRepo: Phase3P
 }
 
 @Singleton
-class AssessmentCentrePassMarkSettingsService @Inject() (val passMarkSettingsRepo: AssessmentCentrePassMarkSettingsMongoRepository)(
-  implicit ec: ExecutionContext) extends PassMarkSettingsService[AssessmentCentrePassMarkSettingsPersistence] {
+class AssessmentCentrePassMarkSettingsService @Inject() (val passMarkSettingsRepo: AssessmentCentrePassMarkSettingsMongoRepository)
+  extends PassMarkSettingsService[AssessmentCentrePassMarkSettingsPersistence] {
 }
 
 trait PassMarkSettingsService[T <: PassMarkSettingsPersistence] {

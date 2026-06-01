@@ -54,9 +54,7 @@ object CreateCandidateRequest {
 
   trait TestDatesRequest {
     def start: Option[String]
-
     def expiry: Option[String]
-
     def completion: Option[String]
   }
 
@@ -64,47 +62,44 @@ object CreateCandidateRequest {
     def scores: List[String]
   }
 
-  abstract class PhaseXTestDataRequest(
-    start: Option[String] = None,
-    expiry: Option[String] = None,
-    completion: Option[String] = None,
-    val scores: List[String] = Nil,
-    // TODO: Maybe we don't need TestDatesRequest
-    val passmarkEvaluation: Option[PassmarkEvaluation] = None) extends TestDatesRequest
+  abstract class PhaseXTestDataRequest extends TestDatesRequest {
+    def scores: List[String]
+    def passmarkEvaluation: Option[PassmarkEvaluation]
+  }
 
   case class Phase1TestDataRequest(
-    start: Option[String] = None,
-    expiry: Option[String] = None,
-    completion: Option[String] = None,
+    override val start: Option[String] = None,
+    override val expiry: Option[String] = None,
+    override val completion: Option[String] = None,
     override val scores: List[String] = Nil,
     override val passmarkEvaluation: Option[PassmarkEvaluation] = None
-  ) extends PhaseXTestDataRequest(start, expiry, completion, scores, passmarkEvaluation)
+  ) extends PhaseXTestDataRequest
 
   object Phase1TestDataRequest {
     implicit val phase1TestDataFormat: OFormat[Phase1TestDataRequest] = Json.format[Phase1TestDataRequest]
   }
 
   case class Phase2TestDataRequest(
-    start: Option[String] = None,
-    expiry: Option[String] = None,
-    completion: Option[String] = None,
+    override val start: Option[String] = None,
+    override val expiry: Option[String] = None,
+    override val completion: Option[String] = None,
     override val scores: List[String] = Nil,
     override val passmarkEvaluation: Option[PassmarkEvaluation] = None
-  ) extends PhaseXTestDataRequest(start, expiry, completion, scores, passmarkEvaluation) with TestResultRequest
+  ) extends PhaseXTestDataRequest with TestResultRequest
 
   object Phase2TestDataRequest {
     implicit val phase2TestDataFormat: OFormat[Phase2TestDataRequest] = Json.format[Phase2TestDataRequest]
   }
 
   case class Phase3TestDataRequest(
-    start: Option[String] = None,
-    expiry: Option[String] = None,
-    completion: Option[String] = None,
+    override val start: Option[String] = None,
+    override val expiry: Option[String] = None,
+    override val completion: Option[String] = None,
     override val scores: List[String] = Nil,
     receivedBeforeInHours: Option[Int] = None,
     generateNullScoresForFewQuestions: Option[Boolean] = None,
     override val passmarkEvaluation: Option[PassmarkEvaluation] = None
-  ) extends PhaseXTestDataRequest(start, expiry, completion, scores, passmarkEvaluation) with TestResultRequest
+  ) extends PhaseXTestDataRequest with TestResultRequest
 
   object Phase3TestDataRequest {
     implicit val phase3TestDataFormat: OFormat[Phase3TestDataRequest] = Json.format[Phase3TestDataRequest]

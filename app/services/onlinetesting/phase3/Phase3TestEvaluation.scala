@@ -18,12 +18,9 @@ package services.onlinetesting.phase3
 
 import connectors.launchpadgateway.exchangeobjects.in.reviewed.ReviewedCallbackRequest
 import model.EvaluationResults.Result
+import model.exchange.passmarksettings.Phase3PassMarkSettingsPersistence
+import model.persisted.SchemeEvaluationResult
 import model.{Phase, SchemeId}
-import model.exchange.passmarksettings.{Phase3PassMarkSettings, Phase3PassMarkSettingsPersistence}
-import model.persisted.{PassmarkEvaluation, SchemeEvaluationResult}
-import repositories.onlinetesting.Phase3EvaluationMongoRepository
-
-import scala.concurrent.Future
 import services.onlinetesting.OnlineTestResultsCalculator
 
 trait Phase3TestEvaluation extends OnlineTestResultsCalculator {

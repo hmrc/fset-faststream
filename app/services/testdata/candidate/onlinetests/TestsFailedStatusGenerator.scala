@@ -48,41 +48,41 @@ trait TestsFailedStatusGenerator extends ConstructiveGenerator {
 @Singleton
 class Phase1TestsFailedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsResultsReceivedStatusGenerator,
                                                   val appRepository: GeneralApplicationRepository
-                                                 )(implicit ec: ExecutionContext) extends TestsFailedStatusGenerator {
-  val failedStatus = PHASE1_TESTS_FAILED
+                                                 ) extends TestsFailedStatusGenerator {
+  val failedStatus: ProgressStatus = PHASE1_TESTS_FAILED
 }
 
 @Singleton
 class Phase2TestsFailedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsResultsReceivedStatusGenerator,
                                                   val appRepository: GeneralApplicationRepository
-                                                 )(implicit ec: ExecutionContext) extends TestsFailedStatusGenerator {
-  val failedStatus = PHASE2_TESTS_FAILED
+                                                 ) extends TestsFailedStatusGenerator {
+  val failedStatus: ProgressStatus = PHASE2_TESTS_FAILED
 }
 
 @Singleton
 class Phase3TestsFailedStatusGenerator @Inject() (val previousStatusGenerator: Phase3TestsResultsReceivedStatusGenerator,
                                                   val appRepository: GeneralApplicationRepository
-                                                 )(implicit ec: ExecutionContext) extends TestsFailedStatusGenerator {
-  val failedStatus = PHASE3_TESTS_FAILED
+                                                 ) extends TestsFailedStatusGenerator {
+  val failedStatus: ProgressStatus = PHASE3_TESTS_FAILED
 }
 
 @Singleton
 class AssessmentCentreFailedStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentreAllocationConfirmedStatusGenerator,
                                                        val appRepository: GeneralApplicationRepository
                                                       ) extends TestsFailedStatusGenerator {
-  val failedStatus = ASSESSMENT_CENTRE_FAILED
+  val failedStatus: ProgressStatus = ASSESSMENT_CENTRE_FAILED
 }
 
 @Singleton
 class FsbFailedStatusGenerator @Inject() (val previousStatusGenerator: FsbResultEnteredStatusGenerator,
                                           val appRepository: GeneralApplicationRepository
                                          ) extends TestsFailedStatusGenerator {
-  val failedStatus = FSB_FAILED
+  val failedStatus: ProgressStatus = FSB_FAILED
 }
 
 @Singleton
 class AllFsbFailedStatusGenerator @Inject() (val previousStatusGenerator: FsbResultEnteredStatusGenerator,
                                              val appRepository: GeneralApplicationRepository
                                             ) extends TestsFailedStatusGenerator {
-  val failedStatus = ALL_FSBS_AND_FSACS_FAILED
+  val failedStatus: ProgressStatus = ALL_FSBS_AND_FSACS_FAILED
 }

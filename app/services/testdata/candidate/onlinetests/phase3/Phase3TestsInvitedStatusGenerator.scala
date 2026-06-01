@@ -17,7 +17,6 @@
 package services.testdata.candidate.onlinetests.phase3
 
 import java.util.UUID
-import services.onlinetesting.phase3.Phase3TestService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.candidate.onlinetests.Phase2TestsPassedStatusGenerator
 import config.{LaunchpadGatewayConfig, MicroserviceAppConfig}
@@ -38,9 +37,8 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class Phase3TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: Phase2TestsPassedStatusGenerator,
                                                    p3Repository: Phase3TestRepository,
-                                                   p3TestService: Phase3TestService,
                                                    appConfig: MicroserviceAppConfig
-                                                 )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                 ) extends ConstructiveGenerator {
 
   val gatewayConfig: LaunchpadGatewayConfig = appConfig.launchpadGatewayConfig
 

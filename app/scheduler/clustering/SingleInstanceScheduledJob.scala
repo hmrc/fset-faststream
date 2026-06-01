@@ -16,13 +16,11 @@
 
 package scheduler.clustering
 
-import java.util.concurrent.{ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit}
 import scheduler.scheduling.ExclusiveScheduledJob
 import scheduler.{BasicJobConfig, LockKeeper}
 import uk.gov.hmrc.mongo.MongoComponent
-import java.util.concurrent.{ ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit }
 
-import scheduler.{ BasicJobConfig, LockKeeper }
+import java.util.concurrent.{ArrayBlockingQueue, ThreadPoolExecutor, TimeUnit}
 //import uk.gov.hmrc.play.scheduling.ExclusiveScheduledJob //TODO: the hmrc lib also provides one of these investigate if we can use this instead
 
 import scala.concurrent.duration.Duration
@@ -67,7 +65,8 @@ trait SingleInstanceScheduledJob[C <: BasicJobConfig[_]] extends ExclusiveSchedu
     v.get
   }.map {
     case Some(_) => Result("Success")
+    case None => Result("Failure")
   }.recover{
-    case _: Throwable => Result("Nothing")
+    case _: Throwable => Result("Failure")
   }
 }

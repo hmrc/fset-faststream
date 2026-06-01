@@ -564,8 +564,7 @@ class CandidateAllocationService @Inject()(candidateAllocationRepo: CandidateAll
   }
 
   private def getFullDetails(eventId: String,
-                             allocation: command.CandidateAllocation)
-                            (implicit hc: HeaderCarrier): Future[(Event, PersonalDetails, ContactDetails)] = {
+                             allocation: command.CandidateAllocation): Future[(Event, PersonalDetails, ContactDetails)] = {
     for {
       eventDetails <- eventsService.getEvent(eventId)
       candidates <- applicationRepo.find(allocation.id :: Nil)

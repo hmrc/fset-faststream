@@ -16,13 +16,14 @@
 
 package services.testdata.candidate
 
+import model.exchange.testdata.CreateCandidateResponse
+
 import javax.inject.{Inject, Singleton}
 import model.persisted.AssistanceDetails
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import model.{Adjustments, ApplicationRoute}
 import play.api.mvc.RequestHeader
 import repositories.assistancedetails.AssistanceDetailsRepository
-import services.adjustmentsmanagement.AdjustmentsManagementService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -30,11 +31,11 @@ import scala.concurrent.{ExecutionContext, Future}
 // scalastyle:off method.length
 @Singleton
 class InProgressAssistanceDetailsStatusGenerator @Inject() (val previousStatusGenerator: InProgressLocationPreferencesStatusGenerator,
-                                                            adRepository: AssistanceDetailsRepository,
-                                                            adjustmentsManagementService: AdjustmentsManagementService
-                                                           )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                            adRepository: AssistanceDetailsRepository
+                                                           ) extends ConstructiveGenerator {
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
     val assistanceDetails = getAssistanceDetails(generatorConfig)
     val adjustmentsDataOpt = generatorConfig.adjustmentInformation
 

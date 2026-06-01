@@ -33,8 +33,7 @@ class InProgressQuestionnaireStatusGenerator @Inject() (val previousStatusGenera
                                                         appRepository: GeneralApplicationRepository,
                                                         qRepository: QuestionnaireRepository,
                                                         dataFaker: DataFaker
-                                                       )(
-  implicit ec: ExecutionContext) extends ConstructiveGenerator with DiversityQuestionsText {
+                                                       ) extends ConstructiveGenerator with DiversityQuestionsText {
 
   // scalastyle:off method.length
   def generate(generationId: Int, generatorConfig: CreateCandidateData)

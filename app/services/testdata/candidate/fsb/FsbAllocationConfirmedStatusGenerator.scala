@@ -29,7 +29,6 @@ import play.api.mvc.RequestHeader
 import repositories.SchemeRepository
 import repositories.application.GeneralApplicationRepository
 import services.allocation.CandidateAllocationService
-import services.application.FsbService
 import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.event.EventGenerator
 import uk.gov.hmrc.http.HeaderCarrier
@@ -39,12 +38,11 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class FsbAllocationConfirmedStatusGenerator @Inject() (val previousStatusGenerator: FsbAwaitingAllocationStatusGenerator,
                                                        applicationRepository: GeneralApplicationRepository,
-                                                       fsbTestGroupService: FsbService,
                                                        candidateAllocationService: CandidateAllocationService,
                                                        eventGenerator: EventGenerator,
                                                        schemeRepository: SchemeRepository,
                                                        uuidFactory: UUIDFactory
-                                                      )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                      ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, createCandidateData: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {

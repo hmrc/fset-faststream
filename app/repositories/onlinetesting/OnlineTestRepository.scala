@@ -26,8 +26,8 @@ import model.exchange.PsiTestResultReady
 import model.persisted.*
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString, BsonValue}
+import org.mongodb.scala.bsonDocumentToDocument
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
 import play.api.libs.json.Reads
 import repositories.*
 import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}

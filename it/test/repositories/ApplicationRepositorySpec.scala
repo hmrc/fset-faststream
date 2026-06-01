@@ -25,7 +25,7 @@ import model.{ApplicationRoute, ProgressStatuses}
 import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
+import org.mongodb.scala.{MongoCollection, SingleObservableFuture}
 import repositories.application.GeneralApplicationMongoRepository
 import repositories.assistancedetails.AssistanceDetailsMongoRepository
 import testkit.MongoRepositorySpec
@@ -237,7 +237,7 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       "applicationStatus" -> appStatus
     )).toFuture().futureValue
   }
-
+/*
   private def createApplicationWithPassmark(appId: String, appStatus: String, passmarkVersion: String): Unit = {
     applicationCollection.insertOne(Document(
       "applicationId" -> appId,
@@ -247,4 +247,5 @@ class ApplicationRepositorySpec extends MongoRepositorySpec {
       )
     )).toFuture().futureValue
   }
+ */
 }

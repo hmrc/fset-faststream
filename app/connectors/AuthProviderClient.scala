@@ -19,13 +19,13 @@ package connectors
 import config.MicroserviceAppConfig
 import connectors.AuthProviderClient.*
 import connectors.ExchangeObjects.*
-import model.Exceptions.{ConnectorException, EmailTakenException}
+import model.Exceptions.ConnectorException
 import model.exchange.SimpleTokenResponse
 import play.api.http.Status.*
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps}
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}

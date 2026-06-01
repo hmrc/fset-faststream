@@ -17,9 +17,9 @@
 package repositories.testdata
 
 import model.CreateApplicationRequest
+import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
 import play.api.Logging
 import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent

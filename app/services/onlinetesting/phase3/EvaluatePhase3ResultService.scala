@@ -20,10 +20,8 @@ import _root_.services.passmarksettings.PassMarkSettingsService
 import com.google.inject.name.Named
 import config.MicroserviceAppConfig
 import factories.UUIDFactory
-
-import javax.inject.{Inject, Singleton}
 import model.Phase
-import model.exchange.passmarksettings.{Phase3PassMarkSettings, Phase3PassMarkSettingsPersistence}
+import model.exchange.passmarksettings.Phase3PassMarkSettingsPersistence
 import model.persisted.ApplicationReadyForEvaluation
 import play.api.Logging
 import repositories.application.GeneralApplicationRepository
@@ -32,6 +30,7 @@ import repositories.passmarksettings.Phase3PassMarkSettingsMongoRepository
 import scheduler.onlinetesting.EvaluateOnlineTestResultService
 import services.onlinetesting.{ApplicationStatusCalculator, CurrentSchemeStatusHelper}
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton

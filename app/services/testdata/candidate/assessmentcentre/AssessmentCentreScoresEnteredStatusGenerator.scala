@@ -35,12 +35,12 @@ import scala.concurrent.{ExecutionContext, Future}
 class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatusGenerator: AssessmentCentreAllocationConfirmedStatusGenerator,
                                                               @Named("AssessorAssessmentScoresService")
                                                               assessorAssessmentScoresService: AssessmentScoresService
-                                                             )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                             ) extends ConstructiveGenerator {
 
-  val updatedBy = UniqueIdentifier.randomUniqueIdentifier
+  private val updatedBy = UniqueIdentifier.randomUniqueIdentifier
 
   // The scores awarded to the candidate by assessor/reviewer
-  def exercise1Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
+  def exercise1Sample(assessorOrReviewer: String): AssessmentScoresExercise = AssessmentScoresExercise(
     attended = true,
     overallAverage = Some(4.0),
     updatedBy = updatedBy,
@@ -58,7 +58,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     strivesFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
 
-  def exercise2Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
+  def exercise2Sample(assessorOrReviewer: String): AssessmentScoresExercise = AssessmentScoresExercise(
     attended = true,
     overallAverage = Some(4.0),
     updatedBy = updatedBy,
@@ -76,7 +76,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     strivesFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
   )
 
-  def exercise3Sample(assessorOrReviewer: String) = AssessmentScoresExercise(
+  def exercise3Sample(assessorOrReviewer: String): AssessmentScoresExercise = AssessmentScoresExercise(
     attended = true,
     overallAverage = Some(4.0),
     updatedBy = updatedBy,
@@ -94,7 +94,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     relatesFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
   )
 
-  def finalFeedbackSample(assessorOrReviewer: String) = AssessmentScoresFinalFeedback(
+  def finalFeedbackSample(assessorOrReviewer: String): AssessmentScoresFinalFeedback = AssessmentScoresFinalFeedback(
     "final feedback for " + assessorOrReviewer, updatedBy, OffsetDateTime.now(ZoneId.of("UTC"))
   )
 

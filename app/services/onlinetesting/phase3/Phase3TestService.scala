@@ -33,7 +33,7 @@ import model._
 import model.command.{ApplicationForSkippingPhases, ProgressResponse}
 import model.exchange.{Phase3TestGroupWithActiveTest, PsiRealTimeResults}
 import model.persisted.phase3tests.{LaunchpadTest, LaunchpadTestCallbacks, Phase3TestGroup}
-import model.persisted.{NotificationExpiringOnlineTest, Phase3TestGroupWithAppId}
+import model.persisted.NotificationExpiringOnlineTest
 import model.stc.StcEventTypes.StcEventType
 import model.stc.{AuditEvents, DataStoreEvents}
 import play.api.mvc.RequestHeader
@@ -260,12 +260,12 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
           phase3TestGroupContent.tests.find(_.interviewId == interviewId).map {
             launchpadTest =>
               if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isDefined) {
-                retakeApplicant(application, interviewId, candidateId, expirationDate.toLocalDate).map {
+                retakeApplicant(interviewId, candidateId, expirationDate.toLocalDate).map {
                   retakeResponse =>
                     InviteResetOrTakeResponse(candidateId, retakeResponse.testUrl, retakeResponse.customInviteId, getInitialCustomCandidateId)
                 }
               } else if (launchpadTest.startedDateTime.isDefined && launchpadTest.completedDateTime.isEmpty) {
-                resetApplicant(application, interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map {
+                resetApplicant(interviewId, candidateId, phase3TestGroupContent.expirationDate.toLocalDate).map {
                   resetResponse =>
                     InviteResetOrTakeResponse(candidateId, resetResponse.testUrl, resetResponse.customInviteId, getInitialCustomCandidateId)
                 }
@@ -273,7 +273,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
                 Future.successful(
                   InviteResetOrTakeResponse(candidateId, launchpadTest.testUrl, launchpadTest.token, getInitialCustomCandidateId))
               }
-          }.getOrElse(inviteApplicant(application, interviewId, phase3TestGroupContent.tests.head.candidateId).map {
+          }.getOrElse(inviteApplicant(interviewId, phase3TestGroupContent.tests.head.candidateId).map {
             inviteResponse =>
               InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl,
                 inviteResponse.customInviteId, Some(inviteResponse.customCandidateId))
@@ -281,7 +281,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
       }.getOrElse(
         registerApplicant(application, emailAddress, customCandidateId).flatMap {
           candidateId =>
-            inviteApplicant(application, interviewId, candidateId).map {
+            inviteApplicant(interviewId, candidateId).map {
               inviteResponse =>
                 InviteResetOrTakeResponse(candidateId, inviteResponse.testUrl, inviteResponse.customInviteId,
                   Some(inviteResponse.customCandidateId)
@@ -402,7 +402,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
       launchpadExtendRequest = ExtendDeadlineRequest(activeTest.interviewId, activeTest.candidateId, newExpiryDate.toLocalDate)
       _ <- launchpadGatewayClient.extendDeadline(launchpadExtendRequest)
       _ <- testRepository.updateGroupExpiryTime(applicationId, newExpiryDate, testRepository.phaseName)
-      _ <- progressStatusesToRemoveWhenExtendTime(newExpiryDate, phase3, progress)
+      _ <- progressStatusesToRemoveWhenExtendTime(newExpiryDate, progress)
         .fold(Future.successful(()))(p => appRepository.removeProgressStatuses(applicationId, p))
       _ <- eventSink {
         AuditEvents.VideoInterviewExtended(
@@ -444,9 +444,7 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     }
   }
 
-  private def inviteApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String)
-                             (implicit hc: HeaderCarrier): Future[InviteApplicantResponse] = {
-
+  private def inviteApplicant(interviewId: Int, candidateId: String): Future[InviteApplicantResponse] = {
     val customInviteId = "FSINV-" + tokenFactory.generateUUID()
 
     val completionRedirectUrl = s"${
@@ -458,14 +456,14 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
     launchpadGatewayClient.inviteApplicant(inviteApplicant)
   }
 
-  private def resetApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: java.time.LocalDate)
-                            (implicit hc: HeaderCarrier): Future[ResetApplicantResponse] = {
+  private def resetApplicant(interviewId: Int, candidateId: String, newDeadLine: java.time.LocalDate)
+                            : Future[ResetApplicantResponse] = {
     val resetApplicant = ResetApplicantRequest(interviewId, candidateId, newDeadLine)
     launchpadGatewayClient.resetApplicant(resetApplicant)
   }
 
-  private def retakeApplicant(application: OnlineTestApplication, interviewId: Int, candidateId: String, newDeadLine: java.time.LocalDate)
-                             (implicit hc: HeaderCarrier): Future[RetakeApplicantResponse] = {
+  private def retakeApplicant(interviewId: Int, candidateId: String, newDeadLine: java.time.LocalDate)
+                             : Future[RetakeApplicantResponse] = {
     val retakeApplicant = RetakeApplicantRequest(interviewId, candidateId, newDeadLine)
     launchpadGatewayClient.retakeApplicant(retakeApplicant)
   }
@@ -530,7 +528,6 @@ class Phase3TestService @Inject() (val appRepository: GeneralApplicationReposito
   }
 
   private def progressStatusesToRemoveWhenExtendTime(extendedExpiryDate: OffsetDateTime,
-                                                     profile: Phase3TestGroup,
                                                      progress: ProgressResponse): Option[List[ProgressStatus]] = {
     val shouldRemoveExpired = progress.phase3ProgressResponse.phase3TestsExpired
     val today = dateTimeFactory.nowLocalTimeZone

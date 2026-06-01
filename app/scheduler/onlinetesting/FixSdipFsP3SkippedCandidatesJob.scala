@@ -23,7 +23,6 @@ import scheduler.clustering.SingleInstanceScheduledJob
 import javax.inject.Inject
 import play.api.{Configuration, Logging}
 import scheduler.BasicJobConfig
-import services.assessmentcentre.AssessmentCentreService
 import services.onlinetesting.phase3.Phase3TestService
 
 import scala.concurrent.{ExecutionContext, Future}

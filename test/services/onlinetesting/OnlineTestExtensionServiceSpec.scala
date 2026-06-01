@@ -25,7 +25,6 @@ import org.mockito.Mockito._
 import play.api.mvc.RequestHeader
 import repositories.application.GeneralApplicationRepository
 import repositories.onlinetesting.Phase1TestRepository
-import services.AuditService
 import services.onlinetesting.Exceptions.TestExtensionException
 import services.stc.StcEventServiceFixture
 import testkit.MockitoImplicits.{OngoingStubbingExtension, OngoingStubbingExtensionUnit}
@@ -91,7 +90,7 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
 
         verify(mockAppRepository).findProgress(eqTo(applicationId))
         verify(mockOtRepository).getTestGroup(eqTo(applicationId))
-        verifyNoMoreInteractions(mockAppRepository, mockOtRepository, mockAuditService, mockDateTimeFactory)
+        verifyNoMoreInteractions(mockAppRepository, mockOtRepository, mockDateTimeFactory)
       }
 
       "find progress fails" in new TestFixture {
@@ -196,11 +195,10 @@ class OnlineTestExtensionServiceSpec extends UnitSpec with ShortTimeout {
     val successfulTestProfile = Some(mockProfile)
     val mockAppRepository = mock[GeneralApplicationRepository]
     val mockOtRepository = mock[Phase1TestRepository]
-    val mockAuditService = mock[AuditService]
+//    val mockAuditService = mock[AuditService]
     val underTest = new OnlineTestExtensionService(
       mockAppRepository,
       mockOtRepository,
-      mockAuditService,
       mockDateTimeFactory,
       stcEventServiceMock
     )

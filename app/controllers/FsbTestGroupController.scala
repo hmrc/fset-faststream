@@ -23,15 +23,12 @@ import model.exchange.{FsbEvaluationResults, FsbScoresAndFeedback}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.application.FsbService
-import services.events.EventsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class FsbTestGroupController @Inject() (cc: ControllerComponents,
-                                        fsbService: FsbService,
-                                        eventsService: EventsService) extends BackendController(cc) {
+class FsbTestGroupController @Inject() (cc: ControllerComponents, fsbService: FsbService) extends BackendController(cc) {
 
   implicit val ec: ExecutionContext = cc.executionContext
 

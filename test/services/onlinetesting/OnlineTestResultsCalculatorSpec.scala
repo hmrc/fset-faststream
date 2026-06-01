@@ -17,7 +17,7 @@
 package services.onlinetesting
 
 import model.EvaluationResults.{Amber, Green, Red}
-import model.{Phase, SchemeId, Schemes}
+import model.{Phase, Schemes}
 import model.exchange.passmarksettings.PassMarkThreshold
 import testkit.UnitSpec
 

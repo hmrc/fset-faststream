@@ -41,7 +41,7 @@ class FsbAwaitingAllocationStatusGenerator @Inject() (val previousStatusGenerato
                                                       siftCompleteStatusGenerator: SiftCompleteStatusGenerator,
                                                       applicationRepository: GeneralApplicationRepository,
                                                       assessmentCentrePassedStatusGenerator: AssessmentCentrePassedStatusGenerator
-                                                     )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                     ) extends ConstructiveGenerator {
 
   override def getPreviousStatusGenerator(generatorConfig: CreateCandidateData): (ApplicationStatus, BaseGenerator) = {
     val previousStatusAndGeneratorPair = generatorConfig.statusData.previousApplicationStatus.map(previousApplicationStatus => {

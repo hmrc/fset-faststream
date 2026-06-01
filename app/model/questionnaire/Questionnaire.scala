@@ -16,7 +16,6 @@
 
 package model.questionnaire
 
-import model.persisted.{ QuestionnaireAnswer, QuestionnaireQuestion }
 import play.api.libs.json.{ Json, OFormat }
 
 case class Questionnaire(questions: List[Question])

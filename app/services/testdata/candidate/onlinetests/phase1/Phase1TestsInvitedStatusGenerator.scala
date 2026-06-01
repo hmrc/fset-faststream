@@ -17,6 +17,7 @@
 package services.testdata.candidate.onlinetests.phase1
 
 import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig}
+import model.exchange.testdata.CreateCandidateResponse
 import model.exchange.testdata.CreateCandidateResponse.{TestGroupResponse2, TestResponse2}
 import model.persisted.{Phase1TestProfile, PsiTest}
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
@@ -27,17 +28,18 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.OffsetDateTime
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class Phase1TestsInvitedStatusGenerator @Inject() (val previousStatusGenerator: SubmittedCheckPassedStatusGenerator,
                                                    otRepository: Phase1TestRepository,
                                                    appConfig: MicroserviceAppConfig
-                                                  )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
-  private val OneDay = 86400000
+                                                  ) extends ConstructiveGenerator {
+//  private val OneDay = 86400000
   val onlineTestsGatewayConfig: OnlineTestsGatewayConfig = appConfig.onlineTestsGatewayConfig
 
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
 
     val testsNames = if (generatorConfig.assistanceDetails.setGis) {
       onlineTestsGatewayConfig.phase1Tests.gis

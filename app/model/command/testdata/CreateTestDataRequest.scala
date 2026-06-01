@@ -17,5 +17,4 @@
 package model.command.testdata
 
 trait CreateTestDataRequest {
-
 }

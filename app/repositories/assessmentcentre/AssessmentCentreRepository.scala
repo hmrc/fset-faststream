@@ -26,10 +26,10 @@ import model.assessmentscores.FixUserStuckInScoresAccepted
 import model.command.{ApplicationForProgression, ApplicationForSift}
 import model.persisted.SchemeEvaluationResult
 import model.persisted.fsac.AssessmentCentreTests
+import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.bson.BsonArray
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture}
 import repositories.*
 import repositories.application.GeneralApplicationRepoBSONReader
 import uk.gov.hmrc.mongo.MongoComponent

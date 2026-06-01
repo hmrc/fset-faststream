@@ -16,7 +16,6 @@
 
 package services.testdata.candidate.fsb
 
-import javax.inject.{Inject, Singleton}
 import model.EvaluationResults.Green
 import model.Exceptions.{InvalidApplicationStatusAndProgressStatusException, SchemeNotFoundException}
 import model.command.testdata.CreateCandidateRequest.FsbTestGroupDataRequest
@@ -25,17 +24,18 @@ import model.persisted.SchemeEvaluationResult
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import services.application.FsbService
-import services.testdata.candidate.{BaseGenerator, ConstructiveGenerator}
+import services.testdata.candidate.ConstructiveGenerator
 import services.testdata.faker.DataFaker
-
-import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.HeaderCarrier
+
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class FsbResultEnteredStatusGenerator @Inject() (val previousStatusGenerator: FsbAllocationConfirmedStatusGenerator,
                                                  fsbTestGroupService: FsbService,
                                                  dataFaker: DataFaker
-                                                )(implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                ) extends ConstructiveGenerator {
 
   def generate(generationId: Int, createCandidateDataIn: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {

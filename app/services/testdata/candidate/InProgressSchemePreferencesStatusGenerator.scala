@@ -17,7 +17,8 @@
 package services.testdata.candidate
 
 import javax.inject.{Inject, Singleton}
-import model._
+import model.*
+import model.exchange.testdata.CreateCandidateResponse
 import model.testdata.candidate.CreateCandidateData.CreateCandidateData
 import play.api.mvc.RequestHeader
 import repositories.schemepreferences.SchemePreferencesRepository
@@ -30,10 +31,11 @@ import scala.concurrent.{ExecutionContext, Future}
 class InProgressSchemePreferencesStatusGenerator @Inject() (val previousStatusGenerator: InProgressPersonalDetailsStatusGenerator,
                                                             spRepository: SchemePreferencesRepository,
                                                             dataFaker: DataFaker
-                                                           )(implicit ec: ExecutionContext) extends ConstructiveGenerator with Schemes {
+                                                           ) extends ConstructiveGenerator with Schemes {
 
   // scalastyle:off method.length
-  def generate(generationId: Int, generatorConfig: CreateCandidateData)(implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext) = {
+  def generate(generationId: Int, generatorConfig: CreateCandidateData)
+              (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse.CreateCandidateResponse] = {
     def getSchemePreferences: Future[SelectedSchemes] = {
       Future.successful(
         generatorConfig.schemeTypes.map { schemeTypesList =>

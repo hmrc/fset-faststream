@@ -29,7 +29,7 @@ import model.persisted.{NotificationExpiringOnlineTest, PassmarkEvaluation, Phas
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.bson.{BsonArray, BsonDocument, BsonString}
 import org.mongodb.scala.model.Projections
-import org.mongodb.scala.{MongoCollection, ObservableFuture, SingleObservableFuture, bsonDocumentToDocument}
+import org.mongodb.scala.{MongoCollection, bsonDocumentToDocument}
 import play.api.libs.json.{Reads, Writes}
 import repositories.*
 import repositories.onlinetesting.Phase3TestRepository.CannotFindTestByLaunchpadId

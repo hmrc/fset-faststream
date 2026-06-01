@@ -25,7 +25,6 @@ import org.apache.pekko.stream.scaladsl.Source
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{IndexModel, IndexOptions, Projections}
-import org.mongodb.scala.{ObservableFuture, SingleObservableFuture}
 import play.api.libs.json.{JsValue, Json}
 import repositories.{CollectionNames, ReactiveRepositoryHelpers}
 import uk.gov.hmrc.mongo.MongoComponent

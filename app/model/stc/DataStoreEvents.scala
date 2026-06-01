@@ -48,14 +48,14 @@ object DataStoreEvent {
 
 sealed trait DataStoreEventWithAppId extends DataStoreEvent {
   val appId: String
-  override lazy val applicationId = Some(appId)
+  override lazy val applicationId: Option[String] = Some(appId)
 }
 
 sealed trait DataStoreEventWithCreatedBy extends DataStoreEvent {
   val appId: String
   val createdByUser: String
-  override lazy val applicationId = Some(appId)
-  override lazy val createdBy = Some(createdByUser)
+  override lazy val applicationId: Option[String] = Some(appId)
+  override lazy val createdBy: Option[String] = Some(createdByUser)
 }
 
 // scalastyle:off number.of.methods
@@ -73,8 +73,12 @@ object DataStoreEvents {
   case class ApplicationWithdrawn(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class SchemeWithdrawn(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
 
+  case class UserRegisteredForOnlineTest(appId: String) extends DataStoreEventWithAppId
+  case class OnlineTestInvitationProcessComplete(appId: String) extends DataStoreEventWithAppId
+  case class OnlineExercisesInvited(appId: String) extends DataStoreEventWithAppId
   case class OnlineExerciseStarted(appId: String) extends DataStoreEventWithAppId
   case class OnlineExercisesCompleted(appId: String) extends DataStoreEventWithAppId
+  case class OnlineExerciseResultsReceived(appId: String) extends DataStoreEventWithAppId
   case class AllOnlineExercisesCompleted(appId: String) extends DataStoreEventWithAppId
   case class OnlineExerciseExtended(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy
   case class OnlineExerciseReset(appId: String, createdByUser: String) extends DataStoreEventWithCreatedBy

@@ -20,18 +20,19 @@ import org.apache.pekko.actor.ActorSystem
 import com.google.inject.name.Named
 import common.{FutureEx, Phase1TestConcern}
 import config.{MicroserviceAppConfig, OnlineTestsGatewayConfig, PsiTestIds}
-import connectors.ExchangeObjects._
+import connectors.ExchangeObjects.*
 import connectors.{OnlineTestEmailClient, OnlineTestsGatewayClient}
 import factories.{DateTimeFactory, UUIDFactory}
 import model.EvaluationResults.Green
 
 import javax.inject.{Inject, Singleton}
-import model.Exceptions._
-import model.OnlineTestCommands._
-import model.ProgressStatuses.{PHASE1_TESTS_STARTED, PHASE1_TESTS_COMPLETED}
-import model._
+import model.Exceptions.*
+import model.OnlineTestCommands.*
+import model.ProgressStatuses.{PHASE1_TESTS_COMPLETED, PHASE1_TESTS_STARTED}
+import model.*
 import model.exchange.{Phase1TestGroupWithNames, PsiRealTimeResults}
-import model.persisted.{Phase1TestProfile, PsiTestResult => _, _}
+import model.persisted.{Phase1TestProfile, PsiTestResult as _, *}
+import model.stc.DataStoreEvents.{OnlineExerciseResultsReceived, OnlineExercisesInvited, OnlineTestInvitationProcessComplete, UserRegisteredForOnlineTest}
 import model.stc.{AuditEvents, DataStoreEvents}
 import play.api.Logging
 import play.api.mvc.RequestHeader
@@ -39,7 +40,7 @@ import repositories.application.GeneralApplicationRepository
 import repositories.contactdetails.ContactDetailsRepository
 import repositories.onlinetesting.Phase1TestRepository
 import services.AuditService
-import services.onlinetesting.Exceptions.{TestCancellationException, TestRegistrationException}
+import services.onlinetesting.Exceptions.TestRegistrationException
 import services.onlinetesting.{OnlineTestService, TextSanitizer}
 import services.sift.ApplicationSiftService
 import services.stc.StcEventService
@@ -47,7 +48,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.OffsetDateTime
 import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.language.postfixOps
 import scala.util.{Failure, Success}
 
@@ -100,11 +101,12 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
                                                       reminder: ReminderNotice
                                                     )(implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = {
     emailClient.sendTestExpiringReminder(emailAddress, expiringTest.preferredName,
-      reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ =>
-      audit(
-        s"ReminderPhase1ExpiringOnlineTestNotificationBefore${reminder.hoursBeforeReminder}HoursEmailed",
-        expiringTest.userId, Some(emailAddress)
-      )
+      reminder.hoursBeforeReminder, reminder.timeUnit, expiringTest.expiryDate).map { _ => ()
+      // TODO: replace with eventsink
+//      audit(
+//        s"ReminderPhase1ExpiringOnlineTestNotificationBefore${reminder.hoursBeforeReminder}HoursEmailed",
+//        expiringTest.userId, Some(emailAddress)
+//      )
     }
   }
 
@@ -152,7 +154,8 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       _ <- processRegistration
       emailAddress <- candidateEmailAddress(application.userId)
       _ <- emailInviteToApplicant(application, emailAddress, invitationDate, expirationDate)
-    } yield audit("OnlineTestInvitationProcessComplete", application.userId)
+      _ <- eventSink(OnlineTestInvitationProcessComplete(application.applicationId) :: Nil)
+    } yield ()
   }
 
   override def registerAndInviteForTestGroup(applications: Seq[OnlineTestApplication])
@@ -241,8 +244,8 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
   }
 
   private def registerPsiApplicant(application: OnlineTestApplication,
-                                   testIds: PsiTestIds, invitationDate: OffsetDateTime)
-                                  (implicit hc: HeaderCarrier): Future[PsiTest] = {
+                                   testIds: PsiTestIds, invitationDate: OffsetDateTime)(
+    implicit hc: HeaderCarrier, rh: RequestHeader): Future[PsiTest] = {
     for {
       aoa <- registerApplicant(application, testIds)
     } yield {
@@ -268,7 +271,7 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
   }
 
   private def registerApplicant(application: OnlineTestApplication, testIds: PsiTestIds)(
-    implicit hc: HeaderCarrier): Future[AssessmentOrderAcknowledgement] = {
+    implicit hc: HeaderCarrier, rh: RequestHeader): Future[AssessmentOrderAcknowledgement] = {
 
     val orderId = tokenFactory.generateUUID()
     val preferredName = TextSanitizer.sanitizeFreeText(application.preferredName)
@@ -281,18 +284,19 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       preferredName = preferredName,
       lastName = lastName,
       // The url psi will redirect to when the candidate completes the test
-      redirectionUrl = buildRedirectionUrl(orderId, testIds.inventoryId),
+      redirectionUrl = buildRedirectionUrl(orderId),
       assessmentId = testIds.assessmentId,
       reportId = testIds.reportId,
       normId = testIds.normId
     )
 
-    onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest).map { response =>
-      audit("UserRegisteredForOnlineTest", application.userId)
-      response
-    }
+    for {
+      response <- onlineTestsGatewayClient.psiRegisterApplicant(registerCandidateRequest)
+      _ <- eventSink(UserRegisteredForOnlineTest(application.applicationId) :: Nil)
+    } yield response
   }
 
+/*
   private def cancelPsiTest(appId: String,
                             userId: String,
                             orderId: String): Future[AssessmentCancelAcknowledgementResponse] = {
@@ -308,31 +312,33 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       }
     }
   }
+ */
 
   private def testIdsByName(name: String): PsiTestIds = {
     onlineTestsGatewayConfig.phase1Tests.tests
       .getOrElse(name, throw new IllegalArgumentException(s"Incorrect test name: $name"))
   }
 
-  private def buildRedirectionUrl(orderId: String, inventoryId: String) = {
+  private def buildRedirectionUrl(orderId: String) = {
     val scheduleCompletionBaseUrl = s"${onlineTestsGatewayConfig.candidateAppUrl}/fset-fast-stream/online-tests/psi/phase1"
     s"$scheduleCompletionBaseUrl/complete/$orderId"
   }
 
-  private def markAsInvited(application: OnlineTestApplication)(newOnlineTestProfile: Phase1TestProfile): Future[Unit] = for {
-    currentOnlineTestProfile <- testRepository.getTestGroup(application.applicationId)
-    updatedTestProfile <- insertOrAppendNewTests(application.applicationId, currentOnlineTestProfile, newOnlineTestProfile)
+  private def markAsInvited(application: OnlineTestApplication)(newOnlineTestProfile: Phase1TestProfile)(
+    implicit hc: HeaderCarrier, rh: RequestHeader): Future[Unit] = for {
+    updatedTestProfile <- insertOrAppendNewTests(application.applicationId, newOnlineTestProfile)
     _ <- testRepository.resetTestProfileProgresses(
       application.applicationId, determineStatusesToRemove(updatedTestProfile), ignoreNoRecordUpdated = true
     )
   } yield {
-    audit("OnlineTestInvited", application.userId)
+    for {
+      _ <- eventSink(OnlineExercisesInvited(application.applicationId) :: Nil)
+    } yield ()
   }
 
   // This also handles archiving any existing tests to which the candidate has previously been invited
   // eg if a test is being reset and the candidate is being invited to a replacement test
-  private def insertOrAppendNewTests(applicationId: String, currentProfile: Option[Phase1TestProfile],
-                                      newProfile: Phase1TestProfile): Future[Phase1TestProfile] = {
+  private def insertOrAppendNewTests(applicationId: String, newProfile: Phase1TestProfile): Future[Phase1TestProfile] = {
 
     testRepository.insertOrUpdateTestGroup(applicationId, newProfile).flatMap { _ =>
       testRepository.getTestGroup(applicationId).map {
@@ -449,8 +455,10 @@ class Phase1TestService @Inject() (appConfig: MicroserviceAppConfig,
       testRepository.getTestGroup(appId).flatMap { testProfileOpt =>
         val latestProfile = testProfileOpt.getOrElse(throw new Exception(s"No test profile returned for $appId"))
         if (latestProfile.activeTests.forall(_.testResult.isDefined)) {
-          testRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED).map(_ =>
-            audit(s"Progress status updated to ${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED}", appId))
+          for {
+            _ <- testRepository.updateProgressStatus(appId, ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED)
+            _ <- eventSink(OnlineExerciseResultsReceived(appId) :: Nil)
+          } yield ()
         } else {
           val msg = s"Did not update progress status to ${ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED} for $appId - " +
             s"not all active tests have a testResult saved"

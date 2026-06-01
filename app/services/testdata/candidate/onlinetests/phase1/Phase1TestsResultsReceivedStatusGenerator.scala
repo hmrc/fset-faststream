@@ -32,12 +32,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class Phase1TestsResultsReceivedStatusGenerator @Inject() (val previousStatusGenerator: Phase1TestsCompletedStatusGenerator,
-                                                           otService: Phase1TestService)(
-  implicit ec: ExecutionContext) extends ConstructiveGenerator {
+                                                           otService: Phase1TestService) extends ConstructiveGenerator {
 
   def generate(generationId: Int, generatorConfig: CreateCandidateData)
               (implicit hc: HeaderCarrier, rh: RequestHeader, ec: ExecutionContext): Future[CreateCandidateResponse] = {
-
     for {
       candidate <- previousStatusGenerator.generate(generationId, generatorConfig)
       scores <- Future.successful(generatorConfig.phase1TestData.getOrElse(

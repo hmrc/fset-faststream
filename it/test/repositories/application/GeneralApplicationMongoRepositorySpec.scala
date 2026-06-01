@@ -20,7 +20,7 @@ import factories.{ITDateTimeFactoryMock, UUIDFactory}
 import model.ApplicationRoute.{ApplicationRoute, apply as _}
 import model.ApplicationStatus.*
 import model.EvaluationResults.{Green, Red}
-import model.Exceptions.{toString, *}
+import model.Exceptions.*
 import model.OnlineTestCommands.OnlineTestApplication
 import model.ProgressStatuses.{PHASE1_TESTS_PASSED as _, PHASE3_TESTS_FAILED as _, SUBMITTED as _, *}
 import model.command.{ProgressResponse, WithdrawScheme}
@@ -468,7 +468,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
         additionalProgressStatuses = statuses).futureValue
 
       // TODO: mongo this has changed:
-      val matchResponse = repository.fix(candidate, FixBatch(PassToPhase2, 1)).futureValue
+//      val matchResponse = repository.fix(candidate, FixBatch(PassToPhase2, 1)).futureValue
       //      matchResponse.isDefined mustBe false
 
       val applicationResponse = repository.findByUserId("userId", "FastStream-2016").futureValue
@@ -1320,7 +1320,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
       progressResponse.phase2ProgressResponse.phase2TestsSecondReminder mustBe false
       progressResponse.phase2ProgressResponse.phase2TestsExpired mustBe false
 
-      val ss = repository.getApplicationStatusForCandidates(Seq(AppId))
+      repository.getApplicationStatusForCandidates(Seq(AppId))
         .futureValue mustBe Seq(AppId -> ApplicationStatus.PHASE1_TESTS_PASSED)
     }
   }
@@ -1461,10 +1461,10 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
     createApplications(num, ApplicationStatus.ASSESSMENT_CENTRE, additionalProgressStatuses)
   }
 
-  private def createAllocatedFSACApplications(num: Int): Future[Unit] = {
-    val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED -> true)
-    createApplications(num, ApplicationStatus.ASSESSMENT_CENTRE, additionalProgressStatuses)
-  }
+//  private def createAllocatedFSACApplications(num: Int): Future[Unit] = {
+//    val additionalProgressStatuses = List(ProgressStatuses.ASSESSMENT_CENTRE_ALLOCATION_UNCONFIRMED -> true)
+//    createApplications(num, ApplicationStatus.ASSESSMENT_CENTRE, additionalProgressStatuses)
+//  }
 
   private def createUnAllocatedFSBApplications(num: Int, schemes: List[SchemeEvaluationResult]): Future[Unit] = {
     val additionalProgressStatuses = List(ProgressStatuses.FSB_AWAITING_ALLOCATION -> true)

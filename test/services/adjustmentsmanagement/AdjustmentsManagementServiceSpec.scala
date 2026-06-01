@@ -16,28 +16,17 @@
 
 package services.adjustmentsmanagement
 
-import model.CandidateExamples._
-import model.Exceptions.ApplicationNotFound
-import model.ProgressStatuses.ProgressStatus
-import model._
+import model.*
+import model.CandidateExamples.*
 import model.command.ApplicationStatusDetails
-import model.persisted.ContactDetailsExamples._
-import org.mockito.ArgumentMatchers.{ eq => eqTo, _ }
-import org.mockito.Mockito._
-import repositories.SchemeRepository
+import org.mockito.Mockito.*
 import repositories.application.GeneralApplicationRepository
-import repositories.contactdetails.ContactDetailsRepository
 import services.BaseServiceSpec
-import services.scheme.SchemePreferencesService
-import services.sift.ApplicationSiftService
 import services.stc.StcEventServiceFixture
-import services.testdata.examples.AdjustmentsExamples._
 import testkit.ExtendedTimeout
-import testkit.MockitoImplicits._
-import uk.gov.hmrc.http.HeaderCarrier
+import testkit.MockitoImplicits.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 class AdjustmentsManagementServiceSpec extends BaseServiceSpec with ExtendedTimeout {
 
