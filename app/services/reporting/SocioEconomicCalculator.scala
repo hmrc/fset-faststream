@@ -65,7 +65,7 @@ class SocioEconomicScoreCalculator extends Calculable with DiversityQuestionsTex
   }
 
   implicit class Answers(questionnaire: Map[String, String]) {
-    def isLongTermUnemployed = questionnaire.getOrElse(highestEarningParentOrGuardianTypeOfWorkAtAge14, "") == "Long term unemployed"
+    def isLongTermUnemployed: Boolean = questionnaire.getOrElse(highestEarningParentOrGuardianTypeOfWorkAtAge14, "") == "Long term unemployed"
   }
 
   case class ParentalOccupationQuestionnaire(

@@ -20,18 +20,26 @@ import javax.inject.{Inject, Singleton}
 import model.School
 import repositories.csv.SchoolsRepository
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class SchoolsService @Inject() (schoolsRepo: SchoolsRepository)(implicit ec: ExecutionContext) {
   val MaxNumberOfSchools = 16
 
-  def getSchools(term: String) = {
+  def getSchools(term: String): Future[List[School]] = {
     for {
       allSchools <- schoolsRepo.schools
     } yield {
       val sanitizedTerm = sanitize(term)
       applyLimit(allSchools.filter(s => sanitize(s.name).contains(sanitizedTerm)))
+    }
+  }
+
+  def getSchools: Future[List[School]] = {
+    for {
+      allSchools <- schoolsRepo.schools
+    } yield {
+      allSchools
     }
   }
 

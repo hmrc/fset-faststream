@@ -423,6 +423,7 @@ GET         /reference/locations-with-venues                             @contro
 GET         /reference/fsac/assessment-centres                           @controllers.reference.FsacIndicatorController.getAssessmentCentres
 
 GET         /reference/sdip/locations                                    @controllers.reference.SdipLocationsController.locations
+GET         /reference/schools                                           @controllers.SchoolsController.getAllSchools
 
 # Upscan
 GET         /upscan/request-upload/:uploadId/:fileReference/:applicationId @controllers.upscan.UpscanController.requestUpload(uploadId: model.exchange.upscan.UploadId, fileReference: model.exchange.upscan.Reference, applicationId: String)
