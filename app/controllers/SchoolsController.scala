@@ -17,7 +17,7 @@
 package controllers
 
 import play.api.libs.json.Json
-import play.api.mvc.ControllerComponents
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.schools.SchoolsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -30,9 +30,15 @@ class SchoolsController @Inject() (cc: ControllerComponents,
 
   implicit val ec: ExecutionContext = cc.executionContext
 
-  def getSchools(term: String) = Action.async { implicit _ =>
+  def getSchools(term: String): Action[AnyContent] = Action.async { implicit _ =>
     schoolsService.getSchools(term).map { schools =>
       Ok(Json.toJson(schools))
     }
+  }
+
+  def getAllSchools: Action[AnyContent] = Action.async { implicit _ =>
+    for {
+      schools <- schoolsService.getSchools
+    } yield Ok(Json.toJson(schools))
   }
 }
