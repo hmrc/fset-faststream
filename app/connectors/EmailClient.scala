@@ -196,6 +196,9 @@ trait EmailClient extends Logging {
     if (emailConfig.enabled) {
       import uk.gov.hmrc.http.HttpReads.Implicits._
       import play.api.libs.ws.writeableOf_JsValue
+
+      logger.info(s"EmailClient sendEmail - to=$to,template=$template,parameters=$parameters")
+
       http.post(url"${emailConfig.url}/fsetfaststream/email")
         .withBody(Json.toJson(data))
         .execute[HttpResponse]
