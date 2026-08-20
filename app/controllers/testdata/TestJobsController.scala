@@ -30,11 +30,11 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class TestJobsController @Inject() (cc:ControllerComponents,
                                     sendPhase1InvitationJob: SendPhase1InvitationJob,
-                                    sendPhase2InvitationJob: SendPhase2InvitationJob,
-                                    sendPhase3InvitationJob: SendPhase3InvitationJob,
+//                                    sendPhase2InvitationJob: SendPhase2InvitationJob,
+//                                    sendPhase3InvitationJob: SendPhase3InvitationJob,
                                     firstPhase1ReminderExpiringTestJob: FirstPhase1ReminderExpiringTestJob,
                                     secondPhase1ReminderExpiringTestJob: SecondPhase1ReminderExpiringTestJob,
-                                    siftNumericalTestInvitationJob: SiftNumericalTestInvitationJobImpl,
+//                                    siftNumericalTestInvitationJob: SiftNumericalTestInvitationJobImpl,
                                     expirePhase1TestJob: ExpirePhase1TestJob,
                                     expirePhase2TestJob: ExpirePhase2TestJob,
                                     expirePhase3TestJob: ExpirePhase3TestJob,
@@ -70,10 +70,10 @@ class TestJobsController @Inject() (cc:ControllerComponents,
   def testInvitationJob(phase: String): Action[AnyContent] = Action.async { implicit _ =>
     phase.toUpperCase match {
       case "PHASE1" => sendPhase1InvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
-      case "PHASE2" => sendPhase2InvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
-      case "PHASE3" => sendPhase3InvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
-      case "SIFT"   => siftNumericalTestInvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
-      case _ => Future.successful(BadRequest(s"No such phase: $phase. Options are [phase1, phase2, phase3]"))
+//      case "PHASE2" => sendPhase2InvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
+//      case "PHASE3" => sendPhase3InvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
+//      case "SIFT"   => siftNumericalTestInvitationJob.tryExecute().map(_ => Ok(s"$phase test invitation job started"))
+      case _ => Future.successful(BadRequest(s"No such phase: $phase. Options are only [phase1]"))
     }
   }
 
@@ -232,7 +232,7 @@ class TestJobsController @Inject() (cc:ControllerComponents,
     }
   }
 
-  def evaluateFsbResults = Action.async { implicit _ =>
+  def evaluateFsbResults: Action[AnyContent] = Action.async { implicit _ =>
     evaluateFsbJob.tryExecute().map { _ =>
       Ok("Evaluate FSB Results Job started")
     }
