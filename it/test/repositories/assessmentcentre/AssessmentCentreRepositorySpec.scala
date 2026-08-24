@@ -147,10 +147,10 @@ class AssessmentCentreRepositorySpec extends MongoRepositorySpec with ScalaFutur
           "passMarkVersion",
           AssessmentEvaluationResult(
             FsacResults(ExerciseAverageResult(1.0, 2.0, 3.0, 4.0)),
-            Seq(SchemeEvaluationResult("GovernmentCommunicationService", Green.toString))
+            Seq(SchemeEvaluationResult(FastStreamYorkshireAndTheHumber, Green.toString))
           )
         ),
-        Seq(SchemeEvaluationResult("GovernmentCommunicationService", Green.toString))
+        Seq(SchemeEvaluationResult(FastStreamYorkshireAndTheHumber, Green.toString))
       ).futureValue
 
       val result: Option[AssessmentPassMarkEvaluation] = assessmentCentreRepository.getAssessmentScoreEvaluation(appId.toString()).futureValue

@@ -285,7 +285,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
   private val N = Some("No")
 
   override val allSchemes: List[String] = {
-    val redundantSchemes = Set(GovernmentCommunicationService, Edip)
+    val redundantSchemes = Set(Edip)
     schemeRepository.schemes.filterNot( scheme => redundantSchemes.contains(scheme.id) ).map(_.id.value).toList
   }
 

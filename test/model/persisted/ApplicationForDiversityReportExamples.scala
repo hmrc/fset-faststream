@@ -36,7 +36,7 @@ object ApplicationForDiversityReportExamples extends Schemes {
 
   val Example2 =
     ApplicationForDiversityReport("appId6", "userId11", ApplicationRoute.Faststream, progress = Some("submitted"),
-      List(DiplomaticAndDevelopmentEconomics, Commercial, GovernmentCommunicationService, Property),
+      List(DiplomaticAndDevelopmentEconomics, Commercial, FastStreamYorkshireAndTheHumber, Property),
       disability = Some("Yes"), gis = Some(true), onlineAdjustments = Some("Yes"),
       assessmentCentreAdjustments = Some("No"),
       Some(CivilServiceExperienceDetailsForDiversityReport(
@@ -47,7 +47,7 @@ object ApplicationForDiversityReportExamples extends Schemes {
       )),
       currentSchemeStatus = List(SchemeEvaluationResult(DiplomaticAndDevelopment, EvaluationResults.Green.toString),
         SchemeEvaluationResult(Commercial, EvaluationResults.Green.toString),
-        SchemeEvaluationResult(GovernmentCommunicationService, EvaluationResults.Green.toString),
+        SchemeEvaluationResult(FastStreamYorkshireAndTheHumber, EvaluationResults.Green.toString),
         SchemeEvaluationResult(Property, EvaluationResults.Green.toString))
     )
 }

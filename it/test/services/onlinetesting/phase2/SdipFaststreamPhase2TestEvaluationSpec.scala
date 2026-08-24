@@ -27,30 +27,30 @@ class SdipFaststreamPhase2TestEvaluationSpec extends Phase2TestEvaluationSpec {
     "give pass for SdipFaststream when all schemes and sdip are green" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
         List(SchemeEvaluationResult(GovernmentPolicy, Green.toString),
-          SchemeEvaluationResult(GovernmentCommunicationService, Green.toString),
+          SchemeEvaluationResult(FastStreamYorkshireAndTheHumber, Green.toString),
           SchemeEvaluationResult(Sdip, Green.toString)
         ),
         "phase1-version1-res", None)
       applicationEvaluation("application-1", 80, 80, GovernmentPolicy,
-        GovernmentCommunicationService
+        FastStreamYorkshireAndTheHumber
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS_PASSED, Some(ProgressStatuses.PHASE2_TESTS_PASSED),
-        GovernmentPolicy -> Green, GovernmentCommunicationService -> Green,
+        GovernmentPolicy -> Green, FastStreamYorkshireAndTheHumber -> Green,
         Sdip -> Green)
     }
 
     "give amber for SdipFaststream when sdip and faststream schemes are amber" in new TestFixture {
       phase1PassMarkEvaluation = PassmarkEvaluation("phase1-version1", None,
         List(SchemeEvaluationResult(GovernmentPolicy, Green.toString),
-          SchemeEvaluationResult(GovernmentCommunicationService, Green.toString),
+          SchemeEvaluationResult(FastStreamYorkshireAndTheHumber, Green.toString),
           SchemeEvaluationResult(Sdip, Amber.toString)
         ),
         "phase1-version1-res", None)
       applicationEvaluation("application-1", 40, 40, GovernmentPolicy,
-        GovernmentCommunicationService
+        FastStreamYorkshireAndTheHumber
       )(ApplicationRoute.SdipFaststream) mustResultIn(
         PHASE2_TESTS, Some(ProgressStatuses.PHASE2_TESTS_RESULTS_RECEIVED),
-        GovernmentPolicy -> Amber, GovernmentCommunicationService -> Amber,
+        GovernmentPolicy -> Amber, FastStreamYorkshireAndTheHumber -> Amber,
         Sdip -> Amber)
     }
 

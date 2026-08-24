@@ -57,7 +57,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return fsb schemes" in new TestFixture {
       val expectedFsbSchemes = Seq(
         Commercial, DiplomaticAndDevelopment,
-        DiplomaticAndDevelopmentEconomics, Finance, GovernmentCommunicationService,
+        DiplomaticAndDevelopmentEconomics, Finance, FastStreamYorkshireAndTheHumber,
         GovernmentEconomicsService, GovernmentOperationalResearchService,
         GovernmentSocialResearchService, GovernmentStatisticalService,
         HumanResources, HousesOfParliament, OperationalDelivery, ProjectDelivery,
@@ -71,7 +71,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return siftable schemes" in new TestFixture {
       val expectedSiftableSchemes = Seq(
         DiplomaticAndDevelopment,
-        DiplomaticAndDevelopmentEconomics, GovernmentCommunicationService,
+        DiplomaticAndDevelopmentEconomics,
         GovernmentEconomicsService, GovernmentOperationalResearchService,
         GovernmentSocialResearchService, GovernmentStatisticalService,
         HousesOfParliament, ProjectDelivery,
@@ -96,7 +96,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
       val expected = Seq(
         Commercial, CyberSecurity, Digital,
         DiplomaticAndDevelopment, Finance,
-        GovernmentCommunicationService, GovernmentPolicy,
+        FastStreamYorkshireAndTheHumber, GovernmentPolicy,
         HousesOfParliament, HumanResources, OperationalDelivery,
         ProjectDelivery, Property, RiskManagement,
         Edip, Sdip
@@ -108,7 +108,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return non siftable schemes" in new TestFixture {
       repo.nonSiftableSchemeIds must contain theSameElementsAs
         Seq(
-          Commercial, CyberSecurity, Digital,
+          Commercial, CyberSecurity, Digital, FastStreamYorkshireAndTheHumber,
           Finance, GovernmentPolicy, HumanResources,
           OperationalDelivery, Property,
           Sdip
@@ -123,7 +123,7 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return form must be filled in sift schemes" in new TestFixture {
       val expectedFormMustBeFilledInSiftableSchemes = Seq(
         DiplomaticAndDevelopment, DiplomaticAndDevelopmentEconomics,
-        GovernmentCommunicationService, GovernmentEconomicsService,
+        GovernmentEconomicsService,
         GovernmentOperationalResearchService, GovernmentSocialResearchService,
         GovernmentStatisticalService,
         HousesOfParliament, ProjectDelivery,
@@ -137,12 +137,13 @@ class SchemeRepositorySpec extends UnitWithAppSpec {
     "return fsb types" in new TestFixture {
       val expected = Seq(
         FsbType("CFS - Skype interview"),
-        FsbType("FCO"), FsbType("FIN FSB"), FsbType("GES_DS"),
-        FsbType("GCFS FSB"), FsbType("EAC"), FsbType("ORAC"),
-        FsbType("RMT - Skype interview"),
-        FsbType("SRAC"), FsbType("SAC"), FsbType("HOP FSB"), FsbType("HR FSB"),
+        FsbType("FCO"), FsbType("GES_DS"), FsbType("FSYH"),
+        FsbType("FIN FSB"), FsbType("EAC"), FsbType("ORAC"),
+        FsbType("SRAC"), FsbType("SAC"),
+        FsbType("HOP FSB"), FsbType("HR FSB"),
         FsbType("OPD - Skype interview"),
         FsbType("PDFS - Skype interview"), FsbType("PRO - Skype interview"),
+        FsbType("RMT - Skype interview"),
         FsbType("SEFS FSB"), FsbType("EDIP - Telephone interview"), FsbType("SDIP - Telephone interview")
       )
       val actual = repo.getFsbTypes
