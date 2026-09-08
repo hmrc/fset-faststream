@@ -801,13 +801,20 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
       case Some(stat) => Try(stat.get(key).asBoolean().getValue).toOption.orElse(Some(false)).map(_.toString)
     }
 
+    // TODO: tidy up - (this isn't supported in the document so should be removed)
     val progressStatusDatesOpt = subDocRoot("progress-status-dates")(doc)
+
+    // IN_PROGRESS is not modelled as a progress status so cannot use timestampFor
+    def timestampForInProgress = {
+      import repositories.formats.MongoJavatimeFormats.Implicits.jtOffsetDateTimeFormat // Needed for ISODate
+      statusTimestampsOpt.flatMap(doc => Try(Codecs.fromBson[OffsetDateTime](doc.get("IN_PROGRESS").asDateTime())).toOption).map(_.toString).orElse(
+        progressStatusDatesOpt.map( _.get("in_progress").asString.getValue )
+      )
+    }
 
     List(
       progressStatusOpt.map ( doc => Try( doc.get("personal-details").asBoolean().getValue ).toOption.getOrElse(false).toString ),
-      statusTimestampsOpt.flatMap(doc => Try(Codecs.fromBson[OffsetDateTime](doc.get("IN_PROGRESS").asDateTime())).toOption).map(_.toString).orElse(
-        progressStatusDatesOpt.map( _.get("in_progress").asString.getValue )
-      ),
+      timestampForInProgress,
       progressStatusOpt.map ( doc => Try( doc.get("scheme-preferences").asBoolean().getValue ).toOption.getOrElse(false).toString ),
       progressStatusOpt.map ( doc => Try( doc.get("location-preferences").asBoolean().getValue ).toOption.getOrElse(false).toString ),
       progressStatusOpt.map ( doc => Try( doc.get("assistance-details").asBoolean().getValue ).toOption.getOrElse(false).toString ),
