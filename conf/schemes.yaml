@@ -56,6 +56,17 @@
   schemeQuestion: /fset-fast-stream/media/scheme-questions/scheme-questions-ges-ds.odt
   schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-ges-ds.odt
 
+- id: FastStreamYorkshireAndTheHumber
+  code: FSYH
+  name: Fast Stream Yorkshire and the Humber
+  civilServantEligible: true
+  degree:
+    required: Degree_22
+    specificRequirement: false
+  siftEvaluationRequired: false
+  fsbType: FSYH
+  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-fsyh.odt
+
 - id: Finance
   code: FIFS
   name: Finance
@@ -66,20 +77,6 @@
   siftEvaluationRequired: false
   fsbType: FIN FSB
   schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-fifs.odt
-
-#  DO NOT USE - currently filtered out in the candidate ui
-- id: GovernmentCommunicationService
-  code: GCFS
-  name: Government Communication Service
-  civilServantEligible: true
-  degree:
-    required: Degree_21
-    specificRequirement: false
-  siftRequirement: FORM
-  siftEvaluationRequired: false
-  fsbType: GCFS FSB
-  schemeQuestion: /fset-fast-stream/media/1247/scheme-questions-gcfs.rtf
-  schemeGuide: /fset-fast-stream/media/fsb-guides/fsb-guide-gcfs.odt
 
 - id: GovernmentEconomicsService
   code: GES

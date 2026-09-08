@@ -454,7 +454,7 @@ class ApplicationServiceSpec extends UnitSpec with ExtendedTimeout with Schemes 
     val schemeRepoMock = new TestSchemeRepository {
       override lazy val siftableSchemeIds = Seq(Commercial, DiplomaticAndDevelopment, GovernmentEconomicsService)
       override lazy val noSiftEvaluationRequiredSchemeIds = Seq(DiplomaticAndDevelopment, Edip, OperationalDelivery,
-        GovernmentCommunicationService, HousesOfParliament, HumanResources, ProjectDelivery,
+        FastStreamYorkshireAndTheHumber, HousesOfParliament, HumanResources, ProjectDelivery,
         ScienceAndEngineering
       )
       override lazy val nonSiftableSchemeIds = Seq(Digital, HumanResources, OperationalDelivery)

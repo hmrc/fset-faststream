@@ -79,7 +79,7 @@ trait Phase1TestEvaluationSpec extends MongoRepositorySpec with CommonRepository
       (DiplomaticAndDevelopment,                  20.01,        20.02,        20.01,        20.02),
       (DiplomaticAndDevelopmentEconomics,         30.0,         70.0,         30.0,         70.0),
       (Finance,                                   25.01,        25.02,        25.01,        25.02),
-      (GovernmentCommunicationService,            30.0,         70.0,         30.0,         70.0),
+      (FastStreamYorkshireAndTheHumber,            30.0,         70.0,         30.0,         70.0),
       (GovernmentEconomicsService,                30.0,         70.0,         30.0,         70.0),
       (GovernmentOperationalResearchService,      30.0,         70.0,         30.0,         70.0),
       (GovernmentPolicy,                          30.0,         70.0,         30.0,         70.0),
