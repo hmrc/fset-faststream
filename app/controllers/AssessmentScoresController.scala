@@ -45,7 +45,7 @@ abstract class AssessmentScoresController(cc: ControllerComponents) extends Back
 
   implicit val ec: ExecutionContext = cc.executionContext
 
-  def submitExercise() = Action.async(parse.json) {
+  def submitExercise(): Action[JsValue] = Action.async(parse.json) {
     implicit request =>
       withJsonBody[AssessmentScoresSubmitExerciseRequest] { submitRequest =>
         val assessmentExerciseType = AssessmentScoresSectionType.withName(submitRequest.exercise)

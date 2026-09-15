@@ -56,6 +56,7 @@ class AssessmentCentreServiceIntSpec extends MongoRepositorySpec with Logging {
     new AssessmentCentreMongoRepository(ITDateTimeFactoryMock, schemeRepo, mongo),
     mock[AssessmentCentrePassMarkSettingsService],
     mock[AssessmentScoresRepository],
+    mock[AssessmentScoresRepository],
     mock[SchemeRepository],
     new AssessmentCentreEvaluationEngineImpl
   )

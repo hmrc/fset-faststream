@@ -53,6 +53,7 @@ GET     /candidate-application/test-only/process-sift-results-received          
 GET     /candidate-application/test-only/process-expired-at-sift                              @controllers.testdata.TestJobsController.processExpiredAtSift
 GET     /candidate-application/test-only/process-failed-at-sift                               @controllers.testdata.TestJobsController.processFailedAtSift
 GET     /candidate-application/test-only/progress-candidates-to-ac                            @controllers.testdata.TestJobsController.progressCandidatesToAssessmentCentre
+GET     /candidate-application/test-only/accept-fsac-assessor-scores                          @controllers.testdata.TestJobsController.acceptFsacAssessorScores
 GET     /candidate-application/test-only/evaluate-assessment-centre-candidate                 @controllers.testdata.TestJobsController.evaluateAssessmentCentreCandidate
 GET     /candidate-application/test-only/progress-candidates-to-fsb-or-offer-job              @controllers.testdata.TestJobsController.progressCandidatesToFsbOrOfferJob
 GET     /candidate-application/test-only/process-unconfirmed-candidates                       @controllers.testdata.TestJobsController.processUnconfirmedCandidates
