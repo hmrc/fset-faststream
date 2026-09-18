@@ -52,6 +52,7 @@ class TestJobsController @Inject() (cc:ControllerComponents,
                                     siftExpiryJob: SiftExpiryJobImpl,
                                     siftFailureJob:  SiftFailureJob,
                                     progressToAssessmentCentreJob: ProgressToAssessmentCentreJobImpl,
+                                    acceptFsacAssessorScoresJob: AcceptFsacAssessorScoresJobImpl,
                                     progressToFsbOrOfferJob: ProgressToFsbOrOfferJobImpl,
                                     evaluateAssessmentCentreJob: EvaluateAssessmentCentreJobImpl,
                                     reminderEventAllocationJob: ReminderEventAllocationJobImpl,
@@ -199,6 +200,12 @@ class TestJobsController @Inject() (cc:ControllerComponents,
   def progressCandidatesToAssessmentCentre: Action[AnyContent] = Action.async { implicit _ =>
     progressToAssessmentCentreJob.tryExecute().map { _ =>
       Ok("Progress to assessment centre result job started")
+    }
+  }
+
+  def acceptFsacAssessorScores: Action[AnyContent] = Action.async { implicit _ =>
+    acceptFsacAssessorScoresJob.tryExecute().map { _ =>
+      Ok("Accept FSAC assessor scores job started")
     }
   }
 

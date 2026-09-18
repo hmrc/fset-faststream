@@ -50,12 +50,33 @@ object AssessmentCentreService {
 class AssessmentCentreService @Inject() (applicationRepo: GeneralApplicationRepository,
                                          assessmentCentreRepo: AssessmentCentreRepository,
                                          passmarkService: AssessmentCentrePassMarkSettingsService,
+                                         @Named("AssessorAssessmentScoresRepo") assessorAssessmentScoresRepo: AssessmentScoresRepository,
                                          @Named("ReviewerAssessmentScoresRepo") assessmentScoresRepo: AssessmentScoresRepository,
                                          schemeRepo: SchemeRepository,
                                          evaluationEngine: AssessmentCentreEvaluationEngine
                                         )(implicit ec: ExecutionContext) extends CurrentSchemeStatusHelper with Logging {
 
   private val logPrefix = "[Assessment Evaluation]"
+
+  def findAssessedCandidates(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+    assessmentCentreRepo.findAssessedCandidates(batchSize)
+  }
+
+  def approveAssessedCandidates(applications: Seq[ApplicationForProgression]): Future[SerialUpdateResult[ApplicationForProgression]] = {
+    val updates = FutureEx.traverseSerial(applications) { application =>
+      FutureEx.futureToEither(application, saveAutoReviewedScores(application.applicationId))
+    }
+
+    updates.map(SerialUpdateResult.fromEither)
+  }
+
+  private def saveAutoReviewedScores(applicationId: String) = {
+    for {
+      assessorScoresOpt <- assessorAssessmentScoresRepo.find(UniqueIdentifier(applicationId))
+      _ <- assessmentScoresRepo.save(assessorScoresOpt.getOrElse(throw model.Exceptions.ApplicationNotFound(applicationId)))
+      _ <- assessmentCentreRepo.approveAssessedCandidate(applicationId)
+    } yield ()
+  }
 
   def nextApplicationsForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
     assessmentCentreRepo.nextApplicationForAssessmentCentre(batchSize)

@@ -679,6 +679,7 @@ class AssessmentCentreServiceSpec extends ScalaMockUnitSpec with Schemes {
       mockAssessmentCentreRepo,
       mockAssessmentCentrePassMarkSettingsService,
       mockAssessmentScoresRepo,
+      mockAssessmentScoresRepo,
       mockSchemeRepository,
       mockEvaluationEngine
     )

@@ -53,7 +53,9 @@ object AssessmentCentreRepository {
 
 trait AssessmentCentreRepository {
   def nextApplicationForAssessmentCentre(batchSize: Int): Future[Seq[ApplicationForProgression]]
-  def progressToAssessmentCentre(application: ApplicationForProgression, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
+  def progressToAssessmentCentre(applicationId: ApplicationForProgression, progressStatus: ProgressStatuses.ProgressStatus): Future[Unit]
+  def findAssessedCandidates(batchSize: Int): Future[Seq[ApplicationForProgression]]
+  def approveAssessedCandidate(application: String): Future[Unit]
   def getTests(applicationId: String): Future[AssessmentCentreTests]
   def updateTests(applicationId: String, tests: AssessmentCentreTests): Future[Unit]
   def nextApplicationReadyForAssessmentScoreEvaluation(currentPassmarkVersion: String, batchSize: Int): Future[Seq[UniqueIdentifier]]
@@ -251,6 +253,14 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
     case _ => BSONDocument.empty
   }*/
 
+  override def approveAssessedCandidate(applicationId: String): Future[Unit] = {
+    val query = Document("applicationId" -> applicationId)
+    val update = Document("$set" -> applicationStatusBSON(ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED))
+    val validator = singleUpdateValidator(applicationId, actionDesc = "approved assessed fsac candidate")
+
+    collection.updateOne(query, update).toFuture() map validator
+  }
+
   override def progressToAssessmentCentre(application: ApplicationForProgression,
                                           progressStatus: ProgressStatuses.ProgressStatus): Future[Unit] = {
     val query = Document("applicationId" -> application.applicationId)
@@ -258,6 +268,15 @@ class AssessmentCentreMongoRepository @Inject() (val dateTimeFactory: DateTimeFa
     val validator = singleUpdateValidator(application.applicationId, actionDesc = "progressing to assessment centre")
 
     collection.updateOne(query, update).toFuture() map validator
+  }
+
+  override def findAssessedCandidates(batchSize: Int): Future[Seq[ApplicationForProgression]] = {
+    val query = Document(
+      "applicationStatus" -> ApplicationStatus.ASSESSMENT_CENTRE.toBson,
+      s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ENTERED}" -> true,
+      s"progress-status.${ProgressStatuses.ASSESSMENT_CENTRE_SCORES_ACCEPTED}" -> Document("$exists" -> false)
+    )
+    selectRandom[ApplicationForProgression](applicationForProgressionCollection, query, batchSize)
   }
 
   override def getTests(applicationId: String): Future[AssessmentCentreTests] = {
