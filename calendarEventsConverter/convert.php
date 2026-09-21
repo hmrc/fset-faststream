@@ -49,6 +49,8 @@ error_reporting(E_ALL);
 //
 // hit the backend directly:
 // http POST :8101/candidate-application/events/save
+//
+// Note from campaign 2025-26 we force all event locations and venues to "Virtual"
 
 if ($argc != 3 )
 {
@@ -61,7 +63,7 @@ $processingNewcastle = $argc == 3 && strtolower($argv[2]) == "newcastle";
 
 $city = $processingNewcastle ? "newcastle" : "london";
 
-$csvRoot = "../../fs-calendar-events/spreadsheets/2025-2026v1";
+$csvRoot = "../../fs-calendar-events/spreadsheets/2026-2027v2";
 $csvFilename = "{$csvRoot}/{$city}.csv";
 
 $csv = array_map('str_getcsv', file($csvFilename));
