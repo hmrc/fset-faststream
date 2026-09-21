@@ -153,8 +153,9 @@ abstract class AssessmentScoresMongoRepository @Inject() (collectionName: String
 
   override def findAccepted(applicationId: UniqueIdentifier): Future[Option[AssessmentScoresAllExercises]] = {
     val query = Document(
-      "applicationId" -> applicationId.toString(),
-      "finalFeedback" -> Document("$exists" -> true)
+      "applicationId" -> applicationId.toString()//,
+      // 2026/27 campaign auto-qacs the assessor scores and no final feedback is stored
+//      "finalFeedback" -> Document("$exists" -> true)
     )
     collection.find(query).headOption()
   }
