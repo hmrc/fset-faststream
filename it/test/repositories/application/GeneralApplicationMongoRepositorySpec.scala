@@ -143,9 +143,7 @@ class GeneralApplicationMongoRepositorySpec extends MongoRepositorySpec with UUI
             CivilServantAndInternshipType.OtherInternship
           )),
           civilServantDepartment = Some("Accountant in Bankruptcy"),
-          liveDisciplinaryWarning = Some(false),
-          inReviewPeriodFollowingAWarning = Some(false),
-          inImprovementPeriodFollowingAWarning = Some(false),
+          civilServantEligible = Some(true),
           edipYear = Some("2018"),
           sdipYear = Some("2019"),
           otherInternshipName = Some("other"),
