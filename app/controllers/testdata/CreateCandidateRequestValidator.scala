@@ -51,7 +51,7 @@ class CreateCandidateRequestValidator @Inject() (schemeRepository: SchemeReposit
 
   def validateSchemes(request: CreateCandidateRequest): SchemeValidation = {
     // Schemes that are still in schemes.yaml but which the business doesn't want to use
-    val invalidSchemes = Seq(FastStreamYorkshireAndTheHumber)
+    val invalidSchemes = Nil
     val validSchemes = schemeRepository.schemes.map( _.id ).filterNot(id => invalidSchemes.contains(id)).toSet
     val requestSchemes = request.schemeTypes.map( _.toSet ).getOrElse(Set.empty[SchemeId])
     val invalidRequestSchemes = requestSchemes diff validSchemes
