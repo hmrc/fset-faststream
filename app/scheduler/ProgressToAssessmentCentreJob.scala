@@ -39,10 +39,10 @@ trait ProgressToAssessmentCentreJob extends SingleInstanceScheduledJob[BasicJobC
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     assessmentCentreService.nextApplicationsForAssessmentCentre(batchSize).flatMap {
       case Nil =>
-        logger.info("Progress to assessment centre complete - no candidates found")
+        logger.warn(s"Progress to assessment centre complete - no candidates found - batchSize=$batchSize")
         Future.successful(())
       case applications => assessmentCentreService.progressApplicationsToAssessmentCentre(applications).map { result =>
-        logger.info(
+        logger.warn(
           s"Progress to assessment centre complete - ${result.successes.size} updated " +
             s"appIds: ${result.successes.map(_.applicationId).mkString(",")} and ${result.failures.size} failed to update " +
             s"appIds: ${result.failures.map(_.applicationId).mkString(",")}"

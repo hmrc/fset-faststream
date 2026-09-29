@@ -27,7 +27,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class AcceptFsacAssessorScoresJobImpl @Inject() (val assessmentCentreService: AssessmentCentreService,
                                                    val mongoComponent: MongoComponent,
-                                                   val config: ProgressToAssessmentCentreJobConfig
+                                                   val config: AcceptFsacAssessorScoresJobConfig
                                                   ) extends AcceptFsacAssessorScoresJob {
 }
 
@@ -39,10 +39,10 @@ trait AcceptFsacAssessorScoresJob extends SingleInstanceScheduledJob[BasicJobCon
   def tryExecute()(implicit ec: ExecutionContext): Future[Unit] = {
     assessmentCentreService.findAssessedCandidates(batchSize).flatMap {
       case Nil =>
-        logger.info("Accept FSAC assessor scores job complete - no candidates found")
+        logger.warn(s"Accept FSAC assessor scores job complete - no candidates found - batchSize=$batchSize")
         Future.successful(())
       case applications => assessmentCentreService.approveAssessedCandidates(applications).map { result =>
-        logger.info(
+        logger.warn(
           s"Accept FSAC assessor scores job complete - ${result.successes.size} updated " +
             s"appIds: ${result.successes.map(_.applicationId).mkString(",")} and ${result.failures.size} failed to update " +
             s"appIds: ${result.failures.map(_.applicationId).mkString(",")}"
