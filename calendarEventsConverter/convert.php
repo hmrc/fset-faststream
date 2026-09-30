@@ -11,6 +11,9 @@ error_reporting(E_ALL);
 //
 // Point $csvRoot in the file below to the directory that contains the csv files
 //
+// Run from the calendarEventsConverter
+// cd .../fset-faststream/calendarEventsConverter
+//
 // If you need to debug run as follows for the 2 cities:
 //
 // Debug Newcastle:
@@ -63,7 +66,7 @@ $processingNewcastle = $argc == 3 && strtolower($argv[2]) == "newcastle";
 
 $city = $processingNewcastle ? "newcastle" : "london";
 
-$csvRoot = "../../fs-calendar-events/spreadsheets/2026-2027v2";
+$csvRoot = "../../fs-calendar-events/spreadsheets/2026-2027v3";
 $csvFilename = "{$csvRoot}/{$city}.csv";
 
 $csv = array_map('str_getcsv', file($csvFilename));

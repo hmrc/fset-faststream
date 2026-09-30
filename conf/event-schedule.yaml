@@ -6,7 +6,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -16,13 +16,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -57,7 +57,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -67,13 +67,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -108,7 +108,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -118,13 +118,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -159,7 +159,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -169,13 +169,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -210,7 +210,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -220,13 +220,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -261,7 +261,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -271,13 +271,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -312,7 +312,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -322,13 +322,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -363,7 +363,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -373,13 +373,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -414,7 +414,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -424,13 +424,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -465,7 +465,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -475,13 +475,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -959,14 +959,14 @@
       endTime: !!str 16:30
 
 - eventType: FSAC
-  description: Fast Stream Assessment Centre
+  description: FSAC
   location: Virtual
   venue: VIRTUAL
   date: 2026-11-30
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -976,13 +976,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -1467,7 +1467,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -1477,13 +1477,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -1968,7 +1968,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -1978,13 +1978,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -2469,7 +2469,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -2479,7 +2479,7 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
@@ -2970,7 +2970,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -2980,13 +2980,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -3471,7 +3471,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -3481,13 +3481,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -3972,7 +3972,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -3982,13 +3982,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -4473,7 +4473,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -4483,13 +4483,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -4974,7 +4974,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -4984,13 +4984,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -5475,7 +5475,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -5485,13 +5485,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -5976,7 +5976,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -5986,13 +5986,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -6477,7 +6477,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -6487,13 +6487,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -6978,7 +6978,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -6988,13 +6988,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -7479,7 +7479,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -7489,13 +7489,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -7980,7 +7980,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -7990,13 +7990,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -8481,7 +8481,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -8491,13 +8491,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -8982,7 +8982,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -8992,13 +8992,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -12183,7 +12183,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -12193,13 +12193,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -12684,7 +12684,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -12694,13 +12694,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -13185,7 +13185,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -13195,13 +13195,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -13686,7 +13686,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -13696,13 +13696,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -14187,7 +14187,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -14197,13 +14197,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -14750,7 +14750,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -14760,13 +14760,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -15313,7 +15313,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -15323,13 +15323,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -15876,7 +15876,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -15886,13 +15886,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -16439,7 +16439,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -16449,13 +16449,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -16978,7 +16978,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -16988,13 +16988,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -17541,7 +17541,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -17551,13 +17551,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -18104,7 +18104,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -18114,13 +18114,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -18667,7 +18667,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -18677,13 +18677,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -19230,7 +19230,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -19240,13 +19240,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -19769,7 +19769,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -19779,13 +19779,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -20332,7 +20332,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -20342,13 +20342,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -20895,7 +20895,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -20905,13 +20905,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -21458,7 +21458,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -21468,13 +21468,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -22021,7 +22021,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -22031,13 +22031,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -22560,7 +22560,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -22570,13 +22570,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -23123,7 +23123,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -23133,13 +23133,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -23686,7 +23686,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -23696,13 +23696,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -24249,7 +24249,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -24259,13 +24259,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
@@ -24812,7 +24812,7 @@
   capacity: 100
   minViableAttendees: 6
   attendeeSafetyMargin: 2
-  startTime: !!str 08:00
+  startTime: !!str 08:20
   endTime: !!str 16:20
   skillRequirements:
     ASSESSOR: 20
@@ -24822,13 +24822,13 @@
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:50
     - description: Session 2
       capacity: 10
       minViableAttendees: 8
       attendeeSafetyMargin: 8
-      startTime: !!str 08:20
+      startTime: !!str 08:00
       endTime: !!str 11:25
     - description: Session 3
       capacity: 10
