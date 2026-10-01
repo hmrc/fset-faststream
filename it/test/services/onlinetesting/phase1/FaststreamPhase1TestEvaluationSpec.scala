@@ -68,11 +68,17 @@ class FaststreamPhase1TestEvaluationSpec extends Phase1TestEvaluationSpec {
         Commercial -> Amber, Property -> Red)
     }
 
-    "result in pass results for gis candidates" in new TestFixture {
-      gisApplicationEvaluation("application-1", 35, 35,
-        Commercial, Digital) mustResultIn (
-        PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+    "result in amber when one scheme is amber and the other is green for gis candidates" in new TestFixture {
+      gisApplicationEvaluation("application-1", 35, 35, Commercial, Digital) mustResultIn (
+        PHASE1_TESTS, Some(ProgressStatuses.PHASE1_TESTS_RESULTS_RECEIVED),
         Commercial -> Amber, Digital -> Green)
+    }
+
+    "result in pass results for gis candidates when both schemes are green" in new TestFixture {
+      gisApplicationEvaluation("application-1", 80, 70, Commercial, Digital) mustResultIn (
+        PHASE1_TESTS_PASSED, Some(ProgressStatuses.PHASE1_TESTS_PASSED),
+        Commercial -> Green, Digital -> Green
+      )
     }
 
     "result in pass results on re-evaluation of applicant in amber when passmarks are decreased" in new TestFixture {

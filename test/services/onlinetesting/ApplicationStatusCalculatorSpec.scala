@@ -192,14 +192,20 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec with Schemes {
   }
 
   "determine fast stream phase1 application status" must {
-    "promote the application when at least one Green" in {
+    "not promote the application with a Green but also an Amber" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Faststream, ApplicationStatus.PHASE1_TESTS,
         List(red, amber, green), Phase.PHASE1)
-      newStatus mustBe Some(PHASE1_TESTS_PASSED)
+      newStatus mustBe None
     }
 
     "promote the application for all Greens" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Faststream, ApplicationStatus.PHASE1_TESTS, List(green, green, green),
+        Phase.PHASE1)
+      newStatus mustBe Some(PHASE1_TESTS_PASSED)
+    }
+
+    "promote the application for all Greens and a Red" in {
+      val newStatus = calc.determineApplicationStatus(ApplicationRoute.Faststream, ApplicationStatus.PHASE1_TESTS, List(green, green, red),
         Phase.PHASE1)
       newStatus mustBe Some(PHASE1_TESTS_PASSED)
     }
@@ -229,10 +235,10 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec with Schemes {
   }
 
   "determine phase2 application status" must {
-    "promote the application when at least one Green" in {
+    "not promote the application with one Green also also one Amber" in {
       val newStatus = calc.determineApplicationStatus(ApplicationRoute.Faststream, ApplicationStatus.PHASE2_TESTS, List(red, amber, green),
         Phase.PHASE2)
-      newStatus mustBe Some(PHASE2_TESTS_PASSED)
+      newStatus mustBe None
     }
 
     "promote the application for all Greens" in {
@@ -308,9 +314,9 @@ class ApplicationStatusCalculatorSpec extends BaseServiceSpec with Schemes {
     }
   }
 
-  def red = SchemeEvaluationResult(Commercial, Red.toString)
-  def sdipRed = SchemeEvaluationResult(Sdip, Red.toString)
-  def amber = SchemeEvaluationResult(Commercial, Amber.toString)
-  def green = SchemeEvaluationResult(Commercial, Green.toString)
-  def sdipGreen = SchemeEvaluationResult(Sdip, Green.toString)
+  def red: SchemeEvaluationResult = SchemeEvaluationResult(Commercial, Red.toString)
+  def sdipRed: SchemeEvaluationResult = SchemeEvaluationResult(Sdip, Red.toString)
+  def amber: SchemeEvaluationResult = SchemeEvaluationResult(Commercial, Amber.toString)
+  def green: SchemeEvaluationResult = SchemeEvaluationResult(Commercial, Green.toString)
+  def sdipGreen: SchemeEvaluationResult = SchemeEvaluationResult(Sdip, Green.toString)
 }

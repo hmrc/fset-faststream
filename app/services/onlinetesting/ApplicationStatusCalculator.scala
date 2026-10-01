@@ -102,10 +102,14 @@ trait ApplicationStatusCalculator {
     }
   }
 
-  def processResults(results: List[Result], pass: ProgressStatus, fail: ProgressStatus): Option[ProgressStatus] = {
+  private def processResults(results: List[Result], pass: ProgressStatus, fail: ProgressStatus): Option[ProgressStatus] = {
     if (results.forall(_ == Red)) {
       Some(fail)
-    } else if (results.contains(Green)) {
+    } else if (results.contains(Green) && !results.contains(Amber)) {
+      // We need 1 Green and no Amber schemes for a pass because all schemes must be in a final state.
+      // Otherwise, it would be possible for the candidate to be moved into a pass state, withdraw the schemes
+      // that passed and then after passmark changes, the Amber evaluates to a Red. The candidate would be in
+      // a passed state but with no Green schemes!
       Some(pass)
     } else {
       None
