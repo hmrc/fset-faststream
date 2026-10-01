@@ -151,8 +151,9 @@ class ReportingController @Inject() (cc: ControllerComponents,
     streamPreviousYearCandidatesDetailsReport(
       Seq(Faststream),
       Seq(ApplicationStatus.CREATED, ApplicationStatus.IN_PROGRESS,
-        ApplicationStatus.SUBMITTED, ApplicationStatus.WITHDRAWN,
-        ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER
+        ApplicationStatus.SUBMITTED,
+        ApplicationStatus.SUBMITTED_CHECK_PASSED, ApplicationStatus.SUBMITTED_CHECK_FAILED,
+        ApplicationStatus.WITHDRAWN, ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER
       )
     )
   }
@@ -622,8 +623,9 @@ class ReportingController @Inject() (cc: ControllerComponents,
     streamDataAnalystReport(
       Seq(Faststream),
       Seq(ApplicationStatus.CREATED, ApplicationStatus.IN_PROGRESS,
-        ApplicationStatus.SUBMITTED, ApplicationStatus.WITHDRAWN,
-        ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER
+        ApplicationStatus.SUBMITTED,
+        ApplicationStatus.SUBMITTED_CHECK_PASSED, ApplicationStatus.SUBMITTED_CHECK_FAILED,
+        ApplicationStatus.WITHDRAWN, ApplicationStatus.ELIGIBLE_FOR_JOB_OFFER
       )
     )
   }
