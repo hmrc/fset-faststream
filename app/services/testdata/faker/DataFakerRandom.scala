@@ -58,42 +58,43 @@ trait DataFakerRandom {
 
     def monthNumber: Int = scalaRandom.nextInt(12) + 1
 
-    def sex = randOne(List(
+    def sex: String = randOne(List(
       "Male",
       "Female"))
 
-    def sexualOrientation = randOne(List(
+    def sexualOrientation: String = randOne(List(
       "Heterosexual/straight",
       "Gay/lesbian",
       "Bisexual",
       "Other",
       "I don't know/prefer not to say"))
 
-    def ethnicGroup = randOne(List(
-      "English/Welsh/Scottish/Northern Irish/British",
+    def ethnicGroup: String = randOne(List(
+      "English, Welsh, Scottish, Northern Irish or British",
       "Irish",
       "Gypsy or Irish Traveller",
-      "Other White background",
+      "Roma",
+      "Any other White background",
       "White and Black Caribbean",
       "White and Black African",
       "White and Asian",
-      "Other mixed/multiple ethnic background",
+      "Any other Mixed or Multiple ethnic background",
       "Indian",
       "Pakistani",
       "Bangladeshi",
       "Chinese",
-      "Other Asian background",
+      "Any other Asian background",
       "African",
       "Caribbean",
-      "Other Black/African/Caribbean background",
+      "Any other Black, Black British, or Caribbean background",
       "Arab",
-      "Other ethnic group",
+      "Any other ethnic group",
       "I don't know/prefer not to say"
     ))
 
-    def university = randOne(Universities.list)
+    def university: (String, String) = randOne(Universities.list)
 
-    def parentsOccupation = randOne(List(
+    def parentsOccupation: String = randOne(List(
       "Unemployed but seeking work",
       "Long tern unemployed",
       "Employed",

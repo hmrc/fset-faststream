@@ -132,42 +132,43 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
 
   def locationPreferences = Random.randList(locationRepo.locations.toList, randNumberOfLocations)
 
-  def sex = Random.randOne(List(
+  def sex: String = Random.randOne(List(
     "Male",
     "Female"))
 
-  def sexualOrientation = Random.randOne(List(
+  def sexualOrientation: String = Random.randOne(List(
     "Heterosexual/straight",
     "Gay/lesbian",
     "Bisexual",
     "Other",
     "I don't know/prefer not to say"))
 
-  def ethnicGroup = Random.randOne(List(
-    "English/Welsh/Scottish/Northern Irish/British",
+  def ethnicGroup: String = Random.randOne(List(
+    "English, Welsh, Scottish, Northern Irish or British",
     "Irish",
     "Gypsy or Irish Traveller",
-    "Other White background",
+    "Roma",
+    "Any other White background",
     "White and Black Caribbean",
     "White and Black African",
     "White and Asian",
-    "Other mixed/multiple ethnic background",
+    "Any other Mixed or Multiple ethnic background",
     "Indian",
     "Pakistani",
     "Bangladeshi",
     "Chinese",
-    "Other Asian background",
+    "Any other Asian background",
     "African",
     "Caribbean",
-    "Other Black/African/Caribbean background",
+    "Any other Black, Black British, or Caribbean background",
     "Arab",
-    "Other ethnic group",
+    "Any other ethnic group",
     "I don't know/prefer not to say"
   ))
 
-  def age14to16School = Random.randOne(List("Blue Bees School", "Green Goblins School", "Magenta Monkeys School", "Zany Zebras School"))
+  def age14to16School: String = Random.randOne(List("Blue Bees School", "Green Goblins School", "Magenta Monkeys School", "Zany Zebras School"))
 
-  def schoolType14to16 = Random.randOne(List(
+  def schoolType14to16: String = Random.randOne(List(
     "stateRunOrFunded-selective",
     "stateRunOrFunded-nonSelective",
     "indyOrFeePaying-bursary",
