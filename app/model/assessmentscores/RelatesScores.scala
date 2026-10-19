@@ -18,31 +18,30 @@ package model.assessmentscores
 
 import play.api.libs.json.{Json, OFormat}
 
-// Used to be SeeingTheBigPictureScores
 case class RelatesScores(
-                          b19communicatesEffectively: Option[Double] = None, // exercise 1
-                          b20influencesOthers: Option[Double] = None, // exercise 1
-                          b3selfAware: Option[Double] = None, // exercise 2
-                          b4communicatesEffectively: Option[Double] = None, // exercise 2
-                          b10selfAwareAndManages: Option[Double] = None, // exercise 3
-                          b11communicatesEffectively: Option[Double] = None // exercise 3
+                          b15selfRegulation: Option[Double] = None, // exercise 1
+                          b16personalImpact: Option[Double] = None, // exercise 1
+                          b17communicatesEffectively: Option[Double] = None, // exercise 2
+                          b18influencesOthers: Option[Double] = None, // exercise 2
+                          b19selfRegulation: Option[Double] = None, // exercise 3
+                          b20personalImpact: Option[Double] = None // exercise 3
                         ) {
   override def toString: String =
-    s"b19communicatesEffectively=$b19communicatesEffectively," +
-      s"b20influencesOthers=$b20influencesOthers," +
-      s"b3selfAware=$b3selfAware," +
-      s"b4communicatesEffectively=$b4communicatesEffectively," +
-      s"b10selfAwareAndManages=$b10selfAwareAndManages," +
-      s"b11communicatesEffectively=$b11communicatesEffectively"
+    s"b15selfRegulation=$b15selfRegulation," +
+      s"b16personalImpact=$b16personalImpact," +
+      s"b17communicatesEffectively=$b17communicatesEffectively," +
+      s"b18influencesOthers=$b18influencesOthers," +
+      s"b19selfRegulation=$b19selfRegulation," +
+      s"b20personalImpact=$b20personalImpact"
 }
 
 object RelatesScores {
   private val prefix = "relates"
-  def exercise1Headers: List[String] = List(s"$prefix-b19communicatesEffectively", s"$prefix-b20influencesOthers")
+  def exercise1Headers: List[String] = List(s"$prefix-b15selfRegulation", s"$prefix-b16personalImpact")
 
-  def exercise2Headers: List[String] = List(s"$prefix-b3selfAware", s"$prefix-b4communicatesEffectively")
+  def exercise2Headers: List[String] = List(s"$prefix-b17communicatesEffectively", s"$prefix-b18influencesOthers")
 
-  def exercise3Headers: List[String] = List(s"$prefix-b10selfAwareAndManages", s"$prefix-b11communicatesEffectively")
+  def exercise3Headers: List[String] = List(s"$prefix-b19selfRegulation", s"$prefix-b20personalImpact")
 
   implicit val relatesScoresFormat: OFormat[RelatesScores] = Json.format[RelatesScores]
 }

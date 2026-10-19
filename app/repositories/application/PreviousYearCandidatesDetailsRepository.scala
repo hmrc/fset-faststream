@@ -177,46 +177,43 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
 
   val dataAnalystSiftAnswersHeader: String = "Nationality,Undergrad degree name,Classification,Graduation year"
 
-  val assessmentScoresExerciseAverageFields = Seq(
+  val assessmentScoresExerciseAverageFields: Seq[(String, String)] = Seq(
     "exercise1" -> "overallAverage",
     "exercise2" -> "overallAverage",
     "exercise3" -> "overallAverage"
   )
 
-  val assessmentScoresFeedbackFields = Seq(
-    "exercise1" -> "relatesFeedback,thinksFeedback,strivesFeedback",
-    "exercise2" -> "relatesFeedback,thinksFeedback,strivesFeedback,adaptsFeedback",
-    "exercise3" -> "relatesFeedback,strivesFeedback,adaptsFeedback"
-  )
-
   val assessmentScoresExerciseAverageFieldsMap: Map[String, String] = assessmentScoresExerciseAverageFields.toMap
 
-  val assessmentScoresFeedbackFieldsMap: Map[String, String] = assessmentScoresFeedbackFields.toMap
-
-  val fsacBarScoresHeadersMap = Map(
+  val fsacBarScoresHeadersMap: Map[String, String] = Map(
     "exercise1" ->
-      (RelatesScores.exercise1Headers ++
+      (
         ThinksScores.exercise1Headers ++
+        RelatesScores.exercise1Headers ++
+        AdaptsScores.exercise1Headers ++
         StrivesScores.exercise1Headers
         ).mkString(","),
     "exercise2" ->
-      (RelatesScores.exercise2Headers ++
-      ThinksScores.exercise2Headers ++
-      StrivesScores.exercise2Headers ++
-      AdaptsScores.exercise2Headers
+      (
+        ThinksScores.exercise2Headers ++
+        RelatesScores.exercise2Headers ++
+        StrivesScores.exercise2Headers ++
+        AdaptsScores.exercise2Headers
         ).mkString(","),
     "exercise3" ->
-      (RelatesScores.exercise3Headers ++
+      (
         StrivesScores.exercise3Headers ++
-        AdaptsScores.exercise3Headers
+        AdaptsScores.exercise3Headers ++
+        RelatesScores.exercise3Headers
         ).mkString(",")
   )
 
   def assessmentScoresHeaders(assessor: String): String = {
     assessmentScoresExerciseAverageFields.map(_._1).map { exercise =>
-      s"$assessor $exercise - attended,updatedBy,submittedDate,${assessmentScoresExerciseAverageFieldsMap(exercise)},${assessmentScoresFeedbackFieldsMap(exercise)}," +
+      s"$assessor $exercise - attended,updatedBy,submittedDate," +
+        s"${assessmentScoresExerciseAverageFieldsMap(exercise)}," +
         s"${fsacBarScoresHeadersMap(exercise)}"
-    }.mkString(",") + ",updatedBy,acceptedDate"
+    }.mkString(",")
   }
 
   // TODO: remove this method
@@ -1359,33 +1356,32 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
           val fsacScores = exerciseName match {
             case "exercise1" =>
               List(
-                relatesScoresOpt.flatMap(_.b19communicatesEffectively),
-                relatesScoresOpt.flatMap(_.b20influencesOthers),
-                thinksScoresOpt.flatMap(_.b17thinksAnalytically),
-                thinksScoresOpt.flatMap(_.b18widerContext),
-                strivesScoresOpt.flatMap(_.b21alignsWithGoals),
-                strivesScoresOpt.flatMap(_.b22tacklesRootCause)
+                thinksScoresOpt.flatMap(_.b01holisticThinking),
+                relatesScoresOpt.flatMap(_.b15selfRegulation),
+                relatesScoresOpt.flatMap(_.b16personalImpact),
+                adaptsScoresOpt.flatMap(_.b04generatesNovelApproaches),
+                adaptsScoresOpt.flatMap(_.b05learningAgility),
+                strivesScoresOpt.flatMap(_.b09strivesToImproveAndSucceed),
+                strivesScoresOpt.flatMap(_.b10goalOriented)
               )
             case "exercise2" =>
               List(
-                relatesScoresOpt.flatMap(_.b3selfAware),
-                relatesScoresOpt.flatMap(_.b4communicatesEffectively),
-                thinksScoresOpt.flatMap(_.b1widerContext),
-                thinksScoresOpt.flatMap(_.b2patternsAndInterrelationships),
-                strivesScoresOpt.flatMap(_.b8strivesToSucceed),
-                strivesScoresOpt.flatMap(_.b9goalOriented),
-                adaptsScoresOpt.flatMap(_.b5novelApproaches),
-                adaptsScoresOpt.flatMap(_.b6openToChange),
-                adaptsScoresOpt.flatMap(_.b7learningAgility)
+                thinksScoresOpt.flatMap(_.b02analyticalThinking),
+                thinksScoresOpt.flatMap(_.b03holisticThinking),
+                relatesScoresOpt.flatMap(_.b17communicatesEffectively),
+                relatesScoresOpt.flatMap(_.b18influencesOthers),
+                strivesScoresOpt.flatMap(_.b11goalOrientated),
+                strivesScoresOpt.flatMap(_.b12takesTheInitiative),
+                adaptsScoresOpt.flatMap(_.b06flexibility)
               )
             case "exercise3" =>
               List(
-                relatesScoresOpt.flatMap(_.b10selfAwareAndManages),
-                relatesScoresOpt.flatMap(_.b11communicatesEffectively),
-                strivesScoresOpt.flatMap(_.b15motivation),
-                strivesScoresOpt.flatMap(_.b16commitment),
-                adaptsScoresOpt.flatMap(_.b12consolidatesLearning),
-                adaptsScoresOpt.flatMap(_.b14respondsFlexibily)
+                strivesScoresOpt.flatMap(_.b13motivation),
+                strivesScoresOpt.flatMap(_.b14commitment),
+                adaptsScoresOpt.flatMap(_.b07learningAgility),
+                adaptsScoresOpt.flatMap(_.b08flexibility),
+                relatesScoresOpt.flatMap(_.b19selfRegulation),
+                relatesScoresOpt.flatMap(_.b20personalImpact)
               )
           }
 
@@ -1397,16 +1393,7 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
             assessmentScoresExerciseAverageFieldsMap(exerciseName).split(",").map { field =>
               exerciseOpt.getDoubleOpt(field)
             } ++
-            assessmentScoresFeedbackFieldsMap(exerciseName).split(",").map { field =>
-              exerciseOpt.getStringOpt(field)
-            } ++
             fsacScores.map(_.map(_.toString))
-        } ++ {
-          val sectionOpt = subDocRoot("finalFeedback")(doc)
-          List(
-            sectionOpt.getStringOpt("updatedBy"),
-            sectionOpt.getDateTimeOpt("acceptedDate")
-          )
         }
         val csvRecord = makeRow(csvStr: _*)
         extractAppId(doc) -> csvRecord

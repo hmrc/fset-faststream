@@ -93,7 +93,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       }
       csvExtract.records.size mustBe 1
 
-      val dataElement = csvExtract.elementAt(ApplicationId.toString, 33)
+      val exercise3Strives_b13motivation = 25
+      val dataElement = csvExtract.elementAt(ApplicationId.toString, exercise3Strives_b13motivation)
       dataElement mustBe Some("\"2.0\"")
     }
   }
@@ -135,7 +136,8 @@ trait AssessmentScoresRepositorySpec extends MongoRepositorySpec {
       }
       csvExtract.records.size mustBe 1
 
-      val dataElement = csvExtract.elementAt(ApplicationId.toString, 33)
+      val exercise3Strives_b13motivation = 25
+      val dataElement = csvExtract.elementAt(ApplicationId.toString, exercise3Strives_b13motivation)
       dataElement mustBe Some("\"2.0\"")
     }
 

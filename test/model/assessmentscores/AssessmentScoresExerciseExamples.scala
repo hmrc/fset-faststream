@@ -29,9 +29,9 @@ object AssessmentScoresExerciseExamples {
   val ExampleNoFractions = getExampleNoFractions
   // Create the date truncated to milliseconds as that is the precision of the date stored in mongo
   // and the comparison will work when we fetch the date back from the db and check it
-  lazy val dateTimeNow = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
+  lazy val dateTimeNow: OffsetDateTime = OffsetDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.MILLIS)
 
-  lazy val updatedBy = UniqueIdentifier.randomUniqueIdentifier
+  lazy val updatedBy: UniqueIdentifier = UniqueIdentifier.randomUniqueIdentifier
 
   private def getExample(baseValue: Double): AssessmentScoresExercise = {
     val strategicScore = Some(baseValue + 0.1)
@@ -43,45 +43,36 @@ object AssessmentScoresExerciseExamples {
     AssessmentScoresExercise(
       attended = true,
       Some(RelatesScores(strategicScore, strategicScore, strategicScore, strategicScore)),
-      Some("feedback1"),
-      Some(ThinksScores(analysisScore, analysisScore, analysisScore, analysisScore)),
-      Some("feedback2"),
+      Some(ThinksScores(analysisScore, analysisScore, analysisScore)),
       Some(StrivesScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
-      Some("feedback3"),
-      Some(AdaptsScores(buildingScore, buildingScore, buildingScore,
-        buildingScore, buildingScore)),
-      Some("feedback4"),
+      Some(AdaptsScores(buildingScore, buildingScore, buildingScore, buildingScore, buildingScore)),
       updatedBy,
-      Some(dateTimeNow),
-      Some(dateTimeNow),
+      savedDate = Some(dateTimeNow),
+      submittedDate = Some(dateTimeNow),
       averageScore,
-      Some(UniqueIdentifier.randomUniqueIdentifier.toString())
+      version = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
     )
   }
 
   private def getExampleNoFractions: AssessmentScoresExercise = {
     val baseValue = 2.0
-    val strategicScore = Some(baseValue)
-    val analysisScore = Some(baseValue)
-    val leadingScore = Some(baseValue)
-    val buildingScore = Some(baseValue)
+    val relatesScore = Some(baseValue)
+    val thinksScore = Some(baseValue)
+    val strivesScore = Some(baseValue)
+    val adaptsScore = Some(baseValue)
     val averageScore = Some(baseValue)
 
     AssessmentScoresExercise(
       attended = true,
-      Some(RelatesScores(strategicScore, strategicScore, strategicScore, strategicScore)),
-      Some("feedback1"),
-      Some(ThinksScores(analysisScore, analysisScore, analysisScore, analysisScore)),
-      Some("feedback2"),
-      Some(StrivesScores(leadingScore, leadingScore, leadingScore, leadingScore, leadingScore)),
-      Some("feedback3"),
-      Some(AdaptsScores(buildingScore, buildingScore, buildingScore, buildingScore, buildingScore)),
-      Some("feedback4"),
+      Some(RelatesScores(relatesScore, relatesScore, relatesScore, relatesScore)),
+      Some(ThinksScores(thinksScore, thinksScore, thinksScore)),
+      Some(StrivesScores(strivesScore, strivesScore, strivesScore, strivesScore, strivesScore)),
+      Some(AdaptsScores(adaptsScore, adaptsScore, adaptsScore, adaptsScore, adaptsScore)),
       updatedBy,
-      Some(dateTimeNow),
-      Some(dateTimeNow),
+      savedDate = Some(dateTimeNow),
+      submittedDate = Some(dateTimeNow),
       averageScore,
-      Some(UniqueIdentifier.randomUniqueIdentifier.toString())
+      version = Some(UniqueIdentifier.randomUniqueIdentifier.toString())
     )
   }
 }

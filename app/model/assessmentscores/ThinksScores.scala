@@ -18,25 +18,22 @@ package model.assessmentscores
 
 import play.api.libs.json.{Json, OFormat}
 
-// Used to be MakingEffectiveDecisionsScores
 case class ThinksScores(
-                         b17thinksAnalytically: Option[Double] = None, // exercise 1
-                         b18widerContext: Option[Double] = None, // exercise 1
-                         b1widerContext: Option[Double] = None, // exercise 2
-                         b2patternsAndInterrelationships: Option[Double] = None // exercise 2
+                         b01holisticThinking: Option[Double] = None, // exercise 1
+                         b02analyticalThinking: Option[Double] = None, // exercise 2
+                         b03holisticThinking: Option[Double] = None // exercise 2
                        ) {
   override def toString: String =
-    s"b17thinksAnalytically=$b17thinksAnalytically," +
-      s"b18widerContext=$b18widerContext," +
-      s"b1widerContext=$b1widerContext," +
-      s"b2patternsAndInterrelationships=$b2patternsAndInterrelationships"
+    s"b01holisticThinking=$b01holisticThinking," +
+      s"b02analyticalThinking=$b02analyticalThinking," +
+      s"b03holisticThinking=$b03holisticThinking"
 }
 
 object ThinksScores {
   private val prefix = "thinks"
-  def exercise1Headers: List[String] = List(s"$prefix-b17thinksAnalytically", s"$prefix-b18widerContext")
+  def exercise1Headers: List[String] = List(s"$prefix-b01holisticThinking")
 
-  def exercise2Headers: List[String] = List(s"$prefix-b1widerContext", s"$prefix-b2patternsAndInterrelationships")
+  def exercise2Headers: List[String] = List(s"$prefix-b02analyticalThinking", s"$prefix-b03holisticThinking")
 
   implicit val thinksScoresFormat: OFormat[ThinksScores] = Json.format[ThinksScores]
 }

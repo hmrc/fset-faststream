@@ -71,10 +71,6 @@ class ReportingController @Inject() (cc: ControllerComponents,
   implicit val ec: ExecutionContext = cc.executionContext
 
   def fsacScores(): Action[AnyContent] = Action.async {
-    def removeFeedback(assessmentScoresExercise: AssessmentScoresExerciseExchange) =
-      assessmentScoresExercise.copy(relatesFeedback = None, thinksFeedback = None,
-        strivesFeedback = None, adaptsFeedback = None)
-
     val reports = for {
       fsacResults <- assessmentScoresRepository.findAll
     } yield {
@@ -82,9 +78,9 @@ class ReportingController @Inject() (cc: ControllerComponents,
         val exchangeData = data.toExchange
         FsacScoresReportItem(
           exchangeData.applicationId.toString(),
-          exchangeData.exercise1.map(removeFeedback),
-          exchangeData.exercise2.map(removeFeedback),
-          exchangeData.exercise3.map(removeFeedback)
+          exchangeData.exercise1,
+          exchangeData.exercise2,
+          exchangeData.exercise3
         )
       }
     }
