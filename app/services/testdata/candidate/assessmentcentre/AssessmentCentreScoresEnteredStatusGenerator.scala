@@ -48,14 +48,11 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
       Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     thinksScores = Some(ThinksScores(
-      Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+      Some(1.0), Some(1.0), Some(1.0)
     )),
     strivesScores = Some(StrivesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
-    )),
-    relatesFeedback = Some("Strategic approach feedback " + assessorOrReviewer),
-    thinksFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
-    strivesFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
+    ))
   )
 
   def exercise2Sample(assessorOrReviewer: String): AssessmentScoresExercise = AssessmentScoresExercise(
@@ -63,17 +60,14 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     overallAverage = Some(4.0),
     updatedBy = updatedBy,
     thinksScores = Some(ThinksScores(
-      Some(1.0), Some(1.0), Some(1.0), Some(1.0)
+      Some(1.0), Some(1.0), Some(1.0)
     )),
     adaptsScores = Some(AdaptsScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
     )),
     strivesScores = Some(StrivesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0), Some(1.0)
-    )),
-    thinksFeedback = Some("Analysis and Decision feedback" + assessorOrReviewer),
-    adaptsFeedback = Some("Building Productive feedback" + assessorOrReviewer),
-    strivesFeedback = Some("Leading and communicating feedback" + assessorOrReviewer)
+    ))
   )
 
   def exercise3Sample(assessorOrReviewer: String): AssessmentScoresExercise = AssessmentScoresExercise(
@@ -88,10 +82,7 @@ class AssessmentCentreScoresEnteredStatusGenerator @Inject() (val previousStatus
     )),
     relatesScores = Some(RelatesScores(
       Some(1.0), Some(1.0), Some(1.0), Some(1.0)
-    )),
-    adaptsFeedback = Some("Building Productive feedback " + assessorOrReviewer),
-    strivesFeedback = Some("Leading and communicating feedback " + assessorOrReviewer),
-    relatesFeedback = Some("Strategic approach feedback " + assessorOrReviewer)
+    ))
   )
 
   def finalFeedbackSample(assessorOrReviewer: String): AssessmentScoresFinalFeedback = AssessmentScoresFinalFeedback(

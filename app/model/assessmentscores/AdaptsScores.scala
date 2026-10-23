@@ -18,27 +18,28 @@ package model.assessmentscores
 
 import play.api.libs.json.{Json, OFormat}
 
-// Used to be WorkingTogetherDevelopingSelfAndOtherScores
 case class AdaptsScores(
-                         b5novelApproaches: Option[Double] = None, // exercise 2
-                         b6openToChange: Option[Double] = None, // exercise 2
-                         b7learningAgility: Option[Double] = None, // exercise 2
-                         b12consolidatesLearning: Option[Double] = None, // exercise 3
-                         b14respondsFlexibily: Option[Double] = None // exercise 3
+                         b04generatesNovelApproaches: Option[Double] = None, // exercise 1
+                         b05learningAgility: Option[Double] = None, // exercise 1
+                         b06flexibility: Option[Double] = None, // exercise 2
+                         b07learningAgility: Option[Double] = None, // exercise 3
+                         b08flexibility: Option[Double] = None // exercise 3
                        ) {
   override def toString: String =
-    s"b5novelApproaches=$b5novelApproaches," +
-      s"b6openToChange=$b6openToChange," +
-      s"b7learningAgility=$b7learningAgility," +
-      s"b12consolidatesLearning=$b12consolidatesLearning," +
-      s"b14respondsFlexibily=$b14respondsFlexibily"
+    s"b04generatesNovelApproaches=$b04generatesNovelApproaches," +
+      s"b05learningAgility=$b05learningAgility," +
+      s"b06flexibility=$b06flexibility," +
+      s"b07learningAgility=$b07learningAgility," +
+      s"b08flexibility=$b08flexibility"
 }
 
 object AdaptsScores {
   private val prefix = "adapts"
-  def exercise2Headers: List[String] = List(s"$prefix-b5novelApproaches", s"$prefix-b6openToChange", s"$prefix-b7learningAgility")
+  def exercise1Headers: List[String] = List(s"$prefix-b04generatesNovelApproaches", s"$prefix-b05learningAgility")
 
-  def exercise3Headers: List[String] = List(s"$prefix-b12consolidatesLearning", s"$prefix-b14respondsFlexibily")
+  def exercise2Headers: List[String] = List(s"$prefix-b06flexibility")
+
+  def exercise3Headers: List[String] = List(s"$prefix-b07learningAgility", s"$prefix-b08flexibility")
 
   implicit val adaptsScoresFormat: OFormat[AdaptsScores] =
     Json.format[AdaptsScores]

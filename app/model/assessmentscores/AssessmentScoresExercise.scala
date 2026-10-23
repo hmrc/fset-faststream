@@ -24,21 +24,10 @@ import java.time.OffsetDateTime
 case class AssessmentScoresExercise(
                                      attended: Boolean,
 
-                                     // was seeingTheBigPictureScores
                                      relatesScores: Option[RelatesScores] = None,
-                                     relatesFeedback: Option[String] = None,
-
-                                     // was makingEffectiveDecisions
                                      thinksScores: Option[ThinksScores] = None,
-                                     thinksFeedback: Option[String] = None,
-
-                                     // was communicatingAndInfluencing
                                      strivesScores: Option[StrivesScores] = None,
-                                     strivesFeedback: Option[String] = None,
-
-                                     // was workingTogetherDevelopingSelfAndOthers
                                      adaptsScores: Option[AdaptsScores] = None,
-                                     adaptsFeedback: Option[String] = None,
 
                                      updatedBy: UniqueIdentifier,
                                      savedDate: Option[OffsetDateTime] = None,
@@ -46,18 +35,14 @@ case class AssessmentScoresExercise(
                                      overallAverage: Option[Double] = None,
                                      version: Option[String] = None
 ) extends AssessmentScoresSection {
-  def isSubmitted = submittedDate.isDefined
+  def isSubmitted: Boolean = submittedDate.isDefined
 
   override def toString: String = {
     s"attended:$attended," +
     s"relatesScores:$relatesScores," +
-    s"relatesFeedback:$relatesFeedback," +
     s"thinksScores:$thinksScores," +
-    s"thinksFeedback:$thinksFeedback," +
     s"strivesScores:$strivesScores," +
-    s"strivesFeedback:$strivesFeedback," +
     s"adaptsScores:$adaptsScores," +
-    s"adaptsFeedback:$adaptsFeedback," +
     s"updatedBy:$updatedBy," +
     s"savedDate:$savedDate," +
     s"submittedDate:$submittedDate," +
@@ -65,17 +50,13 @@ case class AssessmentScoresExercise(
     s"version:$version"
   }
 
-  def toExchange =
+  def toExchange: AssessmentScoresExerciseExchange =
     AssessmentScoresExerciseExchange(
       attended,
       relatesScores,
-      relatesFeedback,
       thinksScores,
-      thinksFeedback,
       strivesScores,
-      strivesFeedback,
       adaptsScores,
-      adaptsFeedback,
       updatedBy,
       savedDate,
       submittedDate,
@@ -93,21 +74,10 @@ object AssessmentScoresExercise {
 case class AssessmentScoresExerciseExchange(
                                              attended: Boolean,
 
-                                             // was seeingTheBigPicture
                                              relatesScores: Option[RelatesScores] = None,
-                                             relatesFeedback: Option[String] = None,
-
-                                             // was makingEffectiveDecisions
                                              thinksScores: Option[ThinksScores] = None,
-                                             thinksFeedback: Option[String] = None,
-
-                                             // was communicatingAndInfluencing
                                              strivesScores: Option[StrivesScores] = None,
-                                             strivesFeedback: Option[String] = None,
-
-                                             // was workingTogetherDevelopingSelfAndOthers
                                              adaptsScores: Option[AdaptsScores] =None,
-                                             adaptsFeedback: Option[String] = None,
 
                                              updatedBy: UniqueIdentifier,
                                              savedDate: Option[OffsetDateTime] = None,
@@ -116,17 +86,13 @@ case class AssessmentScoresExerciseExchange(
                                              version: Option[String] = None
                                    ) extends AssessmentScoresSection {
   //scalastyle:on
-  def toPersistence =
+  def toPersistence: AssessmentScoresExercise =
     AssessmentScoresExercise(
       attended,
       relatesScores,
-      relatesFeedback,
       thinksScores,
-      thinksFeedback,
       strivesScores,
-      strivesFeedback,
       adaptsScores,
-      adaptsFeedback,
       updatedBy,
       savedDate,
       submittedDate,
@@ -136,13 +102,9 @@ case class AssessmentScoresExerciseExchange(
 
   override def toString: String = s"attended=$attended," +
     s"relatesScores=$relatesScores," +
-    s"relatesFeedback=$relatesFeedback," +
     s"thinksScores=$thinksScores," +
-    s"thinksFeedback=$thinksFeedback," +
     s"strivesScores=$strivesScores," +
-    s"strivesFeedback=$strivesFeedback," +
     s"adaptsScores=$adaptsScores," +
-    s"adaptsFeedback=$adaptsFeedback," +
     s"updatedBy=$updatedBy," +
     s"savedDate=$savedDate," +
     s"submittedDate=$submittedDate," +
