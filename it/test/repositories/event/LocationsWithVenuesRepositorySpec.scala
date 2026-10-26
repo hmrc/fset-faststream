@@ -30,16 +30,15 @@ class LocationsWithVenuesRepositorySpec extends UnitWithAppSpec {
   "LocationsWithVenuesRepository" should {
     "fetch the expected locations with venues" in new TestFixture {
       val result = repository.locationsWithVenuesList.futureValue
-      result.size mustBe 4
+      result.size mustBe 3
       val locationNames = result.map ( _.name )
-      locationNames must contain theSameElementsAs List("London", "Newcastle", "Virtual", "Home")
+      locationNames must contain theSameElementsAs List("London", "Virtual", "Home")
     }
 
     "fetch the expected locations" in new TestFixture {
       repository.location("Virtual").futureValue mustBe Location("Virtual")
       repository.location("Home").futureValue mustBe Location("Home")
       repository.location("London").futureValue mustBe Location("London")
-      repository.location("Newcastle").futureValue mustBe Location("Newcastle")
     }
 
     "throw an exception if the location doesn't exist" in new TestFixture {
@@ -50,16 +49,14 @@ class LocationsWithVenuesRepositorySpec extends UnitWithAppSpec {
     "fetch the locations as reference data" in new TestFixture {
       repository.locations.futureValue mustBe
         ReferenceData(
-          options = List(Location("London"), Location("Newcastle"), Location("Virtual"), Location("Home")),
+          options = List(Location("London"), Location("Virtual"), Location("Home")),
           default = Location("London"), aggregate = Location("All")
         )
     }
 
     "fetch the expected venues" in new TestFixture {
-      repository.venue("LONDON_FSAC").futureValue mustBe Venue("LONDON_FSAC", "London (100 Parliament Street)")
       repository.venue("LONDON_FSB").futureValue mustBe Venue("LONDON_FSB", "London (FCO King Charles Street)")
       repository.venue("VIRTUAL").futureValue mustBe Venue("VIRTUAL", "Virtual")
-      repository.venue("NEWCASTLE_FSAC").futureValue mustBe Venue("NEWCASTLE_FSAC", "Newcastle (Tyne View Park)")
     }
 
     "throw an exception if the venue doesn't exist" in new TestFixture {
@@ -71,9 +68,7 @@ class LocationsWithVenuesRepositorySpec extends UnitWithAppSpec {
       repository.venues.futureValue mustBe
         ReferenceData(
           options = List(
-            Venue("LONDON_FSAC", "London (100 Parliament Street)"),
             Venue("LONDON_FSB", "London (FCO King Charles Street)"),
-            Venue("NEWCASTLE_FSAC" ,"Newcastle (Tyne View Park)"),
             Venue("VIRTUAL", "Virtual")),
           default = Venue("VIRTUAL", "Virtual"),
           aggregate = Venue("ALL_VENUES", "All venues")
