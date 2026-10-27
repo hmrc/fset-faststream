@@ -55,7 +55,7 @@ class LocationsWithVenuesRepositorySpec extends UnitWithAppSpec {
     }
 
     "fetch the expected venues" in new TestFixture {
-      repository.venue("LONDON_FSB").futureValue mustBe Venue("LONDON_FSB", "London (FCO King Charles Street)")
+      repository.venue("LONDON_FSB").futureValue mustBe Venue("LONDON_FSB", "London (FCDO King Charles Street)")
       repository.venue("VIRTUAL").futureValue mustBe Venue("VIRTUAL", "Virtual")
     }
 
@@ -68,7 +68,7 @@ class LocationsWithVenuesRepositorySpec extends UnitWithAppSpec {
       repository.venues.futureValue mustBe
         ReferenceData(
           options = List(
-            Venue("LONDON_FSB", "London (FCO King Charles Street)"),
+            Venue("LONDON_FSB", "London (FCDO King Charles Street)"),
             Venue("VIRTUAL", "Virtual")),
           default = Venue("VIRTUAL", "Virtual"),
           aggregate = Venue("ALL_VENUES", "All venues")
