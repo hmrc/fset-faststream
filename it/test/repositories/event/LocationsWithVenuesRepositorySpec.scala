@@ -30,9 +30,8 @@ class LocationsWithVenuesRepositorySpec extends UnitWithAppSpec {
   "LocationsWithVenuesRepository" should {
     "fetch the expected locations with venues" in new TestFixture {
       val result = repository.locationsWithVenuesList.futureValue
-      result.size mustBe 3
       val locationNames = result.map ( _.name )
-      locationNames must contain theSameElementsAs List("London", "Virtual", "Home")
+      locationNames must contain theSameElementsAs List("London", "Yorkshire", "Virtual", "Home")
     }
 
     "fetch the expected locations" in new TestFixture {
@@ -49,13 +48,14 @@ class LocationsWithVenuesRepositorySpec extends UnitWithAppSpec {
     "fetch the locations as reference data" in new TestFixture {
       repository.locations.futureValue mustBe
         ReferenceData(
-          options = List(Location("London"), Location("Virtual"), Location("Home")),
+          options = List(Location("London"), Location("Yorkshire"), Location("Virtual"), Location("Home")),
           default = Location("London"), aggregate = Location("All")
         )
     }
 
     "fetch the expected venues" in new TestFixture {
       repository.venue("LONDON_FSB").futureValue mustBe Venue("LONDON_FSB", "London (FCDO King Charles Street)")
+      repository.venue("YHFS_FSB").futureValue mustBe Venue("YHFS_FSB", "Sheffield Kings Court 80 Hanover Way")
       repository.venue("VIRTUAL").futureValue mustBe Venue("VIRTUAL", "Virtual")
     }
 
@@ -69,6 +69,7 @@ class LocationsWithVenuesRepositorySpec extends UnitWithAppSpec {
         ReferenceData(
           options = List(
             Venue("LONDON_FSB", "London (FCDO King Charles Street)"),
+            Venue("YHFS_FSB", "Sheffield Kings Court 80 Hanover Way"),
             Venue("VIRTUAL", "Virtual")),
           default = Venue("VIRTUAL", "Virtual"),
           aggregate = Venue("ALL_VENUES", "All venues")
