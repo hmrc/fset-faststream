@@ -1,6 +1,9 @@
 London:
   - LONDON_FSB:
       description: London (FCDO King Charles Street)
+Yorkshire:
+  - YHFS_FSB:
+      description: Sheffield Kings Court 80 Hanover Way
 Virtual:
   - VIRTUAL:
       description: Virtual
