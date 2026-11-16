@@ -115,8 +115,8 @@ trait PreviousYearCandidatesDetailsRepository extends Schemes {
   "Physical impairment,Deaf,Blind,Development condition,No known impairment,Condition not listed,Prefer not to say,Other,Other description,"
 
   val sdipLocationsAndInterestsHeaders = "SDIP location1,location2,location3,location4," +
-    "SDIP interests - Commercial,Cyber,Digital and Data,Diplomacy and IR,Economics,Finance,Governance,Operational Delivery,People," +
-    "Policy Development,Project Management,Science and Engineering,Statistics and Research,"
+    "SDIP interests - Commercial & Finance,Cyber Data & Digital,People & Places,Policy & Governance,Operational Delivery," +
+    "Science & Engineering,Statistics & Analysis,"
 
   def dataAnalystApplicationDetailsHeader(numOfSchemes: Int) =
     "ApplicationId,Date of Birth,Application status,Route,All FS schemes failed SDIP not failed," +
@@ -1732,19 +1732,13 @@ class PreviousYearCandidatesDetailsMongoRepository @Inject() (val dateTimeFactor
 
   private def markSdipInterests(interests: List[String]) = {
     val sdipInterestsList = List(
-      "Commercial",
-      "Cyber",
-      "Digital and Data",
-      "Diplomacy and International Relations",
-      "Economics",
-      "Finance",
-      "Governance",
+      "Commercial & Finance",
+      "Cyber, Data & Digital",
+      "People & Places",
+      "Policy & Governance",
       "Operational Delivery",
-      "People",
-      "Policy Development",
-      "Project Management",
-      "Science and Engineering",
-      "Statistics and Research"
+      "Science & Engineering",
+      "Statistics & Analysis"
     )
     sdipInterestsList.map(interest => if (interests.contains(interest)) Y else N)
   }
