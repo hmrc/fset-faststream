@@ -24,9 +24,9 @@ import scala.language.postfixOps
 trait DataFakerRandom {
 
   object Random {
-    val scalaRandom = scala.util.Random
+    val scalaRandom: util.Random.type = scala.util.Random
 
-    def randOne[T](options: List[T], cannotBe: List[T] = Nil) = {
+    def randOne[T](options: List[T], cannotBe: List[T] = Nil): T = {
       val filtered = options.filterNot(cannotBe.contains)
       if (filtered.isEmpty) {
         throw DataFakingException(s"There were no items left after filtering.")
@@ -37,7 +37,6 @@ trait DataFakerRandom {
 
     def randList[T](options: List[T], size: Int, cannotBe: List[T] = Nil): List[T] = {
       if (size > 0) {
-
         val filtered = options.filterNot(cannotBe.contains)
         if (filtered.isEmpty) {
           throw DataFakingException(s"There were no items left after filtering.")
