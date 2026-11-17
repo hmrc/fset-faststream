@@ -309,7 +309,7 @@ abstract class DataFaker(schemeRepo: SchemeRepository,
       if (description.contains("interview")) {
         Location("Virtual")
       } else {
-        Random.randOne(List(Location("London"), Location("Newcastle")))
+        Random.randOne(List(Location("London"), Location("Yorkshire")))
       }
     }
 
